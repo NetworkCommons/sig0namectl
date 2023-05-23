@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-NEW_SUBZONE=${NEW_SUBZONE:-"_test"}
+NEW_SUBZONE=${NEW_SUBZONE:-"testzone"}
 PARENT_ZONE=${PARENT_ZONE:-"zenr.io"}
 
 NEW_ZONE_SERVER_FQDN=${NEW_ZONE_SERVER_FQDN:-"dns-oarc.free2air.net"}
@@ -22,7 +22,7 @@ echo "ZONEFILE_PATH = ${ZONEFILE_PATH}"
 
 # check path exists
 mkdir -p ${ZONEFILE_PATH}
-chown -R bind:bind ${ZONEFILE_PATH}
+chown -R ${ZONEFILE_PATH_OWNER} ${ZONEFILE_PATH}
 cd ${ZONEFILE_PATH}
 
 cat <<EOF >${NEW_ZONEFILE} 
@@ -30,7 +30,7 @@ cat <<EOF >${NEW_ZONEFILE}
 \$TTL 360        ; 6 minutes
 
 ${NEW_ZONE}                IN SOA  ${NEW_ZONE_SERVER_FQDN}. ${NEW_ZONE_CONTACT} (
-                                2006243476 ; serial
+                                2007243476 ; serial
                                 10800      ; refresh (3 hours)
                                 900        ; retry (15 minutes)
                                 604800     ; expire (1 week)
@@ -61,5 +61,11 @@ done
 #
 SALT=`head -c 1000 /dev/random | sha1sum | cut -b 1-16`
 dnssec-signzone -3 ${SALT} -A -N INCREMENT -o ${NEW_ZONE} -t ${NEW_ZONEFILE}
+
+# for dynamic zones, bind detects *.signed and *.jnl files
+# as we are bootstrapping this from a dns to dnssec zone, we just copy over the plain dns zonefile with the signed one.
+
+mv ${NEW_ZONEFILE}.signed ${NEW_ZONEFILE}
+chown -R ${ZONEFILE_PATH_OWNER} ${NEW_ZONEFILE}
 
 cd -
