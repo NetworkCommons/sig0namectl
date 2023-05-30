@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-
+# To be run on primary DNS host to be delegated new DNSSEC zone
 echo
 echo "Executing ${PWD}/$0 on host ${HOSTNAME}"
 
@@ -58,17 +58,17 @@ echo
 echo "ZONE = ${ZONE}"
 echo "ZONE_SOA_MASTER = ${ZONE_SOA_MASTER}"
 
-
-echo
 echo
 echo "NEW_ZONE = ${NEW_ZONE}"
 
 echo "NEW_ZONE_PATH = ${NEW_ZONE_PATH}"
 echo "NEW_ZONE_FILENAME = ${NEW_ZONE_FILENAME}"
 echo "NEW_ZONE_PATH_OWNER = ${NEW_ZONE_PATH_OWNER}"
+
 echo
 echo "NEW_ZONE_SOA_MASTER = ${NEW_ZONE_SOA_MASTER}"
 echo "NEW_ZONE_SOA_CONTACT = ${NEW_ZONE_SOA_CONTACT}"
+
 echo
 echo " New zone ${NEW_SUBZONE} to be created under ${ZONE} with update server ${ZONE_SOA_MASTER}"
 
@@ -80,16 +80,12 @@ else
 	chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_PATH} || exit 1
 fi
 
-cd ${NEW_ZONE_PATH}
-
 if [ -f "${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}" ]; then
 	echo "Error: zonefile ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME} already exists"
 	exit 1
 fi
 
-# exit
-
-cat <<EOF >${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME} 
+cat <<EOF >${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}.unsigned 
 \$ORIGIN .
 \$TTL 360        ; 6 minutes
 
@@ -116,20 +112,17 @@ dnssec-keygen -K ${NEW_ZONE_KEY_PATH} -f KSK -a ${NEW_ZONE_DNSSEC_ALGORITHM} -b 
 
 #  add the ZSK & KSK public keys to zone
 #
-for key in `ls K${NEW_ZONE}*.key`
+for key in `ls ${NEW_ZONE_PATH}/K${NEW_ZONE}*.key`
 do
-echo "\$INCLUDE $key">> ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}
+echo "\$INCLUDE $key">> ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}.unsigned
 done
 
 # sign zone
 #
-SALT=`head -c 1000 /dev/random | sha1sum | cut -b 1-16`
-dnssec-signzone -K ${NEW_ZONE_KEY_PATH} -3 ${SALT} -A -N INCREMENT -o ${NEW_ZONE} -t ${NEW_ZONE_FILENAME}
-
 # for dynamic zones, bind detects *.signed and *.jnl files
-# as we are bootstrapping this from a dns to dnssec zone, we just copy over the plain dns zonefile with the signed one.
+# as we are bootstrapping this from a dns to dnssec zone bind config, we just place zonefile without .signed extension.
 
-mv ${NEW_ZONE_FILENAME}.signed ${NEW_ZONE_FILENAME}
-chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_FILENAME}
+SALT=`head -c 1000 /dev/random | sha1sum | cut -b 1-16`
+dnssec-signzone -K ${NEW_ZONE_PATH} -3 ${SALT} -A -N INCREMENT -o ${NEW_ZONE} -t -f ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME} -d ${NEW_ZONE_PATH} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}.unsigned 
+chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}
 
-cd -
