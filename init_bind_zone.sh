@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # To be run on primary DNS host to be delegated new DNSSEC zone
+#------------------------------------------------------------------------------
 echo
 echo "Executing ${PWD}/$0 on host ${HOSTNAME}"
 
@@ -33,6 +34,8 @@ fi
 #
 NEW_SUBZONE=${NEW_SUBZONE:-"testzone"}
 NEW_ZONE="${NEW_SUBZONE}.${ZONE}"
+
+#------------------------------------------------------------------------------
 
 # Define path, ownership & BIND zone filename for new zone
 # TODO discover this from BIND configuration and/or OS defaults
@@ -126,3 +129,10 @@ SALT=`head -c 1000 /dev/random | sha1sum | cut -b 1-16`
 dnssec-signzone -K ${NEW_ZONE_PATH} -3 ${SALT} -A -N INCREMENT -o ${NEW_ZONE} -t -f ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME} -d ${NEW_ZONE_PATH} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}.unsigned 
 chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}
 
+
+# testing - should be in another script?
+# collect (c)ds & (c)dnskey records
+#
+NEW_ZONE_ITEM_DS="`cat ${NEW_ZONE_PATH}/dsset-${NEW_ZONE}.`"
+
+echo "NEW_ZONE_ITEM_DS = ${NEW_ZONE_ITEM_DS}"
