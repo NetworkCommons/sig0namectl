@@ -22,20 +22,24 @@ if [[ ! -n ${ZONE} ]]; then
         exit 1
 fi
 
-# Discover master (usually primary DNS server) of parent zone from SOA record
+# Discover master (usually primary DNS server) of zone from SOA record
 #
 DIG_QUERY_PARAM=${DIG_QUERY_PARAM:-}
 ZONE_SOA_MASTER=${ZONE_SOA_MASTER:-$(dig ${DIG_QUERY_PARAM} +short ${ZONE} SOA | cut -f1 -d' ')}
 if [[ ! -n ${ZONE_SOA_MASTER} ]]; then
-        echo "Warning: Parent ZONE ${ZONE} SOA record does not resolve"
+        echo "Warning: ZONE ${ZONE} SOA record does not resolve"
 fi
+
+#------------------------------------------------------------------------------
 
 # Define zone to install on local BIND server
 #
+if [[ ! -n ${NEW_SUBZONE} ]]; then
+        echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefines"
+fi
 NEW_SUBZONE=${NEW_SUBZONE:-"testzone"}
 NEW_ZONE="${NEW_SUBZONE}.${ZONE}"
 
-#------------------------------------------------------------------------------
 
 # test
 NEW_SUBZONE_UPDATE_KEYPAIR="/home/vortex/src/great-dane/test_go/Kzembla.zenr.io.+015+23799"
