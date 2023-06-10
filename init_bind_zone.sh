@@ -134,5 +134,7 @@ chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}
 # collect (c)ds & (c)dnskey records
 #
 NEW_ZONE_ITEM_DS="`cat ${NEW_ZONE_PATH}/dsset-${NEW_ZONE}.`"
+NEW_ZONE_ITEM_CDS="`echo ${NEW_ZONE_ITEM_DS} | sed  "s/ DS / CDS /"`"
 
 echo "NEW_ZONE_ITEM_DS = ${NEW_ZONE_ITEM_DS}"
+echo "NEW_ZONE_ITEM_CDS = ${NEW_ZONE_ITEM_CDS}"

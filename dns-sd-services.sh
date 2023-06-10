@@ -2,7 +2,9 @@
 #
 # Sends DNS-DS updates for domain registration and browsing records
 #------------------------------------------------------------------------------
+
 SCRIPT_NAME="${0#*/}"
+
 # Source env file for project-wide variable default values
 ENV_FILE=${ENV_FILE:-".env"}
 if [ -e ${ENV_FILE} ]
