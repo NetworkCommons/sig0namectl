@@ -40,7 +40,6 @@ fi
 #------------------------------------------------------------------------------
 # test
 
-
 NEW_SUBZONE=${NEW_SUBZONE:-""}
 
 # select zone or subdomain within zone
@@ -59,10 +58,14 @@ fi
 # Form NSUPDATE input
 #
 
+. functions/*.sh
+[[ ! -n ${NSUPDATE_SIG0_KEY} ]] && get_sig0_keypair NSUPDATE_SIG0_KEY ${DNSSD_DOMAIN} ${SIG0_KEYPATH}
+
+
+
 # form SIG0 private auth key param
-NSUPDATE_SIG0_KEY="/home/vortex/src/great-dane/test_go/Kzembla.zenr.io.+015+23799"
 if [[ -n ${NSUPDATE_SIG0_KEY} ]]; then
-	NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${NSUPDATE_SIG0_KEY}.key"
+	NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${SIG0_KEYPATH}/${NSUPDATE_SIG0_KEY}"
 else
 	NSUPDATE_PARAM=""
 fi
@@ -82,7 +85,7 @@ fi
 NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} lb._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
 
 # set RR TTLs
-NSUPDATE_TTL="600"
+NSUPDATE_TTL="60"
 
 # define DNS RR updates
 NSUPDATE_INPUT="${NSUPDATE_SET_SERVER}\n"
@@ -106,7 +109,7 @@ if [[ -n ${DEBUG} ]]; then
 	echo "  NSUPDATE_SET_SERVER       = ${NSUPDATE_SET_SERVER}"
 	echo "  NSUPDATE_ACTION           = ${NSUPDATE_ACTION}"
 	echo "  NSUPDATE_PRECONDITION_SET = ${NSUPDATE_PRECONDITION_SET} (not implemented for ${SCRIPT_NAME})"
-	echo 
+	echo
 	echo "DEBUG: nsupdate commands to send"
 	echo
 	echo "NSUPDATE_SET_SERVER       = ${NSUPDATE_SET_SERVER}"
@@ -124,6 +127,10 @@ echo -e "${NSUPDATE_INPUT}" | nsupdate ${NSUPDATE_PARAM}
 
 if [[ -n ${DEBUG} ]]; then
 	echo
-	echo "Browsable services"
+	echo "Browsable services via dig"
 	dig ${DIG_QUERY_PARAM} +short _services._dns-sd._udp.${DNSSD_DOMAIN} PTR
+	echo
+	AVAHI_BROWSE=${AVAHI_BROWSE:-"avahi-browse"}
+	echo "Browsable services via ${AVAHI_BROWSE}"
+	${AVAHI_BROWSE} -batd ${DNSSD_DOMAIN}
 fi
