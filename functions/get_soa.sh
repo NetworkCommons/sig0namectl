@@ -10,7 +10,7 @@ get_soa() {
 	#
 	local soa_fqdn="${1}"
 	
-	while [[ ! -n $(dig +short ${soa_fqdn}) ]]
+	while [[ ! -n $(dig +short ${soa_fqdn} SOA) ]]
 	do
 		soa_fqdn=${soa_fqdn#*.}
 		[[ ! "${soa_fqdn}" == *"."* ]] && soa_fqdn="" && break 
