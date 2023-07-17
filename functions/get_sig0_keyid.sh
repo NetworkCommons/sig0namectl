@@ -2,10 +2,10 @@
 #
 
 
-SIG0_KEYPATH=${SIG0_KEYPATH:-"${PWD}"}
+NSUPDATE_SIG0_KEYPATH=${NSUPDATE_SIG0_KEYPATH:-"${PWD}"}
 
-get_sig0_keypair() {
-	# get_sig0_keypair( refvar, fqdn, search_path )
+get_sig0_keyid() {
+	# get_sig0_keyid( refvar, fqdn, search_path )
 	#
 	# 	refvar: global env var passed by reference will be set to *.[key|private] keypair filename prefix if found, or "" if not.
 	#
@@ -15,11 +15,11 @@ get_sig0_keypair() {
 	#
 	declare -n refvar="${1}"
 	local fqdn="${2}"
-	local search_path="${3:-${SIG0_KEYPATH}}"
+	local search_path="${3:-${NSUPDATE_SIG0_KEYPATH}}"
 
 	# get list of matching files
 	#
-	local FIND=$(find ${search_path:-${SIG0_KEYPATH}} -type f \( -iname K${fqdn}.\*.key -o -iname K${fqdn}.\*.private \))
+	local FIND=$(find ${search_path:-${NSUPDATE_SIG0_KEYPATH}} -type f \( -iname K${fqdn}.\*.key -o -iname K${fqdn}.\*.private \))
 	# split list into array
 	local ar=(${FIND})
 	local PREFIX=""
@@ -51,13 +51,13 @@ get_sig0_keypair() {
 
 
 if [[ -n ${TEST} ]]; then
-	printf "** TEST get_sig0_keypair()\n"
+	printf "** TEST get_sig0_keyid()\n"
 	DEBUG="true"
-	get_sig0_keypair SIG0_KEYPAIR zembla.zenr.io ${SIG0_KEYPATH}
-	echo "SIG0_KEYPAIR set to '${SIG0_KEYPAIR}'"
-	get_sig0_keypair SIG0_KEYPAIR vortex.zenr.io
-	echo "SIG0_KEYPAIR set to '${SIG0_KEYPAIR}'"
-	get_sig0_keypair SIG0_KEYPAIR no.such.name ${SIG0_KEYPATH}
-	echo "SIG0_KEYPAIR set to '${SIG0_KEYPAIR}'"
+	get_sig0_keyid SIG0_KEYID zembla.zenr.io ${NSUPDATE_SIG0_KEYPATH}
+	echo "SIG0_KEYID set to '${SIG0_KEYID}'"
+	get_sig0_keyid SIG0_KEYID vortex.zenr.io
+	echo "SIG0_KEYID set to '${SIG0_KEYID}'"
+	get_sig0_keyid SIG0_KEYID no.such.name ${NSUPDATE_SIG0_KEYPATH}
+	echo "SIG0_KEYID set to '${SIG0_KEYID}'"
 	exit
 fi
