@@ -32,6 +32,7 @@ fi
 # Discover master (usually primary DNS server) of zone from SOA record
 #
 DIG_QUERY_PARAM=${DIG_QUERY_PARAM:-}
+AVAHI_BROWSE_PARAM=${AVAHI_BROWSE_PARAM:-"-brat"}
 ZONE_SOA_MASTER=${ZONE_SOA_MASTER:-$(dig ${DIG_QUERY_PARAM} +short ${ZONE} SOA | cut -f1 -d' ')}
 if [[ ! -n ${ZONE_SOA_MASTER} ]]; then
         echo "Warning: ZONE ${ZONE} SOA record does not resolve"
@@ -49,6 +50,10 @@ else
 	DNSSD_DOMAIN="${ZONE}"
 fi
 
+# set default sig0 key fqdn to use for update
+# [[ ! $-n ${SIG0_KEY_FQDN} ]] && SIG0_KEY_FQDN=${ZONE}
+SIG0_KEY_FQDN=${SIG0_KEY_FQDN:-${DNSSD_DOMAIN}}
+
 DNSSD_SERVICES=${DNSSD_SERVICES:-""}
 if [[ ! -n ${DNSSD_SERVICES} ]]; then
         echo "Error: DNSSD SERVICES services \$DNSSD_SERVICES environment variable is not set. No services have been defined to browse in domain ${DNSSD_SERVICES}"
@@ -59,13 +64,13 @@ fi
 #
 
 . functions/*.sh
-[[ ! -n ${NSUPDATE_SIG0_KEY} ]] && get_sig0_keypair NSUPDATE_SIG0_KEY ${DNSSD_DOMAIN} ${SIG0_KEYPATH}
+[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
 
 
 
 # form SIG0 private auth key param
-if [[ -n ${NSUPDATE_SIG0_KEY} ]]; then
-	NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${SIG0_KEYPATH}/${NSUPDATE_SIG0_KEY}"
+if [[ -n ${NSUPDATE_SIG0_KEYID} ]]; then
+	NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}"
 else
 	NSUPDATE_PARAM=""
 fi
@@ -87,11 +92,17 @@ NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} lb._dns-sd._udp.${DNS
 # set RR TTLs
 NSUPDATE_TTL="60"
 
-# define DNS RR updates
+# define DNS RR updates under _services for service types
 NSUPDATE_INPUT="${NSUPDATE_SET_SERVER}\n"
 for SERVICE in ${DNSSD_SERVICES}
 do
+	# define DNS RR updates under _services for service types to browse
 	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} _services._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${SERVICE}.${DNSSD_DOMAIN}.\n"
+	# DEBUG: define DNS RR updates under each service type for service instances to browse
+	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN}.\n"
+	# DEBUG: define DNS RR updates each service type instance
+	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} SRV 0 0 80 ${DNSSD_DOMAIN}.\n"
+	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} TXT comment=Hello_this_is_a_${SERVICE}_service_instance\n"
 done
 NSUPDATE_INPUT="${NSUPDATE_INPUT}send\n"
 NSUPDATE_INPUT="${NSUPDATE_INPUT}quit\n"
@@ -100,9 +111,10 @@ if [[ -n ${DEBUG} ]]; then
 	echo "---DEBUG"
 	echo "SCRIPT_NAME		=	${SCRIPT_NAME}"
 	echo "ZONE 			=	${ZONE}"
+	echo "DIG_QUERY_PARAM 		=	${DIG_QUERY_PARAM}"
 	echo "DNSSD_DOMAIN 		=	${DNSSD_DOMAIN}"
 	echo "ZONE_SOA_MASTER 	=	${ZONE_SOA_MASTER}"
-	echo "NSUPDATE_SIG0_KEY 	=	${NSUPDATE_SIG0_KEY}"
+	echo "NSUPDATE_SIG0_KEYID 	=	${NSUPDATE_SIG0_KEYID}"
 	echo
 	echo "DEBUG: nsupdate settings"
 	echo "  NSUPDATE_PARAM            = ${NSUPDATE_PARAM}"
@@ -127,10 +139,17 @@ echo -e "${NSUPDATE_INPUT}" | nsupdate ${NSUPDATE_PARAM}
 
 if [[ -n ${DEBUG} ]]; then
 	echo
-	echo "Browsable services via dig"
+	echo "Browsable services via dig ${DIG_QUERY_PARAM} +short _services._dns-sd._udp.${DNSSD_DOMAIN} PTR"
 	dig ${DIG_QUERY_PARAM} +short _services._dns-sd._udp.${DNSSD_DOMAIN} PTR
 	echo
+	echo "Browsable services type instances via  dig"
+	for SERVICE in ${DNSSD_SERVICES}
+	do
+		echo "* ${SERVICE}: dig ${DIG_QUERY_PARAM} +short ${SERVICE}.${DNSSD_DOMAIN} PTR"
+		dig ${DIG_QUERY_PARAM} +short ${SERVICE}.${DNSSD_DOMAIN} PTR
+	done
+	echo
 	AVAHI_BROWSE=${AVAHI_BROWSE:-"avahi-browse"}
-	echo "Browsable services via ${AVAHI_BROWSE}"
-	${AVAHI_BROWSE} -batd ${DNSSD_DOMAIN}
+	echo "Browsable services via ${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d ${DNSSD_DOMAIN}"
+	${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d ${DNSSD_DOMAIN}
 fi
