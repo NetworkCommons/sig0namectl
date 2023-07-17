@@ -118,4 +118,9 @@ ${NSUPDATE_ITEM_DNS_SD_R}
 send
 quit
 EOF
-
+DIG_QUERY_PARAM="+short"
+for word in b lb db dr r _services
+do
+	echo "dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}."
+	dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}.
+done
