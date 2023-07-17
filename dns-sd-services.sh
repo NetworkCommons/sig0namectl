@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Sends DNS-DS updates for domain registration and browsing records
+# Sends DNS-DS updates for dns-ds service registration and browsing records
 #------------------------------------------------------------------------------
 
 SCRIPT_NAME="${0#*/}"
@@ -20,6 +20,13 @@ then
 	[[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE}.${SCRIPT_NAME} ..."
 fi
 
+# load helpful functions
+for i in functions/*.sh
+do
+	. ${i}
+	[[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/functions/$i ..."
+done
+
 # Default existing ZONE fallback to $DOMAINNAME if set, else to domain set in $HOSTNAME, else error
 # ZONE MUST correspond to an existing DNS ZONE, that is resolve with an SOA record
 ZONE=${ZONE:-${DOMAINNAME}}
@@ -29,13 +36,15 @@ if [[ ! -n ${ZONE} ]]; then
         exit 1
 fi
 
-# Discover master (usually primary DNS server) of zone from SOA record
-#
 DIG_QUERY_PARAM=${DIG_QUERY_PARAM:-}
 AVAHI_BROWSE_PARAM=${AVAHI_BROWSE_PARAM:-"-brat"}
-ZONE_SOA_MASTER=${ZONE_SOA_MASTER:-$(dig ${DIG_QUERY_PARAM} +short ${ZONE} SOA | cut -f1 -d' ')}
+
+# Discover master (usually primary DNS server) of zone from master field of SOA record
+#
+ZONE_SOA_MASTER=$( get_soa_master ${ZONE} )
 if [[ ! -n ${ZONE_SOA_MASTER} ]]; then
         echo "Warning: ZONE ${ZONE} SOA record does not resolve"
+	exit 1
 fi
 
 #------------------------------------------------------------------------------
@@ -63,7 +72,6 @@ fi
 # Form NSUPDATE input
 #
 
-. functions/*.sh
 [[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
 
 
