@@ -2,7 +2,7 @@
 #
 
 
-NSUPDATE_SIG0_KEYPATH=${NSUPDATE_SIG0_KEYPATH:-"${PWD}"}
+# NSUPDATE_SIG0_KEYPATH=${NSUPDATE_SIG0_KEYPATH:-"${PWD}"}
 
 get_sig0_keyid() {
 	# get_sig0_keyid( refvar, fqdn, search_path )
