@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# register_key 
+# 	Sends signal "requests" to _signal.<zone> ie CDS, CDNSKEY, and KEY records to zone master.
+#------------------------------------------------------------------------------
+
+# load helpful functions
+for i in functions/*.sh
+do
+        . ${i}
+        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/functions/$i ..."
+done
+
+#------------------------------------------------------------------------------
+
+set_vars
+
+# Define zone to install on local BIND server
+#
+if [[ ! -n ${NEW_SUBZONE} ]]; then
+        echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefined."
+	exit 1
+fi
+SIG0_KEY_FQDN="${NEW_SUBZONE}.${ZONE}"
+
+# A check should be made over whether the requested domain RRs already exist and warn the requester
+
+# find existing key?
+[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+
+SIG0_KEY_ALGO=${SIG0_KEY_ALGO:-"ED25519"}
+
+if [[ ! -n ${NSUPDATE_SIG0_KEYID} ]]; then
+	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN}
+fi
+
+[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+
+NEW_SUBZONE_UPDATE_KEY="`cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}.key`"
+
+UPDATE_TTL=${UPDATE_TTL:-"60"}
+
+NSUPDATE_SET_SERVER="server ${ZONE_SOA_MASTER}"
+
+NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
+
+NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}._signal.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_UPDATE_KEY##*.}"
+NSUPDATE_ITEM_CDS=""
+NSUPDATE_ITEM_CDNSKEY=""
+NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} _signal.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}._signal.${ZONE}."
+
+if [[ -n ${DEBUG} ]]; then
+	echo "ZONE              =	${ZONE}"
+	echo "ZONE_SOA_MASTER   =	${ZONE_SOA_MASTER}"
+	echo "NEW_SUBZONE   =	${NEW_SUBZONE}"
+	
+	echo
+	echo "SUBZONE Requested =	${NEW_SUBZONE}"
+	echo "  DNS Update KEY pair =	${NSUPDATE_SIG0_KEYID}"
+	echo "  DNS Update KEY file =	${NEW_SUBZONE_UPDATE_KEY}"
+	
+	echo
+	echo "  NSUPDATE_SET_SERVER =	${NSUPDATE_SET_SERVER}"
+	echo "  NSUPDATE_ACTION = ${NSUPDATE_ACTION}"
+	echo "  NSUPDATE_ITEM_SIG0_KEY = ${NSUPDATE_ITEM_SIG0_KEY}"
+	echo "  NSUPDATE_ITEM_PTR = ${NSUPDATE_ITEM_PTR}"
+	
+	echo
+	echo "nsupdate commands to send"
+	echo 
+	echo "${NSUPDATE_SET_SERVER}"
+	echo "${NSUPDATE_ITEM_SIG0_KEY}"
+	echo "${NSUPDATE_ITEM_CDS}"
+	echo "${NSUPDATE_ITEM_CDNSKEY}"
+	echo "${NSUPDATE_ITEM_PTR}"
+	echo "send"
+	echo "quit"
+fi
+
+if [[ -n ${DEBUG} ]]; then
+	echo
+	echo "Sending zone master (${ZONE_SOA_MASTER}) 'update ${NSUPDATE_ACTION}' resource record requests via nsupdate..."
+fi
+
+cat <<EOF | nsupdate
+${NSUPDATE_SET_SERVER}
+${NSUPDATE_ITEM_SIG0_KEY}
+${NSUPDATE_ITEM_CDNSKEY}
+${NSUPDATE_ITEM_CDS}
+${NSUPDATE_ITEM_PTR}
+send
+quit
+EOF
+# 
+if [[ -n ${DEBUG} ]]; then
+	echo
+	echo "Validate current entres via 'dig' ..."
+	echo "KEY     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} KEY`"
+	echo "CDNSKEY `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDNSKEY`"
+	echo "CDS     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDS`"
+	echo "PTR     =="
+	dig @${ZONE_SOA_MASTER} +short _signal.${ZONE}. PTR
+	# echo "Validate entries via avahi-browse"
+	# AVAHI_BROWSE=${AVAHI_BROWSE:-"avahi-browse"}
+        # echo "Browsable services via ${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d _signal._udp.${ZONE}"
+        # ${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d _signal._udp.${ZONE}
+fi
