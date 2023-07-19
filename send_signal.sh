@@ -2,22 +2,6 @@
 #
 # Send signal "requests" to _signal.<zone> ie CDS, CDNSKEY, and KEY records to zone master.
 #------------------------------------------------------------------------------
-SCRIPT_NAME="${0#*/}"
-
-# Source env file for project-wide variable default values
-ENV_FILE=${ENV_FILE:-".env"}
-if [ -e ${ENV_FILE} ]
-then
-        . ${ENV_FILE}
-        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE} ..."
-fi
-
-# Source env file for script-wide default values
-if [ -e ${ENV_FILE}.${SCRIPT_NAME} ]
-then
-        . ${ENV_FILE}.${SCRIPT_NAME}
-        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE}.${SCRIPT_NAME} ..."
-fi
 
 # load helpful functions
 for i in functions/*.sh
@@ -26,32 +10,13 @@ do
         [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/functions/$i ..."
 done
 
-# Default existing ZONE fallback to $DOMAINNAME if set, else to domain set in $HOSTNAME, else error
-# ZONE MUST correspond to an existing DNS ZONE, that is resolve with an SOA record
-ZONE=${ZONE:-${DOMAINNAME}}
-ZONE=${ZONE:-${HOSTNAME#*.}}
-if [[ ! -n ${ZONE} ]]; then
-        echo "Error: DNS zone \$ZONE environment variable is not set & could not be determined from \$DOMAINNAME or \$HOSTNAME"
-        exit 1
-fi
-
-DIG_QUERY_PARAM=${DIG_QUERY_PARAM:-}
-AVAHI_BROWSE_PARAM=${AVAHI_BROWSE_PARAM:-"-brat"}
-
-# Discover master (usually primary DNS server) of zone from master field of SOA record
-#
-ZONE_SOA_MASTER=$( get_soa_master ${ZONE} )
-if [[ ! -n ${ZONE_SOA_MASTER} ]]; then
-        echo "Warning: ZONE ${ZONE} SOA record does not resolve"
-        exit 1
-fi
-
 #------------------------------------------------------------------------------
 
 # Define zone to install on local BIND server
 #
 if [[ ! -n ${NEW_SUBZONE} ]]; then
         echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefined."
+	exit 1
 fi
 NEW_SUBZONE=${NEW_SUBZONE:-"testzone"}
 NEW_ZONE="${NEW_SUBZONE}.${ZONE}"
