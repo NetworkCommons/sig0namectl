@@ -11,7 +11,7 @@ set_vars() {
 	ENV_FILE=${ENV_FILE:-"env"}
 	if [ -e ${ENV_FILE} ]
 	then
-	        . ${ENV_FILE}
+	        . ./${ENV_FILE}
 	        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE} ..."
 	fi
 
