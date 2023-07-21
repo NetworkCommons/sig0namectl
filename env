@@ -1,0 +1,7 @@
+NEW_ZONE_PATH="/var/named/dynamic" #	Fedora/Red Hat
+NEW_ZONE_PATH_OWNER="named:named"  #	Fedora/Red Hat
+#NEW_SUBZONE=${NEW_SUBZONE:-"_signal"}
+# for testing
+NEW_ZONE_PATH="${PWD}/zonefile_test"
+NEW_ZONE_PATH_OWNER="`id -un`:`id -gn`"
+NSUPDATE_SIG0_KEYPATH="${PWD}/keys"
