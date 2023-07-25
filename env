@@ -1,6 +1,7 @@
-NEW_ZONE_PATH="/var/named/dynamic" #	Fedora/Red Hat
-NEW_ZONE_PATH_OWNER="named:named"  #	Fedora/Red Hat
-#NEW_SUBZONE=${NEW_SUBZONE:-"_signal"}
+# NEW_ZONE_PATH="/var/named/dynamic" #	Fedora/Red Hat
+# NEW_ZONE_PATH_OWNER="named:named"  #	Fedora/Red Hat
+# NEW_ZONE_PATH="/var/cache/bind" #	Debian
+# NEW_ZONE_PATH_OWNER="named:named"  #	Debian
 # for testing
 NEW_ZONE_PATH="${PWD}/zonefile_test"
 NEW_ZONE_PATH_OWNER="`id -un`:`id -gn`"
