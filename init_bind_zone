@@ -113,6 +113,8 @@ dnssec-keygen -K ${NEW_ZONE_KEY_PATH} -a ${NEW_ZONE_DNSSEC_ALGORITHM} -b 2048 -n
 #
 dnssec-keygen -K ${NEW_ZONE_KEY_PATH} -f KSK -a ${NEW_ZONE_DNSSEC_ALGORITHM} -b 4096 -n ZONE ${NEW_ZONE}
 
+# TODO insert existing SIG0 auth key into new zone file
+
 #  add the ZSK & KSK public keys to zone
 #
 for key in `ls ${NEW_ZONE_PATH}/K${NEW_ZONE}*.key`
@@ -136,5 +138,5 @@ chown -R ${NEW_ZONE_PATH_OWNER} ${NEW_ZONE_PATH}/${NEW_ZONE_FILENAME}
 NEW_ZONE_ITEM_DS="`cat ${NEW_ZONE_PATH}/dsset-${NEW_ZONE}.`"
 NEW_ZONE_ITEM_CDS="`echo ${NEW_ZONE_ITEM_DS} | sed  "s/ DS / CDS /"`"
 
-echo "NEW_ZONE_ITEM_DS = ${NEW_ZONE_ITEM_DS}"
-echo "NEW_ZONE_ITEM_CDS = ${NEW_ZONE_ITEM_CDS}"
+# echo "NEW_ZONE_ITEM_DS = ${NEW_ZONE_ITEM_DS}"
+# echo "NEW_ZONE_ITEM_CDS = ${NEW_ZONE_ITEM_CDS}"
