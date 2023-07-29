@@ -15,7 +15,7 @@ done
 
 set_vars
 
-# Define zone to install on local BIND server
+# Define subdomain SIG0 key name to add parent ZONE
 #
 if [[ ! -n ${NEW_SUBZONE} ]]; then
         echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefined."
@@ -31,7 +31,9 @@ SIG0_KEY_FQDN="${NEW_SUBZONE}.${ZONE}"
 SIG0_KEY_ALGO=${SIG0_KEY_ALGO:-"ED25519"}
 
 if [[ ! -n ${NSUPDATE_SIG0_KEYID} ]]; then
+	[[ -n ${DEBUG} ]] && echo "No SIG0 keypair for ${SIG0_KEY_FQDN} found in ${NSUPDATE_SIG0_KEYPATH}"
 	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN}
+	echo "New SIG0 keypair for ${SIG0_KEY_FQDN} generated in ${NSUPDATE_SIG0_KEYPATH}"
 fi
 
 [[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
@@ -93,15 +95,22 @@ quit
 EOF
 # 
 if [[ -n ${DEBUG} ]]; then
+	# TODO for future delegation bootstrapping
+	# echo "CDNSKEY `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDNSKEY`"
+	# echo "CDS     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDS`"
 	echo
-	echo "Validate current entres via 'dig' ..."
-	echo "KEY     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} KEY`"
-	echo "CDNSKEY `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDNSKEY`"
-	echo "CDS     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDS`"
-	echo "PTR     =="
-	dig @${ZONE_SOA_MASTER} +short _signal.${ZONE}. PTR
-	# echo "Validate entries via avahi-browse"
-	# AVAHI_BROWSE=${AVAHI_BROWSE:-"avahi-browse"}
-        # echo "Browsable services via ${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d _signal._udp.${ZONE}"
-        # ${AVAHI_BROWSE} ${AVAHI_BROWSE_PARAM} -d _signal._udp.${ZONE}
+	echo "PENDING REQUESTS"
+	echo
+	dig @${ZONE_SOA_MASTER} +noall +answer +multiline PTR _signal.${ZONE}
+	echo
+	echo "PENDING REQUESTED KEY INSERTION DETAILS"
+	echo
+	REQUEST_QUEUE="`dig @${ZONE_SOA_MASTER} +short _signal.${ZONE} PTR`"
+	for request_ptr in ${REQUEST_QUEUE}; do
+		request_key="`dig @${ZONE_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
+		request_key="`echo ${request_key} | cut -f2- -d' '`"
+		echo "-- REQUEST FQDN: ${request_ptr} is requesting key insertion into zone \"${ZONE}\":"
+		echo "${request_ptr%%\._signal*}.${ZONE} ${request_key}"
+		echo
+	done
 fi
