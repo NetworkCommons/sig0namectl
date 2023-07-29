@@ -52,12 +52,8 @@ NSUPDATE_ITEM_CDNSKEY=""
 NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} _signal.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}._signal.${ZONE}."
 
 if [[ -n ${DEBUG} ]]; then
-	echo "ZONE              =	${ZONE}"
-	echo "ZONE_SOA_MASTER   =	${ZONE_SOA_MASTER}"
-	echo "NEW_SUBZONE   =	${NEW_SUBZONE}"
-	
 	echo
-	echo "SUBZONE Requested =	${NEW_SUBZONE}"
+	echo "SUBZONE Requested =	${NEW_SUBZONE}.${ZONE}"
 	echo "  DNS Update KEY pair =	${NSUPDATE_SIG0_KEYID}"
 	echo "  DNS Update KEY file =	${NEW_SUBZONE_UPDATE_KEY}"
 	
@@ -67,21 +63,20 @@ if [[ -n ${DEBUG} ]]; then
 	echo "  NSUPDATE_ITEM_SIG0_KEY = ${NSUPDATE_ITEM_SIG0_KEY}"
 	echo "  NSUPDATE_ITEM_PTR = ${NSUPDATE_ITEM_PTR}"
 	
-	echo
-	echo "nsupdate commands to send"
-	echo 
-	echo "${NSUPDATE_SET_SERVER}"
-	echo "${NSUPDATE_ITEM_SIG0_KEY}"
-	echo "${NSUPDATE_ITEM_CDS}"
-	echo "${NSUPDATE_ITEM_CDNSKEY}"
-	echo "${NSUPDATE_ITEM_PTR}"
-	echo "send"
-	echo "quit"
 fi
 
 if [[ -n ${DEBUG} ]]; then
 	echo
-	echo "Sending zone master (${ZONE_SOA_MASTER}) 'update ${NSUPDATE_ACTION}' resource record requests via nsupdate..."
+	echo "Sending zone master (${ZONE_SOA_MASTER}) request to ${NSUPDATE_ACTION} resource record via nsupdate..."
+	echo 
+	echo "${NSUPDATE_SET_SERVER}"
+	echo "${NSUPDATE_ITEM_SIG0_KEY}"
+	# TODO for bootstrapping DNSSEC subdelegation
+	# echo "${NSUPDATE_ITEM_CDS}"
+	# echo "${NSUPDATE_ITEM_CDNSKEY}"
+	echo "${NSUPDATE_ITEM_PTR}"
+	echo "send"
+	echo "quit"
 fi
 
 cat <<EOF | nsupdate
@@ -101,9 +96,9 @@ if [[ -n ${DEBUG} ]]; then
 	echo
 	echo "PENDING REQUESTS"
 	echo
-	dig @${ZONE_SOA_MASTER} +noall +answer +multiline PTR _signal.${ZONE}
+	dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR _signal.${ZONE}
 	echo
-	echo "PENDING REQUESTED KEY INSERTION DETAILS"
+	echo "PENDING KEY INSERTION REQUESTS"
 	echo
 	REQUEST_QUEUE="`dig @${ZONE_SOA_MASTER} +short _signal.${ZONE} PTR`"
 	for request_ptr in ${REQUEST_QUEUE}; do
