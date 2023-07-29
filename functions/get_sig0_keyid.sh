@@ -45,7 +45,7 @@ get_sig0_keyid() {
 
 	PREFIX="${ar[0]%.*}"
 	refvar="${PREFIX##*/}"
-	[[ -n ${DEBUG} ]] && printf "Info: ${FUNCNAME[0]}(): set to \"${refvar}\": Unique keypair prefix found: ${PREFIX} in ${search_path}\n"
+	[[ -n ${DEBUG} ]] && printf "Info: ${FUNCNAME[0]}(): Unique keypair prefix \"${refvar}\" for domain \"${fqdn}\" found in path \"${search_path}\"\n"
 
 }
 
