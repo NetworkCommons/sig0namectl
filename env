@@ -2,7 +2,11 @@
 # NEW_ZONE_PATH_OWNER="named:named"  #	Fedora/Red Hat
 # NEW_ZONE_PATH="/var/cache/bind" #	Debian
 # NEW_ZONE_PATH_OWNER="named:named"  #	Debian
+# signalling subzone
+# 	- no SIG0 required by default
+# 	- may filter by policy to some RRs, ie KEY, PTR, TXT
+SIGNAL_SUBZONE="_signal"
 # for testing
 NEW_ZONE_PATH="${PWD}/zonefile_test"
 NEW_ZONE_PATH_OWNER="`id -un`:`id -gn`"
-NSUPDATE_SIG0_KEYPATH="${PWD}/keys"
+NSUPDATE_SIG0_KEYPATH="${PWD}/keystore"
