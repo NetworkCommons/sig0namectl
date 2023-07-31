@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # register_key 
-# 	Sends signal "requests" to _signal.<zone> ie CDS, CDNSKEY, and KEY records to zone master.
+# 	Sends signal "requests" to ${SIGNAL_SUBZONE}.<zone> ie CDS, CDNSKEY, and KEY records to zone master.
 #------------------------------------------------------------------------------
 
 # load helpful functions
@@ -15,54 +15,75 @@ done
 
 set_vars
 
-# Define subdomain SIG0 key name to add parent ZONE
+# Define NEW_SUBZONE as a name (subdomain or subzone) within ZONE for requested SIG0 key FQDN
 #
 if [[ ! -n ${NEW_SUBZONE} ]]; then
+        echo
         echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefined."
 	exit 1
 fi
+
+# set requested final FQDN of key to be submitted to zone 
 SIG0_KEY_FQDN="${NEW_SUBZONE}.${ZONE}"
 
-# A check should be made over whether the requested domain RRs already exist and warn the requester
-
-# find existing key?
-[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
-
-SIG0_KEY_ALGO=${SIG0_KEY_ALGO:-"ED25519"}
-
-if [[ ! -n ${NSUPDATE_SIG0_KEYID} ]]; then
-	[[ -n ${DEBUG} ]] && echo "No SIG0 keypair for ${SIG0_KEY_FQDN} found in ${NSUPDATE_SIG0_KEYPATH}"
-	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN}
-	echo "New SIG0 keypair for ${SIG0_KEY_FQDN} generated in ${NSUPDATE_SIG0_KEYPATH}"
+# Error and exist if requested domain KEY RR already exists in DNS
+DIG_SIG0_FQDN="$( dig +short ${SIG0_KEY_FQDN} KEY )"
+if [[ -n ${DIG_SIG0_FQDN} ]]; then
+	 echo
+	 echo "Error: KEY with FQDN '${SIG0_KEY_FQDN}' already exists in DNS."
+	 exit 1
 fi
 
-[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
 
-NEW_SUBZONE_UPDATE_KEY="`cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}.key`"
+
+# find zone master for ${SIGNAL_SUBZONE}.${ZONE} which may be different from zone master of ${ZONE}
+SIGNAL_SOA_MASTER=$( get_soa_master "${SIGNAL_SUBZONE}.${ZONE}" )
+if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
+         echo "Warning: ZONE ${SIGNAL_SUBZONE}.${ZONE} SOA record does not resolve"
+         exit 1
+fi
+
+
+# find any existing key from keystore
+# 	Note: NSUPDATE_SIG0_KEYID value updated by reference in get_sig0_keyid() 
+get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+
+# if no such key exists in keystore, create a new keypair in keystore
+if [[ ! -n ${NSUPDATE_SIG0_KEYID} ]]; then
+	[[ -n ${DEBUG} ]] && echo "No SIG0 keypair for ${SIG0_KEY_FQDN} found in ${NSUPDATE_SIG0_KEYPATH}"
+	SIG0_KEY_ALGO=${SIG0_KEY_ALGO:-"ED25519"}
+	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN}
+	echo "New SIG0 keypair for ${SIG0_KEY_FQDN} generated in ${NSUPDATE_SIG0_KEYPATH}"
+       	get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+	[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && echo "Error creating new key for ${SIG0_KEY_FQDN} in keystore ${NSUPDATE_SIG0_KEYPATH}" && exit 1
+fi
+
+#
+
+
+NSUPDATE_SET_SERVER="server ${SIGNAL_SOA_MASTER}"
 
 UPDATE_TTL=${UPDATE_TTL:-"60"}
 
-NSUPDATE_SET_SERVER="server ${ZONE_SOA_MASTER}"
-
 NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
 
-NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}._signal.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_UPDATE_KEY##*.}"
-NSUPDATE_ITEM_CDS=""
-NSUPDATE_ITEM_CDNSKEY=""
-NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} _signal.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}._signal.${ZONE}."
+NEW_SUBZONE_UPDATE_KEY="`cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}.key`"
+# create item for *request* with KEY RR under ${SIGNAL_SUBZONE}.${ZONE}
+NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_UPDATE_KEY##*.}"
+
+# create pointer RR for processing list
+NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} ${SIGNAL_SUBZONE}.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}."
+# TODO DELEGATION BOOTSTRAPPING
+# NSUPDATE_ITEM_CDS=""
+# NSUPDATE_ITEM_CDNSKEY=""
 
 if [[ -n ${DEBUG} ]]; then
 	echo
-	echo "SUBZONE Requested =	${NEW_SUBZONE}.${ZONE}"
-	echo "  DNS Update KEY pair =	${NSUPDATE_SIG0_KEYID}"
-	echo "  DNS Update KEY file =	${NEW_SUBZONE_UPDATE_KEY}"
-	
-	echo
-	echo "  NSUPDATE_SET_SERVER =	${NSUPDATE_SET_SERVER}"
-	echo "  NSUPDATE_ACTION = ${NSUPDATE_ACTION}"
-	echo "  NSUPDATE_ITEM_SIG0_KEY = ${NSUPDATE_ITEM_SIG0_KEY}"
-	echo "  NSUPDATE_ITEM_PTR = ${NSUPDATE_ITEM_PTR}"
-	
+	echo "SUBZONE KEY Request FQDN  =	${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}"
+	echo "  Requested SIG0 KEY FQDN            =	${SIG0_KEY_FQDN}"
+	echo "  Requested SIG0 DNS Update KEY ID   =	${NSUPDATE_SIG0_KEYID}"
+	echo "  Requested SIG0 DNS Update KEY file =	${NEW_SUBZONE_UPDATE_KEY}"
 fi
 
 if [[ -n ${DEBUG} ]]; then
@@ -88,24 +109,21 @@ ${NSUPDATE_ITEM_PTR}
 send
 quit
 EOF
-# 
+# list pending requests for processor
 if [[ -n ${DEBUG} ]]; then
-	# TODO for future delegation bootstrapping
-	# echo "CDNSKEY `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDNSKEY`"
-	# echo "CDS     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}._signal.${ZONE} CDS`"
 	echo
 	echo "PENDING REQUESTS"
 	echo
-	dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR _signal.${ZONE}
+	dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
 	echo
 	echo "PENDING KEY INSERTION REQUESTS"
 	echo
-	REQUEST_QUEUE="`dig @${ZONE_SOA_MASTER} +short _signal.${ZONE} PTR`"
+	REQUEST_QUEUE="`dig @${ZONE_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
 	for request_ptr in ${REQUEST_QUEUE}; do
 		request_key="`dig @${ZONE_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
 		request_key="`echo ${request_key} | cut -f2- -d' '`"
 		echo "-- REQUEST FQDN: ${request_ptr} is requesting key insertion into zone \"${ZONE}\":"
-		echo "${request_ptr%%\._signal*}.${ZONE} ${request_key}"
+		echo "${request_ptr%%\.${SIGNAL_SUBZONE}*}.${ZONE} ${request_key}"
 		echo
 	done
 fi
