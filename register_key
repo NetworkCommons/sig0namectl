@@ -114,15 +114,15 @@ if [[ -n ${DEBUG} ]]; then
 	echo
 	echo "PENDING REQUESTS"
 	echo
-	dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
+	dig @${SIGNAL_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
 	echo
 	echo "PENDING KEY INSERTION REQUESTS"
 	echo
-	REQUEST_QUEUE="`dig @${ZONE_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
+	REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
 	for request_ptr in ${REQUEST_QUEUE}; do
-		request_key="`dig @${ZONE_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
+		request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
 		request_key="`echo ${request_key} | cut -f2- -d' '`"
-		echo "-- REQUEST FQDN: ${request_ptr} is requesting key insertion into zone \"${ZONE}\":"
+		echo "-- REQUEST FQDN: ${request_ptr} is requesting key into zone \"${ZONE}\":"
 		echo "${request_ptr%%\.${SIGNAL_SUBZONE}*}.${ZONE} ${request_key}"
 		echo
 	done
