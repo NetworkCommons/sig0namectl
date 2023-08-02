@@ -1,0 +1,137 @@
+#!/bin/bash
+#
+# process_key 
+# 	Processes signal "requests" to _signal.<zone> ie CDS, CDNSKEY, and KEY records to zone master.
+#------------------------------------------------------------------------------
+
+# load helpful functions
+for i in functions/*.sh
+do
+        . ${i}
+        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/functions/$i ..."
+done
+
+#------------------------------------------------------------------------------
+
+set_vars
+
+# find zone master for ${SIGNAL_SUBZONE}.${ZONE} which may be different from zone master of ${ZONE}
+SIGNAL_SOA_MASTER=$( get_soa_master "${SIGNAL_SUBZONE}.${ZONE}" )
+if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
+         echo "Warning: ZONE ${SIGNAL_SUBZONE}.${ZONE} SOA record does not resolve"
+         exit 1
+fi
+
+echo
+echo "PENDING REQUESTS"
+echo
+dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
+echo
+echo "PENDING KEY INSERTION REQUESTS"
+echo
+REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
+[[ -n ${TEST_REQUEST} ]] && REQUEST_QUEUE="${REQUEST_QUEUE} zembla._signal.zenr.io testzone._signal.zenr.io dns-oarc._signal.zenr.io _signal._signal.zenr.io"
+
+for request_ptr in ${REQUEST_QUEUE}; do
+        request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
+        request_key="`echo ${request_key} | cut -f2- -d' '`"
+        request_key_fqdn="${request_ptr%%\.${SIGNAL_SUBZONE}*}.${ZONE}"
+        echo "-- REQUEST FQDN: ${request_ptr} is requesting key '${request_key_fqdn}' insertion into zone \"${ZONE}\":"
+	request_key_fqdn_dig="`dig @${ZONE_SOA_MASTER} +noall +answer +nocrypto +dnssec ${request_key_fqdn} ANY``dig @${ZONE_SOA_MASTER} +noall +authority +nocrypto +nodnssec ${request_key_fqdn} NS | grep -v SOA`"
+	if [[ ! -n ${request_key_fqdn_dig} ]]; then
+		request_key_fqdn_status="IS available (no current DNS resource records exist)"
+        	echo "* ${request_ptr} ${request_key_fqdn_status}"
+        	echo "${request_key_fqdn} ${request_key}"
+	else
+		request_key_fqdn_status="IS NOT available, as  DNS resource records already exist for '${request_key_fqdn}'"
+        	echo "* ${request_key_fqdn} ${request_key_fqdn_status}"
+        	echo "${request_key_fqdn_dig}"
+	fi
+       	echo
+done
+ 
+
+
+exit 1
+
+#
+if [[ ! -n ${NEW_SUBZONE} ]]; then
+        echo "Error: NEW_SUBZONE ${NEW_SUBZONE} environment variable is undefined."
+	exit 1
+fi
+
+
+# find existing keypair
+[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+
+
+NEW_SUBZONE_UPDATE_KEY="`cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}.key`"
+
+UPDATE_TTL=${UPDATE_TTL:-"60"}
+
+NSUPDATE_SET_SERVER="server ${ZONE_SOA_MASTER}"
+
+# form SIG0 private auth key param
+if [[ -n ${NSUPDATE_SIG0_KEYID} ]]; then
+        NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}"
+else
+        NSUPDATE_PARAM=""
+fi
+
+NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
+if [ "${NSUPDATE_ACTION}" == "add" ]; then
+        NSUPDATE_PRECONDITION_SET="nxdomain"
+else
+        NSUPDATE_PRECONDITION_SET="yxdomain"
+fi
+NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
+
+NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_UPDATE_KEY##*.}"
+NSUPDATE_ITEM_CDS=""
+NSUPDATE_ITEM_CDNSKEY=""
+
+if [[ -n ${DEBUG} ]]; then
+	echo "ZONE              =	${ZONE}"
+	echo "ZONE_SOA_MASTER   =	${ZONE_SOA_MASTER}"
+	echo "NEW_SUBZONE   =	${NEW_SUBZONE}"
+	
+	echo
+	echo "SUBZONE Requested =	${NEW_SUBZONE}"
+	echo "  DNS Update KEY pair =	${NSUPDATE_SIG0_KEYID}"
+	echo "  DNS Update KEY file =	${NEW_SUBZONE_UPDATE_KEY}"
+	
+	echo
+	echo "  NSUPDATE_SET_SERVER =	${NSUPDATE_SET_SERVER}"
+	echo "  NSUPDATE_PARAM = ${NSUPDATE_PARAM}"
+	echo "  NSUPDATE_ACTION = ${NSUPDATE_ACTION}"
+	echo "  NSUPDATE_PRECONDITION = ${NSUPDATE_PRECONDITION}"
+	echo "  NSUPDATE_ITEM_SIG0_KEY = ${NSUPDATE_ITEM_SIG0_KEY}"
+	
+	echo
+	echo "nsupdate commands to send"
+	echo 
+	echo "${NSUPDATE_SET_SERVER}"
+	echo "${NSUPDATE_ITEM_SIG0_KEY}"
+	echo "send"
+	echo "quit"
+fi
+
+if [[ -n ${DEBUG} ]]; then
+	echo
+	echo "Sending zone master (${ZONE_SOA_MASTER}) 'update ${NSUPDATE_ACTION}' resource record requests via nsupdate..."
+fi
+
+cat <<EOF | nsupdate ${NSUPDATE_PARAM}
+${NSUPDATE_SET_SERVER}
+${NSUPDATE_PRECONDITION}
+${NSUPDATE_ITEM_SIG0_KEY}
+send
+quit
+EOF
+
+if [[ -n ${DEBUG} ]]; then
+	echo
+	echo "Validate current entres via 'dig' ..."
+	echo "KEY     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}.${ZONE} KEY`"
+	echo "PTR     =="
+fi
