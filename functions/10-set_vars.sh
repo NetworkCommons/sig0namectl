@@ -12,14 +12,14 @@ set_vars() {
 	if [ -e ${ENV_FILE} ]
 	then
 	        . ./${ENV_FILE}
-	        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE} ..."
+	        [[ -n ${DEBUG_SOURCED} ]] && echo "Sourced ${PWD}/${ENV_FILE} ..."
 	fi
 
 	# Source env file for script-wide default values
 	if [ -e ${ENV_FILE}.${SCRIPT_NAME} ]
 	then
 	        . ${ENV_FILE}.${SCRIPT_NAME}
-	        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/${ENV_FILE}.${SCRIPT_NAME} ..."
+	        [[ -n ${DEBUG_SOURCED} ]] && echo "Sourced ${PWD}/${ENV_FILE}.${SCRIPT_NAME} ..."
 	fi
 
 	# Default existing ZONE fallback to $DOMAINNAME if set, else to domain set in $HOSTNAME, else error
