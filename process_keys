@@ -38,7 +38,6 @@ send_update() {
 	        NSUPDATE_PARAM=""
 	fi
 
-
 	if [[ -n ${DEBUG} ]]; then
 		echo
 		echo "${FUNCNAME[0]}(): ZONE              =	${ZONE}"
@@ -69,6 +68,7 @@ send_update() {
 
 	[[ -n ${DEBUG} ]] && echo && echo "Sending zone master (${ZONE_SOA_MASTER}) 'update ${NSUPDATE_ACTION}' resource record requests via nsupdate..."
 
+	if [[ ! -n ${NSUPDATE_DISABLE} ]]; then
 cat <<EOF | nsupdate ${NSUPDATE_PARAM}
 ${NSUPDATE_SET_SERVER}
 ${NSUPDATE_PRECONDITION}
@@ -76,6 +76,9 @@ ${NSUPDATE_ITEM_SIG0_KEY}
 send
 quit
 EOF
+	else
+		echo "${FUNCNAME[0]}(): updates disabled. NSUPDATE_DISABLE='${NSUPDATE_DISABLE}'"
+	fi
 }
 
 # find existing SIG0 auth keypair for nsupdate parameter
@@ -88,60 +91,72 @@ if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
          exit 1
 fi
 
-UPDATE_TTL=${UPDATE_TTL:-"60"}
-
-# set nsupdate pre-condition based on action 'add' or 'delete'
-NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
-if [ "${NSUPDATE_ACTION}" == "add" ]; then
-        NSUPDATE_PRECONDITION_SET="nxdomain"
-else
-        NSUPDATE_PRECONDITION_SET="yxdomain"
-fi
-
+NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"} # ensures default action
+UPDATE_TTL=${UPDATE_TTL:-"60"} # ensures default TTLs for RRs
 
 echo
-echo "PENDING REQUESTS"
+echo "PENDING KEY REQUESTS"
 echo
-dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
+dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +noidnout PTR ${SIGNAL_SUBZONE}.${ZONE}
 echo
-echo "PENDING KEY INSERTION REQUESTS"
+echo "PROCESSING KEY REQUESTS"
 echo
 REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
-[[ -n ${TEST_REQUEST} ]] && REQUEST_QUEUE="${REQUEST_QUEUE} zembla._signal.zenr.io testzone._signal.zenr.io dns-oarc._signal.zenr.io _signal._signal.zenr.io below.test._signal.zenr.io"
+# [[ -n ${TEST_REQUEST} ]] && REQUEST_QUEUE="${REQUEST_QUEUE} testzone._signal.zenr.io _signal._signal.zenr.io below.test._signal.zenr.io"
 
 for request_ptr in ${REQUEST_QUEUE}; do
         # get requested KEY from SIGNAL_SOA_MASTER
-	#request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
 	request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer ${request_ptr} KEY`"
         # remove signal zone FQDN
 	request_key="`echo ${request_key} | cut -f3- -d' '`"
         request_key_subzone="${request_ptr%%\.${SIGNAL_SUBZONE}*}"
         request_key_fqdn="${request_key_subzone}.${ZONE}"
-        echo "-- REQUEST FQDN: ${request_ptr} is requesting key '${request_key_fqdn}' insertion into zone \"${ZONE}\":"
-	request_key_fqdn_dig="`dig @${ZONE_SOA_MASTER} +noall +answer +nocrypto +dnssec ${request_key_fqdn} ANY``dig @${ZONE_SOA_MASTER} +noall +authority +nocrypto +nodnssec ${request_key_fqdn} NS | grep -v SOA`"
-	if [[ ! -n ${request_key_fqdn_dig} || ${NSUPDATE_ACTION} == "delete" ]]; then
-		request_key_fqdn_status="IS ${NSUPDATE_ACTION}-able"
-        	echo "* ${request_ptr} ${request_key_fqdn_status}"
-        	echo "${request_key_fqdn} ${request_key}"
-		# set SOA_MASTER & NEW_SUBZONE for send_update()
-		SOA_MASTER="${ZONE_SOA_MASTER}"
-		NEW_SUBZONE="${request_key_subzone}"
-		NEW_SUBZONE_SIG0_KEY=${request_key##*.}
-		NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
-		NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
-		# add successful request
-		send_update
-		if [[ -n ${DEBUG} ]]; then
-			echo "Validate current entries via 'dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}.${ZONE} KEY' ..."
-			echo "KEY     `dig @${ZONE_SOA_MASTER} +short ${NEW_SUBZONE}.${ZONE} KEY`"
-		fi
-	else
-		request_key_fqdn_status="IS NOT available, as  DNS resource records already exist for '${request_key_fqdn}'"
-        	echo "* ${request_key_fqdn} ${request_key_fqdn_status}"
-		# echo "${request_key_fqdn_dig}"
-	fi
-       	echo
-done
- 
-exit 1
 
+	case ${NSUPDATE_ACTION} in
+		add)
+			# test for ANY usual DNS RR, as well as NS delegation RRs (which are not covered by ANY)
+			request_key_fqdn_dig="`dig @${ZONE_SOA_MASTER} +noall +answer +nocrypto +dnssec ${request_key_fqdn} ANY``dig @${ZONE_SOA_MASTER} +noall +authority +nocrypto +nodnssec ${request_key_fqdn} NS | grep -v SOA`"
+			# send add update iff no DNS RR or NS exists
+			if [[ ! -n ${request_key_fqdn_dig} ]]; then
+				# set SOA_MASTER & NEW_SUBZONE for send_update()
+				SOA_MASTER="${ZONE_SOA_MASTER}"
+				NSUPDATE_PRECONDITION_SET="nxdomain"
+				NEW_SUBZONE="${request_key_subzone}"
+				NEW_SUBZONE_SIG0_KEY=${request_key##*.}
+				NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
+				NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
+				# add successful request
+				send_update
+				key_display="`dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_key_fqdn} KEY`"
+				request_key_fqdn_status="KEY '${request_key_fqdn}' submitted to ${NSUPDATE_ACTION} under zone '${ZONE}' with '[${key_display#*[}', IDN '${key_display%.*}'."
+			else
+				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as DNS resource records already exist."
+			fi
+			;;
+		delete)
+			# test for KEY DNS RR to delete (only deletes KEY & no other RR)
+			request_key_fqdn_dig="`dig @${ZONE_SOA_MASTER} +noall +answer +nocrypto +dnssec ${request_key_fqdn} KEY`"
+			# send delete update iff KEY FQDN exists in zone
+			if [[ -n ${request_key_fqdn_dig} ]]; then
+                                SOA_MASTER="${ZONE_SOA_MASTER}"
+				NSUPDATE_PRECONDITION_SET="yxdomain"
+                                NEW_SUBZONE="${request_key_subzone}"
+                                NEW_SUBZONE_SIG0_KEY=${request_key##*.}
+                                NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
+                                NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
+                                # add successful request
+                                key_display="`dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_key_fqdn} KEY`"
+				send_update
+                                request_key_fqdn_status="KEY '${request_key_fqdn}' submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', with '[${key_display#*[}', IDN '${key_display%.*}'."
+			else
+				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as no DNS KEY resource record exists."
+			fi
+			;;
+		*)
+			# NSUPDATE_ACTION should default to "add" - should never get here
+			echo "Error: NSUPDATE_ACTION is set to '${NSUPDATE_ACTION}', but must be set to 'add' or 'delete'."
+			exit 1
+			;;
+	esac
+	echo "${request_key_fqdn_status}"
+done
