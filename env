@@ -7,6 +7,6 @@
 # 	- may filter by policy to some RRs, ie KEY, PTR, TXT
 SIGNAL_SUBZONE="_signal"
 # for testing
-NEW_ZONE_PATH="${PWD}/zonefile_test"
+NEW_ZONE_PATH="${PWD}/zones"
 NEW_ZONE_PATH_OWNER="`id -un`:`id -gn`"
 NSUPDATE_SIG0_KEYPATH="${PWD}/keystore"
