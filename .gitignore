@@ -1,0 +1,7 @@
+# exclude everything
+keystore/*
+zones/*
+
+# exceptions to the rule
+!keystore/.keep
+!zones/.keep
