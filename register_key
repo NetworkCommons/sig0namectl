@@ -23,27 +23,31 @@ if [[ ! -n ${NEW_SUBZONE} ]]; then
 	exit 1
 fi
 
+# find zone master for ${SIGNAL_SUBZONE}.${ZONE} which may be different from zone master of ${ZONE}
+SIGNAL_SOA_MASTER=$( get_soa_master "${SIGNAL_SUBZONE}.${ZONE}" )
+if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
+         echo "Error: ZONE ${SIGNAL_SUBZONE}.${ZONE} SOA record does not resolve"
+         exit 1
+fi
+
 # set requested final FQDN of key to be submitted to zone 
 SIG0_KEY_FQDN="${NEW_SUBZONE}.${ZONE}"
 
 # Error and exist if requested domain KEY RR already exists in DNS
 DIG_SIG0_FQDN="$( dig +short ${SIG0_KEY_FQDN} KEY )"
 if [[ -n ${DIG_SIG0_FQDN} ]]; then
-	 echo
-	 echo "Error: KEY with FQDN '${SIG0_KEY_FQDN}' already exists in DNS."
-	 exit 1
+	if [[ "${NSUPDATE_ACTION}" == "add" ]]; then
+		echo
+		echo "Cannot register KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
+		echo "Please select a new key name under zone '${ZONE}'."
+		exit 1
+	else
+		[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
+	fi
+
+	[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
+
 fi
-
-[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
-
-
-# find zone master for ${SIGNAL_SUBZONE}.${ZONE} which may be different from zone master of ${ZONE}
-SIGNAL_SOA_MASTER=$( get_soa_master "${SIGNAL_SUBZONE}.${ZONE}" )
-if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
-         echo "Warning: ZONE ${SIGNAL_SUBZONE}.${ZONE} SOA record does not resolve"
-         exit 1
-fi
-
 
 # find any existing key from keystore
 # 	Note: NEW_SUBZONE_SIG0_KEYID value updated by reference in get_sig0_keyid()
