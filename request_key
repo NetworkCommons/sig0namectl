@@ -38,11 +38,15 @@ DIG_SIG0_FQDN="$( dig +short ${SIG0_KEY_FQDN} KEY )"
 if [[ -n ${DIG_SIG0_FQDN} ]]; then
 	if [[ "${NSUPDATE_ACTION}" == "add" ]]; then
 		echo
-		echo "Cannot register KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
+		echo "Cannot request insertion of KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
 		echo "Please select a new key name under zone '${ZONE}'."
 		exit 1
 	else
 		[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
+		echo
+		echo "Cannot request deletion of KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
+		echo "Please select a new key name under zone '${ZONE}'."
+		exit 1
 	fi
 
 	[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
