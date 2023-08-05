@@ -48,8 +48,8 @@ if [[ -n ${DIG_SIG0_FQDN} ]]; then
 		echo "Please select a new key name under zone '${ZONE}'."
 		exit 1
 	fi
-
-	[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
+else
+	[[ -n ${DEBUG} ]] && echo "Info: Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
 
 fi
 
@@ -120,18 +120,25 @@ EOF
 # list pending requests for processor
 if [[ -n ${DEBUG} ]]; then
 	echo
-	echo "PENDING REQUESTS"
+	echo "ZONE KEY REQUESTS for '${ZONE}'"
 	echo
 	dig @${SIGNAL_SOA_MASTER} +noall +answer +nottl +noclass PTR ${SIGNAL_SUBZONE}.${ZONE}
 	echo
-	echo "PENDING KEY INSERTION REQUESTS"
+	echo "ZONE KEY STATUS for '${ZONE}'"
 	echo
 	REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
 	for request_ptr in ${REQUEST_QUEUE}; do
-		request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer +multiline ${request_ptr} KEY`"
-		request_key="`echo ${request_key} | cut -f2- -d' '`"
-		echo "-- REQUEST FQDN: ${request_ptr} is requesting key into zone \"${ZONE}\":"
-		echo "${request_ptr%%\.${SIGNAL_SUBZONE}*}.${ZONE} ${request_key}"
-		echo
+		signal_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_ptr} KEY`"
+		signal_key_fqdn="`echo ${signal_key} | cut -f1 -d' '`"
+		requested_keyname="${signal_key_fqdn%%\.${SIGNAL_SUBZONE}*}"
+		requested_key_fqdn="${requested_keyname}.${ZONE}"
+		echo "-- REQUEST FQDN: ${signal_key_fqdn} requests key '${requested_key_fqdn}' under zone '${ZONE}':"
+		# echo "${signal_key} ${request_key}"
+		# echo "${signal_key}"
+		deployed_key="`dig @${ZONE_SOA_MASTER} +noall +answer +idnin +idnout ${requested_key_fqdn} KEY`"
+		# echo "deployed_key='${deployed_key}'"
+		# echo "requested_keyname='${requested_keyname}'"
+		# echo "requested_key_fqdn='${requested_key_fqdn}'"
+		[[ -n ${deployed_key} ]] && echo "-- DEPLOYED KEY: ${deployed_key}" || echo "${requested_key_fqdn} is pending approval"
 	done
 fi
