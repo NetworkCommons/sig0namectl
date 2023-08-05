@@ -34,7 +34,7 @@ get_soa_master() {
 if [[ -n ${TEST} ]]; then
 	printf "** TEST get_soa()\n"
 	DEBUG="true"
-	for test in zenr.io test5.test4.test3.test2.test1.zembla.zenr.io test1.testzone.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io.rubbish
+	for test in zenr.io _signal.zenr.io request._signal.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io test1.testzone.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io.rubbish
 	do
 		test_ret=$(get_soa ${test})
 		echo "'${test_ret}' is most granular domain with an SOA resource record for ${test}"
@@ -44,7 +44,7 @@ fi
 if [[ -n ${TEST} ]]; then
 	printf "** TEST get_soa_master()\n"
 	DEBUG="true"
-	for test in zenr.io test5.test4.test3.test2.test1.zembla.zenr.io test1.testzone.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io.rubbish
+	for test in zenr.io _signal.zenr.io request._signal.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io test1.testzone.zenr.io test5.test4.test3.test2.test1.zembla.zenr.io.rubbish
 	do
 		test_ret=$(get_soa_master ${test})
 		echo "'${test_ret}' is master DNS server for DNS name ${test}"
