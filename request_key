@@ -82,9 +82,6 @@ NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SIGNAL_SUBZON
 
 # create pointer RR for processing list
 NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} ${SIGNAL_SUBZONE}.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}."
-# TODO DELEGATION BOOTSTRAPPING
-# NSUPDATE_ITEM_CDS=""
-# NSUPDATE_ITEM_CDNSKEY=""
 
 if [[ -n ${DEBUG} ]]; then
 	echo
@@ -94,29 +91,24 @@ if [[ -n ${DEBUG} ]]; then
 	echo "  Requested SIG0 DNS Update KEY file =	${NEW_SUBZONE_SIG0_KEY}"
 fi
 
-if [[ -n ${DEBUG} ]]; then
-	echo
-	echo "Sending zone master (${ZONE_SOA_MASTER}) request to ${NSUPDATE_ACTION} resource record via nsupdate..."
-	echo 
-	echo "${NSUPDATE_SET_SERVER}"
-	echo "${NSUPDATE_ITEM_SIG0_KEY}"
-	# TODO for bootstrapping DNSSEC subdelegation
-	# echo "${NSUPDATE_ITEM_CDS}"
-	# echo "${NSUPDATE_ITEM_CDNSKEY}"
-	echo "${NSUPDATE_ITEM_PTR}"
-	echo "send"
-	echo "quit"
-fi
+case ${NSUPDATE_ACTION} in
+                add)
+			# add request
+			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			;;
+                delete)
+			# delete request
+			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+                        ;;
 
-cat <<EOF | nsupdate
-${NSUPDATE_SET_SERVER}
-${NSUPDATE_ITEM_SIG0_KEY}
-${NSUPDATE_ITEM_CDNSKEY}
-${NSUPDATE_ITEM_CDS}
-${NSUPDATE_ITEM_PTR}
-send
-quit
-EOF
+                *)
+                        # NSUPDATE_ACTION should default to "add" - should never get here
+                        echo "Error: NSUPDATE_ACTION is set to '${NSUPDATE_ACTION}', but must be set to 'add' or 'delete'."
+                        exit 1
+                        ;;
+esac
+
+
 # list pending requests for processor
 if [[ -n ${DEBUG} ]]; then
 	echo
@@ -132,13 +124,11 @@ if [[ -n ${DEBUG} ]]; then
 		signal_key_fqdn="`echo ${signal_key} | cut -f1 -d' '`"
 		requested_keyname="${signal_key_fqdn%%\.${SIGNAL_SUBZONE}*}"
 		requested_key_fqdn="${requested_keyname}.${ZONE}"
-		echo "-- REQUEST FQDN: ${signal_key_fqdn} requests key '${requested_key_fqdn}' under zone '${ZONE}':"
-		# echo "${signal_key} ${request_key}"
+		echo "-- REQUEST FQDN: ${signal_key_fqdn} requests KEY '${requested_key_fqdn}' under zone '${ZONE}':"
+		# echo "${requested_key}"
 		# echo "${signal_key}"
 		deployed_key="`dig @${ZONE_SOA_MASTER} +noall +answer +idnin +idnout ${requested_key_fqdn} KEY`"
 		# echo "deployed_key='${deployed_key}'"
-		# echo "requested_keyname='${requested_keyname}'"
-		# echo "requested_key_fqdn='${requested_key_fqdn}'"
-		[[ -n ${deployed_key} ]] && echo "-- DEPLOYED KEY: ${deployed_key}" || echo "${requested_key_fqdn} is pending approval"
+		[[ -n ${deployed_key} ]] && echo "-- DEPLOYED KEY: ${deployed_key}" || echo "**               ${requested_key_fqdn} is not deployed"
 	done
 fi
