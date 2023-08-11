@@ -33,26 +33,6 @@ fi
 # set requested final FQDN of key to be submitted to zone 
 SIG0_KEY_FQDN="${NEW_SUBZONE}.${ZONE}"
 
-# Error and exist if requested domain KEY RR already exists in DNS
-DIG_SIG0_FQDN="$( dig +short ${SIG0_KEY_FQDN} KEY )"
-if [[ -n ${DIG_SIG0_FQDN} ]]; then
-	if [[ "${NSUPDATE_ACTION}" == "add" ]]; then
-		echo
-		echo "Cannot request insertion of KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
-		echo "Please select a new key name under zone '${ZONE}'."
-		exit 1
-	else
-		[[ -n ${DEBUG} ]] && echo "Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
-		echo
-		echo "Cannot request deletion of KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
-		echo "Please select a new key name under zone '${ZONE}'."
-		exit 1
-	fi
-else
-	[[ -n ${DEBUG} ]] && echo "Info: Existing DNS KEY RR not found for ${SIG0_KEY_FQDN}"
-
-fi
-
 # find any existing key from keystore
 # 	Note: NEW_SUBZONE_SIG0_KEYID value updated by reference in get_sig0_keyid()
 get_sig0_keyid NEW_SUBZONE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
@@ -69,7 +49,6 @@ fi
 
 #
 
-
 NSUPDATE_SET_SERVER="server ${SIGNAL_SOA_MASTER}"
 
 UPDATE_TTL=${UPDATE_TTL:-"60"}
@@ -80,10 +59,13 @@ NEW_SUBZONE_SIG0_KEY="`cat ${NSUPDATE_SIG0_KEYPATH}/${NEW_SUBZONE_SIG0_KEYID}.ke
 # create item for *request* with KEY RR under ${SIGNAL_SUBZONE}.${ZONE}
 NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY##*.}"
 
-# create pointer RR for processing list
+# create pointer RR to request processing
 NSUPDATE_ITEM_PTR="update ${NSUPDATE_ACTION} ${SIGNAL_SUBZONE}.${ZONE} ${UPDATE_TTL} PTR ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}."
 
 if [[ -n ${DEBUG} ]]; then
+	echo
+	echo "ZONE_SOA_MASTER = ${ZONE_SOA_MASTER}"
+	echo "SIGNAL_SOA_MASTER = ${ZONE_SOA_MASTER}"
 	echo
 	echo "SUBZONE KEY Request FQDN  =	${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}"
 	echo "  Requested SIG0 KEY FQDN            =	${SIG0_KEY_FQDN}"
@@ -91,14 +73,30 @@ if [[ -n ${DEBUG} ]]; then
 	echo "  Requested SIG0 DNS Update KEY file =	${NEW_SUBZONE_SIG0_KEY}"
 fi
 
+DIG_SIG0_SIGNAL_FQDN="$( dig +short @${SIGNAL_SOA_MASTER} ${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE} KEY )"
+DIG_SIG0_FQDN="$( dig +short @${ZONE_SOA_MASTER} ${SIG0_KEY_FQDN} KEY )"
+
 case ${NSUPDATE_ACTION} in
                 add)
-			# add request
-			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			if [[ ! -n ${DIG_SIG0_FQDN} ]]; then
+				# add request
+				[[ -n ${DIG_SIG0_SIGNAL_FQDN} ]] && echo "Existing KEY request '${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE} ${DIG_SIG0_SIGNAL_FQDN}' in queue." && exit 1
+				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+				echo "KEY request '${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE} ${NEW_SUBZONE_SIG0_KEY##*.}' added"
+			else
+				echo "Cannot request new KEY with FQDN '${SIG0_KEY_FQDN}' as KEY record already exists in zone '${ZONE}'."
+				echo "Please select a new key name under zone '${ZONE}'."
+				exit 1
+			fi
 			;;
                 delete)
-			# delete request
-			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			if [[ -n ${DIG_SIG0_SIGNAL_FQDN} ]]; then
+				# delete request
+				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+				echo "KEY request '${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}' deleted"
+			else
+				echo "Cannot request deletion of KEY with FQDN '${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}' as KEY record does not exist in zone '${SIGNAL_SUBZONE}.${ZONE}'."
+			fi
                         ;;
 
                 *)
@@ -110,7 +108,7 @@ esac
 
 
 # list pending requests for processor
-if [[ -n ${DEBUG} ]]; then
+if [[ -n ${DEBUG_LIST} ]]; then
 	echo
 	echo "ZONE KEY REQUESTS for '${ZONE}'"
 	echo
