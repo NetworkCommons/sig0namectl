@@ -92,6 +92,7 @@ case ${NSUPDATE_ACTION} in
                 delete)
 			if [[ -n ${DIG_SIG0_SIGNAL_FQDN} ]]; then
 				# delete request
+				[[ -n ${DIG_SIG0_FQDN} ]] && echo "KEY '${NEW_SUBZONE}.${ZONE} ${DIG_SIG0_FQDN}' is already deployed." && exit 1
 				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIG0_KEY};echo ${NSUPDATE_ITEM_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
 				echo "KEY request '${NEW_SUBZONE}.${SIGNAL_SUBZONE}.${ZONE}' deleted"
 			else
