@@ -8,7 +8,7 @@
 for i in functions/*.sh
 do
         . ${i}
-        [[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/$i ..."
+        [[ -n ${DEBUG_SOURCED} ]] && echo "Sourced ${PWD}/$i ..."
 done
 
 set_vars
