@@ -13,12 +13,6 @@
   to name is to own
 </p>
 
-<p align="center">
-  <a href="https://dyne.org">
-    <img src="https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%9D%A4%20by-Dyne.org-blue.svg" alt="Dyne.org">
-  </a>
-</p>
-
 <br><br>
 
 <h4 align="center">
@@ -38,7 +32,7 @@
 
 **Work in progress** 🚧: 
 
-sig0zonectl is a set of tools that allow recursive DNSSEC zone management and delegation.
+sig0zonectl is a set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC zone update, management and delegation.
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
@@ -55,7 +49,7 @@ sig0zonectl is a set of tools that allow recursive DNSSEC zone management and de
 
 Install dependencies.
 
-sig0zonectl uses nslookup & dnssec-keygen ISC DNS tools.
+To keep extra dependencies to a minimum and to allow use in constrained environments, sig0zonectl uses the Bash shell and BIND9 DNS tools.
 
 For Debian and derivatives:
 
@@ -65,10 +59,9 @@ For Fedora and related distributions and derivates
 
 `dnf install bind-utils`
 
-
 ## 💾 Install
 
-Clone this git repository.
+No system install yet. Clone this git repository use use from working directory.
 
 
 ## 🎮 Quick start
@@ -79,9 +72,7 @@ Clone this git repository.
 
 ## 😍 Acknowledgements
 
-[![software by Dyne.org](https://files.dyne.org/software_by_dyne.png)](http://www.dyne.org)
-
-Copyleft (ɔ) 2022 by [Dyne.org](https://www.dyne.org) foundation, Amsterdam
+Copyleft (ɔ) 2022 Adam Burns, [Dyne.org](https://www.dyne.org) foundation, Amsterdam
 
 Designed, written and maintained by Adam Burns.
 
@@ -112,7 +103,7 @@ Please first take a look at the [Contributor License Agreement](CONTRIBUTING.md)
 ***
 ## 💼 License
     sig0zonectl - 
-    Copyleft (ɔ) 2021 Dyne.org foundation, Amsterdam
+    Copyleft (ɔ) 2023 Adam Burns, Dyne.org foundation, Amsterdam
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
