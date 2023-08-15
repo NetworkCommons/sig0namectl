@@ -98,7 +98,7 @@ send
 quit
 EOF
 DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +short"
-echo "Browsing & registration PTR resource records"
+echo "Browsing & registration PTR resource record DNS query results"
 echo
 for word in b lb db dr r
 do
@@ -106,6 +106,6 @@ do
 	dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}.
 done
 echo
-# echo "Service instance type PTR records" 
+# echo "Service instance type PTR records"
 # 	echo "dig ${DIG_QUERY_PARAM} PTR _services._dns-sd._udp.${DNSSD_DOMAIN}."
 # 	dig ${DIG_QUERY_PARAM} PTR _services._dns-sd._udp.${DNSSD_DOMAIN}.
