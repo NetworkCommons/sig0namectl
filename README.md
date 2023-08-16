@@ -32,7 +32,7 @@
 
 **Work in progress** 🚧: 
 
-sig0zonectl is a set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC zone update, management and delegation.
+sig0zonectl is a set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
@@ -49,7 +49,7 @@ sig0zonectl is a set of tools for GNU/Linux or BSD environments that assist in r
 
 Install dependencies.
 
-To keep extra dependencies to a minimum and to allow use in constrained environments, sig0zonectl uses the Bash shell and BIND9 DNS tools.
+To keep extra dependencies to a minimum and to allow use in constrained environments, sig0zonectl implemented in Bash and uses a subset of BIND9 DNS tools.
 
 For Debian and derivatives:
 
@@ -61,7 +61,7 @@ For Fedora and related distributions and derivates
 
 ## 💾 Install
 
-No system install yet. Clone this git repository use use from working directory.
+No system install yet. Clone this git repository and use from working directory.
 
 
 ## 🎮 Quick start
