@@ -61,18 +61,21 @@ NSUPDATE_ITEM_DNS_SD_B="update ${NSUPDATE_ACTION}  b._dns-sd._udp.${DNSSD_DOMAIN
 NSUPDATE_ITEM_DNS_SD_DR="update ${NSUPDATE_ACTION} dr._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
 NSUPDATE_ITEM_DNS_SD_R="update ${NSUPDATE_ACTION}  r._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
 if [[ -n ${DEBUG} ]]; then
-	echo "---DEBUG"
-	echo "SCRIPT_NAME		=	${SCRIPT_NAME}"
-	echo "ZONE 			=	${ZONE}"
-	echo "NEW_SUBZONE 		=	${NEW_SUBZONE}"
-	echo "ZONE_SOA_MASTER 	=	${ZONE_SOA_MASTER}"
-	echo
+# 	echo "---DEBUG"
+# 	echo "SCRIPT_NAME		=	${SCRIPT_NAME}"
+# 	echo "ZONE 			=	${ZONE}"
+# 	echo "NEW_SUBZONE 		=	${NEW_SUBZONE}"
+# 	echo "ZONE_SOA_MASTER 	=	${ZONE_SOA_MASTER}"
+# 	echo
 	echo "DEBUG: nsupdate settings"
 	echo
+	echo "  NSUPDATE_SIG0_KEYID       = ${NSUPDATE_SIG0_KEYID}"
 	echo "  NSUPDATE_SET_SERVER       = ${NSUPDATE_SET_SERVER}"
 	echo "  NSUPDATE_ACTION           = ${NSUPDATE_ACTION}"
 	echo "  NSUPDATE_PRECONDITION_SET = ${NSUPDATE_PRECONDITION_SET}"
 	echo 
+fi
+if [[ -n ${DEBUG_NSUPDATE} ]]; then
 	echo "DEBUG: nsupdate commands to send"
 	echo
 	echo "NSUPDATE_SET_SERVER       = ${NSUPDATE_SET_SERVER}"
@@ -97,15 +100,17 @@ ${NSUPDATE_ITEM_DNS_SD_R}
 send
 quit
 EOF
-DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +short"
-echo "Browsing & registration PTR resource record DNS query results"
-echo
-for word in b lb db dr r
-do
-	echo "dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}."
-	dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}.
-done
-echo
+if [[ -n ${DEBUG_NSUPDATE} ]]; then
+	DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +short"
+	echo "Browsing & registration PTR resource record DNS query results"
+	echo
+	for word in b lb db dr r
+	do
+		echo "dig PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}."
+		dig ${DIG_QUERY_PARAM} PTR ${word}._dns-sd._udp.${DNSSD_DOMAIN}.
+	done
+	echo
+fi
 # echo "Service instance type PTR records"
 # 	echo "dig ${DIG_QUERY_PARAM} PTR _services._dns-sd._udp.${DNSSD_DOMAIN}."
 # 	dig ${DIG_QUERY_PARAM} PTR _services._dns-sd._udp.${DNSSD_DOMAIN}.
