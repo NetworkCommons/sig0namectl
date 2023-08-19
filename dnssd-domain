@@ -33,19 +33,19 @@ NSUPDATE_TTL="600"
 
 for word in lb b db r dr
 do
-
+	echo "***** DEBUG: ZONE = ${ZONE}"
 	case ${NSUPDATE_ACTION} in
 		add)
 			NSUPDATE_PRECONDITION_SET="nxrrset"
 			NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
 			NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
-			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_RR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			send_nsupdate "${DNSSD_DOMAIN}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_RR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
 			;;
 		delete)
 			NSUPDATE_PRECONDITION_SET="yxrrset"
 			NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
 			NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
-			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_RR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			send_nsupdate "${DNSSD_DOMAIN}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_RR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
 			;;
 		*)
 			# NSUPDATE_ACTION should default to "add" - should never get here
