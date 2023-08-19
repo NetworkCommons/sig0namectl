@@ -43,7 +43,7 @@ send_nsupdate() {
 	local nsupdate_postamble=$(echo "send";echo "quit")
 
 
-	if [[ -n ${DEBUG} ]]; then
+	if [[ -n ${DEBUG_SEND_NSUPDATE} ]]; then
 		echo
 		echo "${FUNCNAME[0]}( zone='${zone}' nsupdate_items= sig0_auth_fqdn='${sig0_auth_fqdn}' sig0_auth_keypath=${sig0_auth_keypath} )"
 		echo
@@ -62,7 +62,7 @@ send_nsupdate() {
 	fi
 
 	if [[ ! -n ${NSUPDATE_DISABLE} ]]; then
-		[[ -n ${DEBUG} ]] && echo && echo "${FUNCNAME[0]}(): Sending zone SOA master server '${zone_master}' update requests via nsupdate..."
+		[[ -n ${DEBUG_SEND_NSUPDATE} ]] && echo && echo "${FUNCNAME[0]}(): Sending zone SOA master server '${zone_master}' update requests via nsupdate..."
 		(echo "${nsupdate_premable}";echo "${nsupdate_server}"; echo "${nsupdate_items}";echo "${nsupdate_postamble}") | nsupdate ${nsupdate_auth_param}
 	else
 		echo "${FUNCNAME[0]}(): Warning: sending updates via nsupdate is disabled. NSUPDATE_DISABLE=\"${NSUPDATE_DISABLE}\""
@@ -71,7 +71,7 @@ send_nsupdate() {
 
 if [[ -n ${TEST_SEND_NSUPDATE} ]]; then
 	# NSUPDATE_DISABLE="true"
-	DEBUG="true"
+	DEBUG_SEND_NSUPDATE="true"
 	# NEW_SUBZONE="test"
 	NSUPDATE_SIG0_KEYPATH="${PWD}/keystore"
 	items=$(echo "update add test1 60 A 127.0.0.1";echo "update add test2 60 A 127.0.0.1")
