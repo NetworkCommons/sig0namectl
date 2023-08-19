@@ -24,61 +24,52 @@ else
 	DNSSD_DOMAIN="${ZONE}"
 fi
 
-# set default sig0 key fqdn to use for update
-# [[ ! $-n ${SIG0_KEY_FQDN} ]] && SIG0_KEY_FQDN=${ZONE}
-SIG0_KEY_FQDN=${SIG0_KEY_FQDN:-${DNSSD_DOMAIN}}
-
 DNSSD_SERVICES=${DNSSD_SERVICES:-""}
 if [[ ! -n ${DNSSD_SERVICES} ]]; then
         echo "Error: DNSSD SERVICES services \$DNSSD_SERVICES environment variable is not set. No services have been defined to browse in domain ${DNSSD_SERVICES}"
         exit 1
 fi
 
-# Form NSUPDATE input
-#
+NSUPDATE_AUTH_SIG0_KEY_FQDN=${NSUPDATE_AUTH_SIG0_KEY_FQDN:-${DNSSD_DOMAIN}}
 
-[[ ! -n ${NSUPDATE_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
-
-
-
-# form SIG0 private auth key param
-if [[ -n ${NSUPDATE_SIG0_KEYID} ]]; then
-	NSUPDATE_PARAM="${NSUPDATE_PARAM} -k ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_SIG0_KEYID}"
-else
-	NSUPDATE_PARAM=""
-fi
-
-# explicitly set server to send update to
-NSUPDATE_SET_SERVER="server ${ZONE_SOA_MASTER}"
-
-# generate nsupdate precondition to update (to avoid double entries)
-# TODO test whether multiple prereqs work ...
-# for now, just test for existance of lb._dns-sd._udp. in DNS_DOMAIN
+# define default update add & ttl
 NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
-if [ "${NSUPDATE_ACTION}" == "add" ]; then
-	NSUPDATE_PRECONDITION_SET="nxrrset"
-else
-	NSUPDATE_PRECONDITION_SET="yxrrset"
-fi
-NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} lb._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
+NSUPDATE_TTL=${NSUPDATE_TTL:-"60"}
 
-# set RR TTLs
-NSUPDATE_TTL="60"
-
-# define DNS RR updates under _services for service types
-NSUPDATE_INPUT="${NSUPDATE_SET_SERVER}\n"
-for SERVICE in ${DNSSD_SERVICES}
+for service in ${DNSSD_SERVICES}
 do
-	# define DNS RR updates under _services for service types to browse
-	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} _services._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${SERVICE}.${DNSSD_DOMAIN}.\n"
-	# DEBUG: define DNS RR updates under each service type for service instances to browse
-	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN}.\n"
-	# DEBUG: define DNS RR updates each service type instance
-	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} SRV 0 0 80 ${DNSSD_DOMAIN}.\n"
-	NSUPDATE_INPUT="${NSUPDATE_INPUT}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${SERVICE}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} TXT comment=Hello_this_is_a_${SERVICE}_service_instance\n"
+	case ${NSUPDATE_ACTION} in
+                add)
+                        NSUPDATE_PRECONDITION_SET="nxrrset"
+			# service type browsing instance pointer
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} _services._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${service}.${DNSSD_DOMAIN}.\n"
+			# service instance of service to browse
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN}.\n"
+			# service SRV record example
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} SRV 0 0 80 ${DNSSD_DOMAIN}.\n"
+			# service TXT record example
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} TXT comment=Hello_this_is_a_${service}_service_instance\n"
+			send_nsupdate "${DNSSD_DOMAIN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEMS})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			;;
+		delete)
+			NSUPDATE_PRECONDITION_SET="yxrrset"
+			# service type browsing instance pointer
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} _services._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${service}.${DNSSD_DOMAIN}.\n"
+			# service instance of service to browse
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN}.\n"
+			# service SRV record example
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} SRV 0 0 80 ${DNSSD_DOMAIN}.\n"
+			# service TXT record example
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${service}.${DNSSD_DOMAIN} ${NSUPDATE_TTL} TXT comment=Hello_this_is_a_${service}_service_instance\n"
+			send_nsupdate "${DNSSD_DOMAIN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEMS})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}"
+			;;
+		*)
+                        # NSUPDATE_ACTION should default to "add" - should never get here
+                        echo "Error: NSUPDATE_ACTION is set to '${NSUPDATE_ACTION}', but must be set to 'add' or 'delete'."
+                        exit 1
+                        ;;
+        esac
 done
-NSUPDATE_INPUT="${NSUPDATE_INPUT}send\n"
-NSUPDATE_INPUT="${NSUPDATE_INPUT}quit\n"
 
 if [[ -n ${DEBUG} ]]; then
 	echo "---DEBUG"
@@ -98,17 +89,10 @@ if [[ -n ${DEBUG} ]]; then
 	echo "DEBUG: nsupdate commands to send"
 	echo
 	echo "NSUPDATE_SET_SERVER       = ${NSUPDATE_SET_SERVER}"
-	echo "-- NSUPDATE_INPUT"
-	echo -e "${NSUPDATE_INPUT}"
+	echo "-- NSUPDATE_ITEMS"
+	echo -e "${NSUPDATE_ITEMS}"
 	echo "--"
 fi
-
-
-
-# send DNS updates via nsupdate
-#
-
-echo -e "${NSUPDATE_INPUT}" | nsupdate ${NSUPDATE_PARAM}
 
 if [[ -n ${DEBUG} ]]; then
 	echo
