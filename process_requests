@@ -26,7 +26,7 @@ if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
 fi
 
 NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"} # ensures default action
-UPDATE_TTL=${UPDATE_TTL:-"60"} # ensures default TTLs for RRs
+NSUPDATE_TTL=${NSUPDATE_TTL:-"60"} # ensures default TTLs for RRs
 
 echo
 echo "LIST of  KEY REQUESTS"
@@ -58,7 +58,7 @@ for request_ptr in ${REQUEST_QUEUE}; do
 				NEW_SUBZONE="${request_key_subzone}"
 				NEW_SUBZONE_SIG0_KEY=${request_key##*.}
 				NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
-				NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
+				NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${NSUPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
 				# add successful request
 				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_SIG0_KEY})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}" 
 				#send_update
@@ -78,7 +78,7 @@ for request_ptr in ${REQUEST_QUEUE}; do
                                 NEW_SUBZONE="${request_key_subzone}"
                                 NEW_SUBZONE_SIG0_KEY=${request_key##*.}
                                 NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${NEW_SUBZONE}.${ZONE}"
-                                NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${UPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
+                                NSUPDATE_ITEM_SIG0_KEY="update ${NSUPDATE_ACTION} ${NEW_SUBZONE}.${ZONE} ${NSUPDATE_TTL} ${NEW_SUBZONE_SIG0_KEY}"
                                 # add successful request
                                 key_display="`dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_key_fqdn} KEY`"
 				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_SIG0_KEY})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}" 
