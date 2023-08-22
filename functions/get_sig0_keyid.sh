@@ -27,32 +27,32 @@ get_sig0_keyid() {
 	
 	if (( ${#ar[@]} < 2 )); then
 		refvar=""
-		[[ -n ${DEBUG} ]] && printf "Warning: ${FUNCNAME[0]}(): path var set to \"${refvar}\": no keypair files for ${fqdn} found under ${search_path}.\n"
+		[[ -n ${DEBUG_GET_SIG0_KEYID} ]] && printf "Warning: ${FUNCNAME[0]}(): no keypair files for '${fqdn}' found under ${search_path}.\n"
 		return 1
 	fi
 	
 	if (( ${#ar[@]} > 2 )); then
 		refvar=""
-		[[ -n ${DEBUG} ]] && printf "Warning: ${FUNCNAME[0]}(): path var set to \"${refvar}\": multiple keypair files for ${fqdn} found under ${search_path}.\n"
+		[[ -n ${DEBUG_GET_SIG0_KEYID} ]] && printf "Warning: ${FUNCNAME[0]}(): path var set to \"${refvar}\": multiple keypair files for ${fqdn} found under ${search_path}.\n"
 		return 1
 	fi
 	
 	if [ "${ar[0]%.*}" != "${ar[1]%.*}" ]; then
 		refvar=""
-		[[ -n ${DEBUG} ]] && printf "Warning: ${FUNCNAME[0]}(): path var set to \"${refvar}\": no matching keypair files for ${fqdn} found under ${search_path}.\n"
+		[[ -n ${DEBUG_GET_SIG0_KEYID} ]] && printf "Warning: ${FUNCNAME[0]}(): path var set to \"${refvar}\": no matching keypair files for ${fqdn} found under ${search_path}.\n"
 		return 1
 	fi
 
 	PREFIX="${ar[0]%.*}"
 	refvar="${PREFIX##*/}"
-	[[ -n ${DEBUG} ]] && printf "Info: ${FUNCNAME[0]}(): Unique keypair prefix \"${refvar}\" for domain \"${fqdn}\" found in path \"${search_path}\"\n"
+	[[ -n ${DEBUG_GET_SIG0_KEYID} ]] && printf "Info: ${FUNCNAME[0]}(): Unique keypair prefix \"${refvar}\" for domain \"${fqdn}\" found in path \"${search_path}\"\n"
 
 }
 
 
 if [[ -n ${TEST} ]]; then
 	printf "** TEST get_sig0_keyid()\n"
-	DEBUG="true"
+	DEBUG_GET_SIG0_KEYID="true"
 	get_sig0_keyid SIG0_KEYID zembla.zenr.io ${NSUPDATE_SIG0_KEYPATH}
 	echo "SIG0_KEYID set to '${SIG0_KEYID}'"
 	get_sig0_keyid SIG0_KEYID vortex.zenr.io
