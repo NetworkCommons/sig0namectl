@@ -65,7 +65,7 @@ for request_ptr in ${REQUEST_QUEUE}; do
 				key_display="`dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_key_fqdn} KEY`"
 				request_key_fqdn_status="KEY '${request_key_fqdn}' submitted to ${NSUPDATE_ACTION} under zone '${ZONE}' with '[${key_display#*[}', IDN '${key_display%.*}'."
 			else
-				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as DNS resource records already exist."
+				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as DNS resource records for '${request_key_fqdn}' already exist."
 			fi
 			;;
 		delete)
