@@ -8,10 +8,10 @@
 for i in functions/*.sh
 do
         . ${i}
-        [[ -n ${DEBUG_SOURCED} ]] && echo "Sourced ${PWD}/$i ..."
+        [[ -n ${DEBUG_SET_VARS} ]] && echo "Sourced ${PWD}/$i ..."
 done
 
-set_vars
+set_vars $*
 
 #------------------------------------------------------------------------------
 # test
@@ -33,7 +33,7 @@ NSUPDATE_TTL="600"
 
 for word in lb b db r dr
 do
-	echo "***** DEBUG: ZONE = ${ZONE}"
+	# echo "***** DEBUG: ZONE = '${ZONE}' NEW_SUBZONE='${NEW_SUBZONE}' NEW_FQDN='${NEW_FQDN}'"
 	case ${NSUPDATE_ACTION} in
 		add)
 			NSUPDATE_PRECONDITION_SET="nxrrset"
