@@ -13,7 +13,7 @@ done
 
 #------------------------------------------------------------------------------
 
-set_vars
+set_vars $*
 
 # Define NEW_SUBZONE as a name (subdomain or subzone) within ZONE for requested SIG0 key FQDN
 #

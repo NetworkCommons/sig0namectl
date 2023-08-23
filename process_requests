@@ -13,7 +13,7 @@ done
 
 #------------------------------------------------------------------------------
 
-set_vars
+set_vars $*
 
 # find existing SIG0 auth keypair for nsupdate parameter
 [[ ! -n ${NSUPDATE_AUTH_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID ${NSUPDATE_AUTH_SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
