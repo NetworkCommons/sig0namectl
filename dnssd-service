@@ -10,7 +10,7 @@ do
 	[[ -n ${DEBUG} ]] && echo "Sourced ${PWD}/functions/$i ..."
 done
 
-set_vars
+set_vars $*
 
 #------------------------------------------------------------------------------
 # test
