@@ -39,10 +39,13 @@ set_vars() {
 			h)
 				[[ -n ${DEBUG_SET_VARS} ]] && echo "-h passed: print help & exit '${OPTARG}' given"
 				echo -e "USAGE: ${SCRIPT_NAME} [-d] [-s keystore_path] [-k keypair_fqdn] fqdn"
-				echo -e "\t -d deletion request (default request is add)"
+				echo -e "\t -d deletion action request (default action request is add)"
 				echo -e "\t -s specify explicit keystore path"
-				echo -e "\t -k specify explicit keypair FQDN for authentication (searched for in keystore_path)"
+				echo -e "\t -k specify explicit keypair FQDN for server action authentication"
 				echo -e "\t fqdn specifies the fully qualified domain name (FQDN) to act upon"
+				echo -e "\n All options overide default environment variable values, set on command line or in:"
+				echo -e "\t${PWD}/${ENV_FILE}: for project-wide scope"
+				echo -e "\t${PWD}/${ENV_FILE}.${SCRIPT_NAME}: for script-wide scope"
 				exit 1
 				;;
 		esac
