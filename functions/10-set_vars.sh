@@ -21,7 +21,7 @@ set_vars() {
 		[[ -n ${DEBUG_SET_VARS} ]] && echo "Sourced ${PWD}/${ENV_FILE}.${SCRIPT_NAME} ..."
 	fi
 	
-	while getopts ":dk:s:" ARG;
+	while getopts ":dhk:s:" ARG;
 	do
 		case "${ARG}" in
 			d)
@@ -35,6 +35,15 @@ set_vars() {
 			k)
 				NSUPDATE_AUTH_SIG0_KEY_FQDN="${OPTARG}"
 				[[ -n ${DEBUG_SET_VARS} ]] && echo "-k passed: explicit sig0 key fqdn parameter '${OPTARG}' given"
+				;;
+			h)
+				[[ -n ${DEBUG_SET_VARS} ]] && echo "-h passed: print help & exit '${OPTARG}' given"
+				echo -e "USAGE: ${SCRIPT_NAME} [-d] [-s keystore_path] [-k keypair_fqdn] fqdn"
+				echo -e "\t -d deletion request (default request is add)"
+				echo -e "\t -s specify explicit keystore path"
+				echo -e "\t -k specify explicit keypair FQDN for authentication (searched for in keystore_path)"
+				echo -e "\t fqdn specifies the fully qualified domain name (FQDN) to act upon"
+				exit 1
 				;;
 		esac
 	done
