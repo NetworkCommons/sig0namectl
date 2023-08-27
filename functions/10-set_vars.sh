@@ -64,13 +64,14 @@ set_vars() {
 			echo "No ZONE var set or FQDN argument given" && exit 1
 		fi
 	fi
+	shift 1
+	CMDLINE_EXTRA_PARAMS=$*
 
-	# Last attempt to set default sigo keystore path
+	# Last attempt to set default sig0 keystore path
 	NSUPDATE_SIG0_KEYPATH=${NSUPDATE_SIG0_KEYPATH:-"${PWD}"}
-
 	ZONE="${ZONE:-$(get_soa ${NEW_FQDN})}" # sanity check?
 	NEW_SUBZONE=${NEW_SUBZONE:-${NEW_FQDN%*.${ZONE}}}
-	[[ -n ${DEBUG} ]] && echo "ZONE='${ZONE}'" && echo "NEW_SUBZONE='${NEW_SUBZONE}'" && echo "NEW_FQDN='${NEW_FQDN}'"
+	[[ -n ${DEBUG_SET_VARS} ]] && echo "NEW_FQDN='${NEW_FQDN}'" && echo "ZONE='${ZONE}'" && echo "NEW_SUBZONE='${NEW_SUBZONE}'" && echo "NSUPDATE_SIG0_KEYPATH='${NSUPDATE_SIG0_KEYPATH}'"
 	if [[ ${#ZONE} < 2 ]]; then
 		echo "Error: DNS zone ZONE='${ZONE}' environment variable is not set & could not be determined from \$DOMAINNAME or \$HOSTNAME"
 		echo "DEBUG: NEW_FQDN='${NEW_FQDN}'"
