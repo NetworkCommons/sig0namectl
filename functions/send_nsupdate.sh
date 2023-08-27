@@ -39,7 +39,7 @@ send_nsupdate() {
 	fi
 	
 	local nsupdate_server="server ${zone_master}"
-	local nsupdate_preamble=$(echo "debug")
+	[[ -n ${DEBUG_SEND_NSUPDATE} ]] && local nsupdate_preamble=$(echo "debug")
 	local nsupdate_postamble=$(echo "send";echo "quit")
 
 
@@ -48,22 +48,17 @@ send_nsupdate() {
 		echo "${FUNCNAME[0]}( zone='${zone}' nsupdate_items= sig0_auth_fqdn='${sig0_auth_fqdn}' sig0_auth_keypath=${sig0_auth_keypath} )"
 		echo
 		echo "${FUNCNAME[0]}(): zone_master          = ${zone_master}"
-		echo
 		echo "${FUNCNAME[0]}(): sig0_auth_keypath    = ${sig0_auth_keypath}"
 		echo "${FUNCNAME[0]}(): sig0_auth_fqdn       = ${sig0_auth_fqdn}"
 		echo "${FUNCNAME[0]}(): sig0_auth_keyid      = ${sig0_auth_keyid}"
-		echo
 		echo "${FUNCNAME[0]}():  nsupdate_auth_param = '${nsupdate_auth_param}'"
-
-		echo
-		echo "${FUNCNAME[0]}(): nsupdate commands to send"
-		echo
-		(echo "${nsupdate_premable}";echo "${nsupdate_server}"; echo "${nsupdate_items}";echo "${nsupdate_postamble}") | cat
+		#echo "${FUNCNAME[0]}(): nsupdate commands to send"
+		#(echo "${nsupdate_preamble}";echo "${nsupdate_server}"; echo "${nsupdate_items}";echo "${nsupdate_postamble}") | cat
 	fi
 
 	if [[ ! -n ${NSUPDATE_DISABLE} ]]; then
 		[[ -n ${DEBUG_SEND_NSUPDATE} ]] && echo && echo "${FUNCNAME[0]}(): Sending zone SOA master server '${zone_master}' update requests via nsupdate..."
-		(echo "${nsupdate_premable}";echo "${nsupdate_server}"; echo "${nsupdate_items}";echo "${nsupdate_postamble}") | nsupdate ${nsupdate_auth_param}
+		(echo "${nsupdate_preamble}";echo "${nsupdate_server}"; echo -e "${nsupdate_items}";echo "${nsupdate_postamble}") | nsupdate ${nsupdate_auth_param}
 	else
 		echo "${FUNCNAME[0]}(): Warning: sending updates via nsupdate is disabled. NSUPDATE_DISABLE=\"${NSUPDATE_DISABLE}\""
 	fi
