@@ -20,7 +20,7 @@ NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
 NSUPDATE_TTL="60"
 
 NSUPDATE_AUTH_SIG0_KEY_FQDN=${NSUPDATE_AUTH_SIG0_KEY_FQDN:-${NEW_FQDN}}
-echo "DEBUG: NSUPDATE_AUTH_SIG0_KEY_FQDN='${NSUPDATE_AUTH_SIG0_KEY_FQDN}'"
+[[ -n ${DEBUG} ]] && echo "DEBUG: NSUPDATE_AUTH_SIG0_KEY_FQDN='${NSUPDATE_AUTH_SIG0_KEY_FQDN}'"
 
 # split NEW_FQDN into DNS ZONE & SUBLABEL
 ZONE=$(get_soa "${NEW_FQDN}")
@@ -32,7 +32,7 @@ NEW_SUBZONE=${NEW_FQDN%*${ZONE}}
 subdomain="${NSUPDATE_AUTH_SIG0_KEY_FQDN:-NEW_FQDN}"
 while [[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && [[ "${subdomain}" == *"${ZONE}" ]]
 do
-	echo "DEBUG: get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID '${subdomain}' '${NSUPDATE_SIG0_KEYPATH}'"
+	# [[ -n ${DEBUG} ]] && echo "DEBUG: get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID '${subdomain}' '${NSUPDATE_SIG0_KEYPATH}'"
 	get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID "${subdomain}" "${NSUPDATE_SIG0_KEYPATH}"
 	[[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && subdomain="${subdomain#*.}"
 done
