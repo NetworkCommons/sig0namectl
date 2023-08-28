@@ -17,13 +17,14 @@ get_sig0_keyid() {
 	local fqdn="${2}"
 	local search_path="${3:-${NSUPDATE_SIG0_KEYPATH}}"
 
+	[[ -n ${DEBUG_GET_SIG0_KEYID} ]] && printf "==================== calling ${FUNCNAME[0]} refvar='${1}' fqdn='${2}' search_path='${3}'\n"
+
 	# get list of matching files
 	#
 	local FIND=$(find ${search_path:-${NSUPDATE_SIG0_KEYPATH}} -type f \( -iname K${fqdn}.\*.key -o -iname K${fqdn}.\*.private \))
 	# split list into array
 	local ar=(${FIND})
 	local PREFIX=""
-	[[ -n ${TEST} ]] && printf "==================== calling ${FUNCNAME[0]} ${1} ${2} ${3}\n"
 	
 	if (( ${#ar[@]} < 2 )); then
 		refvar=""

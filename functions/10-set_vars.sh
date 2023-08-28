@@ -42,7 +42,7 @@ set_vars() {
 				echo -e "\t -d deletion action request (default action request is add)"
 				echo -e "\t -s specify explicit keystore path"
 				echo -e "\t -k specify explicit keypair FQDN for server action authentication"
-				echo -e "\t fqdn specifies the fully qualified domain name (FQDN) to act upon"
+				echo -e "\t fqdn specifies the fully qualified domain name (FQDN) to act upon (or under)"
 				echo -e "\n All options overide default environment variable values, set on command line or in:"
 				echo -e "\t${PWD}/${ENV_FILE}: for project-wide scope"
 				echo -e "\t${PWD}/${ENV_FILE}.${SCRIPT_NAME}: for script-wide scope"
