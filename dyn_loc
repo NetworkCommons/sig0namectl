@@ -87,5 +87,4 @@ esac
 
 
 DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +noall +answer +dnssec"
-echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} A )"
-echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} AAAA )"
+echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} LOC )"
