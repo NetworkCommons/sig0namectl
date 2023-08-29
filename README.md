@@ -61,10 +61,51 @@ For Fedora and related distributions and derivates
 
 ## 💾 Install
 
-No system install yet. Clone this git repository and use from working directory.
-
+No system install yet. Clone this git repository and use from working directory. Note: Currently tools must be used from working directory.
 
 ## 🎮 Quick start
+
+### Claiming a name
+
+By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" basis.
+
+To request a key registration within a compatible domain (for debug & testing, currently `zenr.io`), use the `request_key` tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example:
+
+`request_key my_subdomain.zenr.io`
+
+ will create a new ED25519 keypair in your local keystore, register the public key with the label `my_subdomain.zenr.io`.
+
+When the registration is successfully completed, the keypair is enabled to add, modify or delete any DNS resource record at:
+- `my_subdomain.zenr.io`
+
+as well as any subdomain name below:
+- `*.my_subdomain.zenr.io`
+
+Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.
+
+### Using a name
+
+To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.
+
+`dyn_ip [-h] [-d] fqdn [ip4]|[ip6] ...`
+
+Manages A & AAAA records for specified FQDN 
+
+`dyn_loc [-h] [-d] fqdn`
+
+Updates LOC records for fqdn (Currently compatible with termux-location)
+
+`dnssd-domain [-h] [-d] fqdn`
+
+Manages necessary DNS records to activate DNS Service Discovery browsing.
+
+`dnssd-service fqdn`
+
+Gives an *example* of how to register browsable DNS services.
+
+`nsupdate -k path_and_your_keypair_prefix`
+
+Successfully registered keypairs are stored in your local keystore and also can be used with the standard DNS tool, `nsupdate` (using -k option to specify the keypair filepath). See `man nsupdate` for further details.
 
 ***
 **[🔝 back to top](#toc)**
