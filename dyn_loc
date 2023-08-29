@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Sends DNS-SD updates for domain browsing setup
+#------------------------------------------------------------------------------
+
+
+# load helpful functions
+for i in functions/*.sh
+do
+        . ${i}
+        [[ -n ${DEBUG_SET_VARS} ]] && echo "Sourced ${PWD}/$i ..."
+done
+
+set_vars $*
+
+#------------------------------------------------------------------------------
+
+# define default update add
+NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
+NSUPDATE_TTL="60"
+
+NSUPDATE_AUTH_SIG0_KEY_FQDN=${NSUPDATE_AUTH_SIG0_KEY_FQDN:-${NEW_FQDN}}
+[[ -n ${DEBUG} ]] && echo "DEBUG: NSUPDATE_AUTH_SIG0_KEY_FQDN='${NSUPDATE_AUTH_SIG0_KEY_FQDN}'"
+
+# split NEW_FQDN into DNS ZONE & SUBLABEL
+ZONE=$(get_soa "${NEW_FQDN}")
+[[ ! -n ${ZONE} ]] && echo "Could not find SOA in FQDN '${NEW_FQDN}'" && exit 1
+NEW_SUBZONE=${NEW_FQDN%*${ZONE}}
+[[ -n ${NEW_SUBZONE} ]] && NEW_SUBZONE=${NEW_SUBZONE::-1} # if not null, remove trailing dot
+
+# recursively search keystore for most particular subdomain keypair under ZONE
+subdomain="${NSUPDATE_AUTH_SIG0_KEY_FQDN:-NEW_FQDN}"
+while [[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && [[ "${subdomain}" == *"${ZONE}" ]]
+do
+	# [[ -n ${DEBUG} ]] && echo "DEBUG: get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID '${subdomain}' '${NSUPDATE_SIG0_KEYPATH}'"
+	get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID "${subdomain}" "${NSUPDATE_SIG0_KEYPATH}"
+	[[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && subdomain="${subdomain#*.}"
+done
+
+NSUPDATE_RRTYPE="LOC"
+
+
+LOC_RR_DATA=get_loc_termux "${CMDLINE_EXTRA_PARAMS}"
+
+NSUPDATE_ITEM_RR="${NSUPDATE_RRTYPE} ${LOC_RR_DATA}"
+echo "${NSUPDATE_ITEM_RR}"
+exit
+## loop over command line parameter (post getops()) for IPv[4,6] assignments
+#for ip in ${CMDLINE_EXTRA_PARAMS}; do
+#        if validateIPv4 "${ip}";then
+#		NSUPDATE_RRTYPE="A"
+#		# [[ -n ${DEBUG} ]] && echo "$ip is parsed as an IPv4 Address. Set A Record"
+#		NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} ${ip}\n"
+#	else
+#                validateIPv6 "${ip}"
+#                isIPv6="$?"
+#                if [[ $isIPv6 -eq 0 ]];then
+#			NSUPDATE_RRTYPE="AAAA"
+#			# [[ -n ${DEBUG} ]] && echo "$ip is parsed as an IPv6 Address. Set ${NSUPDATE_RRTYPE} Record"
+#			NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} ${ip}\n"
+#                else
+#                        echo "Warning: Skipping Invalid IP Address ($ip)"
+#                fi
+#        fi
+#done
+
+# form nsupdate RR update statements
+case ${NSUPDATE_ACTION} in
+	add)
+		# NSUPDATE_PRECONDITION_SET="nxrrset"
+		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
+		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
+		;;
+	delete)
+		# NSUPDATE_PRECONDITION_SET="yxrrset"
+		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
+		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
+		;;
+	*)
+		# NSUPDATE_ACTION should default to "add" - should never get here
+		echo "Error: NSUPDATE_ACTION is set to '${NSUPDATE_ACTION}', but must be set to 'add' or 'delete'."
+		exit 1
+		;;
+esac
+
+
+DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +noall +answer +dnssec"
+echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} A )"
+echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} AAAA )"
