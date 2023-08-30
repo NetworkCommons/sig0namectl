@@ -113,7 +113,7 @@ Successfully registered keypairs are stored in your local keystore and also can 
 
 ## 😍 Acknowledgements
 
-Copyleft (ɔ) 2022 Adam Burns, [Dyne.org](https://www.dyne.org) foundation, Amsterdam
+Copyleft (ɔ) 2022 Adam Burns, [free2air limited](https://free2air.net) & the [Dyne.org](https://www.dyne.org) foundation, Amsterdam
 
 Designed, written and maintained by Adam Burns.
 
@@ -144,7 +144,7 @@ Please first take a look at the [Contributor License Agreement](CONTRIBUTING.md)
 ***
 ## 💼 License
     sig0zonectl - 
-    Copyleft (ɔ) 2023 Adam Burns, Dyne.org foundation, Amsterdam
+    Copyleft (ɔ) 2023 Adam Burns, free2air limited & Dyne.org foundation, Amsterdam
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
