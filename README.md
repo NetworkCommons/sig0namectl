@@ -69,20 +69,20 @@ No system install yet. Clone this git repository and use from working directory.
 
 By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
 
-To request a key registration within a compatible domain (`zenr.io` is an example domain for a public playground), use the `request_key` tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the zenr.io domain, issuing:
+To request a key registration within a compatible domain (*zenr.io* is an example domain for a public playground), use the `request_key` tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the *zenr.io* domain, issuing:
 
-`request_key my_subdomain.zenr.io`
+`request_key mysubdomain.zenr.io`
 
-will create a new ED25519 keypair in your local keystore (where 'my_subdomain' is unclaimed on a FCFS basis).
+will create a new ED25519 keypair in your local keystore (where '*my_subdomain*' is unclaimed on a FCFS basis).
 
 
 The successful registration can be verified by
 
-`dig request_key my_subdomain.zenr.io KEY`
+`dig request_key mysubdomain.zenr.io KEY`
 
 returning the listed public key for the specific FQDN.
 
-the keypair is enabled to add, modify or delete any DNS resource record at or under `my_subdomain.zenr.io` (ie `*.my_subdomain.zenr.io`).
+the keypair is enabled to add, modify or delete any DNS resource record at or under [*.]*mysubdomain.zenr.io*.
 
 Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.
 
@@ -90,25 +90,25 @@ Note: It may take a minute or so for your local DNS resolver to update its cache
 
 To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.
 
-`dyn_ip [-h] [-d] fqdn [ip4]|[ip6] ...`
+#### `dyn_ip fqdn [ip4]|[ip6] ...`
 
-Manages A & AAAA records for specified FQDN 
+Manages A & AAAA records for the specified fully qualified domain name, fqdn. 
 
-`dyn_loc [-h] [-d] fqdn`
+#### `dyn_loc fqdn`
 
 Updates LOC records for fqdn (Currently compatible with termux-location)
 
-`dnssd-domain [-h] [-d] fqdn`
+#### `dnssd-domain fqdn`
 
-Manages necessary DNS records to activate DNS Service Discovery browsing.
+Manages DNS records necessary to activate wide area DNS Service Discovery browsing.
 
-`dnssd-service fqdn`
+#### `dnssd-service fqdn`
 
-Gives an *example* of how to register browsable DNS services.
+Gives an *example* of how to register browsable wide area DNS-SD services.
 
-`nsupdate -k path_and_your_keypair_prefix`
+#### `nsupdate -k path_to_keypair_prefix`
 
-Successfully registered keypairs are stored in your local keystore and also can be used with the standard DNS tool, `nsupdate` (using -k option to specify the keypair filepath). See `man nsupdate` for further details.
+Successfully registered keypairs are stored in your local keystore and also can be used with the standard DNS tool, `nsupdate` (using -k option to specify the keypair prefix filepath). See `man nsupdate` for further details.
 
 ***
 **[🔝 back to top](#toc)**
