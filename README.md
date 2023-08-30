@@ -65,6 +65,23 @@ No system install yet. Clone this git repository and use from working directory.
 
 ## 🎮 Quick start
 
+```mermaid
+sequenceDiagram
+autonumber
+  participant U as 🤓User
+  participant P as 📱Provisioner
+  participant S as Server
+
+  U->>U: Generate keypair
+  U->>P: Request public key name registration 
+  P->>P: Apply registration policy
+  P->>+S: Publish & sign public KEY record
+  U->>+S: Send signed update 
+  S->>S: Verify signed DNSSEC update
+  S->>S: Publish and sign update
+  S->>U: Return status of DNSSEC update
+```
+
 ### Claiming a name
 
 By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
