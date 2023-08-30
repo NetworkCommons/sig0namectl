@@ -65,24 +65,20 @@ No system install yet. Clone this git repository and use from working directory.
 
 ## 🎮 Quick start
 
+### Claiming a name
+
 ```mermaid
 sequenceDiagram
 autonumber
-  participant U as 🤓User
-  participant P as 📱Provisioner
+  participant U as Requester
+  participant P as Provider
   participant S as Server
 
   U->>U: Generate keypair
   U->>P: Request public key name registration 
   P->>P: Apply registration policy
   P->>+S: Publish & sign public KEY record
-  U->>+S: Send signed update 
-  S->>S: Verify signed DNSSEC update
-  S->>S: Publish and sign update
-  S->>U: Return status of DNSSEC update
 ```
-
-### Claiming a name
 
 By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
 
@@ -104,6 +100,18 @@ the keypair is enabled to add, modify or delete any DNS resource record at or un
 Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.
 
 ### Using a name
+
+```mermaid
+sequenceDiagram
+autonumber
+  participant U as 🤓User
+  participant S as Server
+  U->>U: Create & sign DNSSEC update
+  U->>S: Send update
+  S->>S: Verify update signature against key record
+  S->>S: Publish and sign update
+  S->>U: Return status of DNSSEC update
+```
 
 To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.
 
