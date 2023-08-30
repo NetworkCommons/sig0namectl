@@ -32,7 +32,7 @@
 
 **Work in progress** 🚧: 
 
-sig0zonectl is a set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
+sig0zonectl is a proof of concept set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
@@ -67,19 +67,22 @@ No system install yet. Clone this git repository and use from working directory.
 
 ### Claiming a name
 
-By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" basis.
+By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
 
-To request a key registration within a compatible domain (for debug & testing, currently `zenr.io`), use the `request_key` tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example:
+To request a key registration within a compatible domain (`zenr.io` is an example domain for a public playground), use the `request_key` tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the zenr.io domain, issuing:
 
 `request_key my_subdomain.zenr.io`
 
- will create a new ED25519 keypair in your local keystore, register the public key with the label `my_subdomain.zenr.io`.
+will create a new ED25519 keypair in your local keystore (where 'my_subdomain' is unclaimed on a FCFS basis).
 
-When the registration is successfully completed, the keypair is enabled to add, modify or delete any DNS resource record at:
-- `my_subdomain.zenr.io`
 
-as well as any subdomain name below:
-- `*.my_subdomain.zenr.io`
+The successful registration can be verified by
+
+`dig request_key my_subdomain.zenr.io KEY`
+
+returning the listed public key for the specific FQDN.
+
+the keypair is enabled to add, modify or delete any DNS resource record at or under `my_subdomain.zenr.io` (ie `*.my_subdomain.zenr.io`).
 
 Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.
 
