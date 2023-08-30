@@ -1,11 +1,11 @@
 <!---<p align="center">
   <a href="https://www.dyne.org">
-    <img alt="sig0zonectl" src="/public/logo.png" width="150" />
+    <img alt="sig0namectl" src="/public/logo.png" width="150" />
   </a>
 </p>--->
 
 <h1 align="center">
-  sig0zonectl</br>
+  sig0namectl</br>
   <sub></sub>
 </h1>
 
@@ -32,7 +32,7 @@
 
 **Work in progress** 🚧: 
 
-sig0zonectl is a proof of concept set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
+sig0namectl is a proof of concept set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
@@ -49,7 +49,7 @@ sig0zonectl is a proof of concept set of tools for GNU/Linux or BSD environments
 
 Install dependencies.
 
-To keep extra dependencies to a minimum and to allow use in constrained environments, sig0zonectl implemented in Bash and uses a subset of BIND9 DNS tools.
+To keep extra dependencies to a minimum and to allow use in constrained environments, these tools are implemented in Bash and use a subset of BIND9 DNS tools.
 
 For Debian and derivatives:
 
@@ -72,7 +72,7 @@ sequenceDiagram
 autonumber
   participant U as Requester
   participant P as Provider
-  participant S as Server
+  participant S as Domain_Name_Server
 
   U->>U: Generate keypair
   U->>P: Request public key name registration 
@@ -104,13 +104,13 @@ Note: It may take a minute or so for your local DNS resolver to update its cache
 ```mermaid
 sequenceDiagram
 autonumber
-  participant U as 🤓User
-  participant S as Server
-  U->>U: Create & sign DNSSEC update
+  participant U as 🤓_User
+  participant S as Domain_Name_Server
+  U->>U: Create & sign update
   U->>S: Send update
   S->>S: Verify update signature against key record
-  S->>S: Publish and sign update
-  S->>U: Return status of DNSSEC update
+  S->>S: Publish and DNSSEC sign update
+  S->>U: Return status of update
 ```
 
 To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.
@@ -171,7 +171,7 @@ Please first take a look at the [Contributor License Agreement](CONTRIBUTING.md)
 
 ***
 ## 💼 License
-    sig0zonectl - 
+    sig0namectl - 
     Copyleft (ɔ) 2023 Adam Burns, free2air limited & Dyne.org foundation, Amsterdam
 
     This program is free software: you can redistribute it and/or modify
