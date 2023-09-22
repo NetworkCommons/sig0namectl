@@ -91,7 +91,7 @@ will create a new ED25519 keypair in your local keystore (where '*my_subdomain*'
 
 The successful registration can be verified by
 
-`dig request_key mysubdomain.zenr.io KEY`
+`dig mysubdomain.zenr.io KEY`
 
 returning the listed public key for the specific FQDN.
 
