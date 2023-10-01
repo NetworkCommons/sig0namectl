@@ -32,7 +32,7 @@
 
 **Work in progress** 🚧: 
 
-sig0namectl is a proof of concept set of tools for GNU/Linux or BSD environments that assist in recursive dynamic DNSSEC update, access control and delegation.
+sig0namectl is a proof of concept set of tools that enable a secure, direct & scalable standard SIG(0) key based authentication to allow users to manage & further delegate update rights to DNS resource records within compatibly configured DNSSEC enabled zones.
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
