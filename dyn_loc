@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-# Sends DNS-SD updates for domain browsing setup
+# Sends LOC updates of GPS co-ordinates
+# (currently only for Android with Termux using termux-location tool)
+# TODO add gpsd for *nix/*bsd
 #------------------------------------------------------------------------------
 
 
