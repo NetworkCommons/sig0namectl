@@ -1,0 +1,13 @@
+# we would like to
+
+* import key pairs from dnssec-keygen files into golang DNS key structure
+
+
+* read/write arbitrary DNS RRs under ZONE using key pair authorized in ZONE
+
+	- export public key to KEY RR in or under ZONE
+		- in allows shared access
+		- under creates independent HOST/ENTITY
+
+	- manage DNS RRs for HOST/ENTITY under ZONE
+		- A/AAAA, SRV, URI & LOC

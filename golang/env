@@ -1,0 +1,4 @@
+export GD_SERVER="abulafia.free2air.net"
+export GD_ZONE="zenr.io"
+export GD_HOST="godnstest"
+export GD_SIG0_KEYFILES="Kvortex.zenr.io.+015+56161"
