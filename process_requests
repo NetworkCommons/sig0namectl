@@ -37,7 +37,7 @@ echo "PROCESSING KEY REQUESTS"
 echo
 REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
 # [[ -n ${TEST_REQUEST} ]] && REQUEST_QUEUE="${REQUEST_QUEUE} testzone._signal.zenr.io _signal._signal.zenr.io below.test._signal.zenr.io"
-
+# TODO: handle timeout errors from dig (error lines start with ';;')
 for request_ptr in ${REQUEST_QUEUE}; do
         # get requested KEY from SIGNAL_SOA_MASTER
 	request_key="`dig @${SIGNAL_SOA_MASTER} +noall +answer ${request_ptr} KEY`"
