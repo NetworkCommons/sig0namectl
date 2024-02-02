@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="None" name="description"/>
+<link href="img/favicon.ico" rel="shortcut icon"/>
+<title>sig0namectl</title>
+<link href="css/bootstrap.min.css" rel="stylesheet"/>
+<link href="css/font-awesome.min.css" rel="stylesheet"/>
+<link href="css/base.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body class="homepage">
+<div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+<div class="container">
+<a class="navbar-brand" href=".">sig0namectl</a>
+<!-- Expander button -->
+<button class="navbar-toggler" data-target="#navbar-collapse" data-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<!-- Expanded navigation -->
+<div class="navbar-collapse collapse" id="navbar-collapse">
+<ul class="nav navbar-nav ml-auto">
+<li class="nav-item">
+<a class="nav-link" data-target="#mkdocs_search_modal" data-toggle="modal" href="#">
+<i class="fa fa-search"></i> Search
+                            </a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="https://github.com/adam-burns/sig0namectl/edit/master/docs/index.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="row">
+<div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+<div class="navbar-header">
+<button class="navbar-toggler collapsed" data-target="#toc-collapse" data-toggle="collapse" title="Table of Contents" type="button">
+<span class="fa fa-angle-down"></span>
+</button>
+</div>
+<div class="navbar-collapse collapse card bg-secondary" id="toc-collapse">
+<ul class="nav flex-column">
+<li class="nav-item" data-level="2"><a class="nav-link" href="#prepare">📝 Prepare</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#install">💾 Install</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#quick-start">🎮 Quick start</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#acknowledgements">😍 Acknowledgements</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#links">🌐 Links</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#contributing">👤 Contributing</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+<li class="nav-item" data-level="2"><a class="nav-link" href="#license">💼 License</a>
+<ul class="nav flex-column">
+</ul>
+</li>
+</ul>
+</div>
+</div></div>
+<div class="col-md-9" role="main">
+<!---<p align="center">
+  <a href="https://www.dyne.org">
+    <img alt="sig0namectl" src="/public/logo.png" width="150" />
+  </a>
+</p>--->
+<h1 align="center">
+  sig0namectl
+<sub></sub>
+</h1>
+<p align="center">
+  to name is to own
+</p>
+<p><br/><br/></p>
+<h4 align="center">
+<a href="#-prepare">📝 Prepare</a>
+<span> • </span>
+<a href="#-install">💾 Install</a>
+<span> • </span>
+<a href="#-quick-start">🎮 Quick start</a>
+<span> • </span>
+<a href="#-links">🌐 Links</a>
+<span> • </span>
+<a href="#-contributing">👤 Contributing</a>
+<span> • </span>
+<a href="#-license">💼 License</a>
+</h4>
+<p><strong>Work in progress</strong> 🚧: </p>
+<p>sig0namectl is a proof of concept set of tools that enable a secure, direct &amp; scalable standard SIG(0) key based authentication to allow users to manage &amp; further delegate update rights to DNS resource records within compatibly configured DNSSEC enabled zones.</p>
+<details id="toc">
+<summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
+
+* [Prepare](#-prepare)
+* [Install](#-install)
+* [Quick start](#-quick-start)
+* [Links](#-links)
+* [Contributing](#-contributing)
+* [License](#-license)
+</details>
+<h2 id="prepare">📝 Prepare</h2>
+<p>Install dependencies.</p>
+<p>To keep extra dependencies to a minimum and to allow use in constrained environments, these tools are implemented in Bash and use a subset of BIND9 DNS tools.</p>
+<p>For Debian and derivatives:</p>
+<p><code>apt install bind9-dnsutils</code></p>
+<p>For Fedora and related distributions and derivates</p>
+<p><code>dnf install bind-utils</code></p>
+<h2 id="install">💾 Install</h2>
+<p>No system install yet. Clone this git repository and use from working directory. Note: Currently tools must be used from working directory.</p>
+<h2 id="quick-start">🎮 Quick start</h2>
+<h3 id="claiming-a-name">Claiming a name</h3>
+<div class="mermaid">sequenceDiagram
+autonumber
+  participant U as Requester
+  participant P as Provider
+  participant S as Domain_Name_Server
+
+  U-&gt;&gt;U: Generate keypair
+  U-&gt;&gt;P: Request public key name registration 
+  P-&gt;&gt;P: Apply registration policy
+  P-&gt;&gt;+S: Publish &amp; sign public KEY record
+</div>
+<p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
+<p>To request a key registration within a compatible domain (<em>zenr.io</em> is an example domain for a public playground), use the <code>request_key</code> tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the <em>zenr.io</em> domain, issuing:</p>
+<p><code>request_key mysubdomain.zenr.io</code></p>
+<p>will create a new ED25519 keypair in your local keystore (where '<em>my_subdomain</em>' is unclaimed on a FCFS basis).</p>
+<p>The successful registration can be verified by</p>
+<p><code>dig mysubdomain.zenr.io KEY</code></p>
+<p>returning the listed public key for the specific FQDN.</p>
+<p>the keypair is enabled to add, modify or delete any DNS resource record at or under [<em>.]</em>mysubdomain.zenr.io*.</p>
+<p>Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.</p>
+<h3 id="using-a-name">Using a name</h3>
+<div class="mermaid">sequenceDiagram
+autonumber
+  participant U as 🤓_User
+  participant S as Domain_Name_Server
+  U-&gt;&gt;U: Create &amp; sign update
+  U-&gt;&gt;S: Send update
+  S-&gt;&gt;S: Verify update signature against key record
+  S-&gt;&gt;S: Publish and DNSSEC sign update
+  S-&gt;&gt;U: Return status of update
+</div>
+<p>To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.</p>
+<h4 id="dyn_ip-fqdn-ip4ip6"><code>dyn_ip fqdn [ip4]|[ip6] ...</code></h4>
+<p>Manages A &amp; AAAA records for the specified fully qualified domain name, fqdn. </p>
+<h4 id="dyn_loc-fqdn"><code>dyn_loc fqdn</code></h4>
+<p>Updates LOC records for fqdn (Currently compatible with termux-location)</p>
+<h4 id="dnssd-domain-fqdn"><code>dnssd-domain fqdn</code></h4>
+<p>Manages DNS records necessary to activate wide area DNS Service Discovery browsing.</p>
+<h4 id="dnssd-service-fqdn"><code>dnssd-service fqdn</code></h4>
+<p>Gives an <em>example</em> of how to register browsable wide area DNS-SD services.</p>
+<h4 id="nsupdate-k-path_to_keypair_prefix"><code>nsupdate -k path_to_keypair_prefix</code></h4>
+<p>Successfully registered keypairs are stored in your local keystore and also can be used with the standard DNS tool, <code>nsupdate</code> (using -k option to specify the keypair prefix filepath). See <code>man nsupdate</code> for further details.</p>
+<hr/>
+<p><strong><a href="#toc">🔝 back to top</a></strong></p>
+<h2 id="acknowledgements">😍 Acknowledgements</h2>
+<p>Copyleft (ɔ) 2022 Adam Burns, <a href="https://free2air.net">free2air limited</a> &amp; the <a href="https://www.dyne.org">Dyne.org</a> foundation, Amsterdam</p>
+<p>Designed, written and maintained by Adam Burns.</p>
+<p><strong><a href="#toc">🔝 back to top</a></strong></p>
+<hr/>
+<h2 id="links">🌐 Links</h2>
+<p><strong><a href="#toc">🔝 back to top</a></strong></p>
+<hr/>
+<h2 id="contributing">👤 Contributing</h2>
+<p>Please first take a look at the <a href="CONTRIBUTING.md">Contributor License Agreement</a> then</p>
+<ol>
+<li>🔀 <a href="../../fork">FORK IT</a></li>
+<li>Create your feature branch <code>git checkout -b feature/branch</code></li>
+<li>Commit your changes <code>git commit -am 'Add some fooBar'</code></li>
+<li>Push to the branch <code>git push origin feature/branch</code></li>
+<li>Create a new Pull Request</li>
+<li>🙏 Thank you</li>
+</ol>
+<p><strong><a href="#toc">🔝 back to top</a></strong></p>
+<hr/>
+<h2 id="license">💼 License</h2>
+<pre><code>sig0namectl - 
+Copyleft (ɔ) 2023 Adam Burns, free2air limited &amp; Dyne.org foundation, Amsterdam
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</code></pre>
+<p><strong><a href="#toc">🔝 back to top</a></strong></p></div>
+</div>
+</div>
+<footer class="col-md-12">
+<hr/>
+<p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+</footer>
+<script src="js/jquery-3.6.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+<script src="js/base.js"></script>
+<script src="search/main.js"></script>
+<div aria-hidden="true" aria-labelledby="searchModalLabel" class="modal" id="mkdocs_search_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="searchModalLabel">Search</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<p>From here you can search these documents. Enter your search terms below.</p>
+<form>
+<div class="form-group">
+<input class="form-control" id="mkdocs-search-query" placeholder="Search..." title="Type search term here" type="search"/>
+</div>
+</form>
+<div data-no-results-text="No results found" id="mkdocs-search-results"></div>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="keyboardModalLabel" class="modal" id="mkdocs_keyboard_modal" role="dialog" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+<button class="close" data-dismiss="modal" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+</div>
+<div class="modal-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width: 20%;">Keys</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="help shortcut"><kbd>?</kbd></td>
+<td>Open this help</td>
+</tr>
+<tr>
+<td class="next shortcut"><kbd>n</kbd></td>
+<td>Next page</td>
+</tr>
+<tr>
+<td class="prev shortcut"><kbd>p</kbd></td>
+<td>Previous page</td>
+</tr>
+<tr>
+<td class="search shortcut"><kbd>s</kbd></td>
+<td>Search</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="modal-footer">
+</div>
+</div>
+</div>
+</div>
+<script type="module">import mermaid from "https://unpkg.com/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
+mermaid.initialize({});</script></body>
+</html>
+<!--
+MkDocs version : 1.5.3
+Build Date UTC : 2024-02-02 08:52:05.662572+00:00
+-->
