@@ -132,10 +132,10 @@ autonumber
   R-&gt;&gt;R: Generate named keypair
   R-&gt;&gt;P: Request registration of named public key
   P-&gt;&gt;P: Apply registration policy
-  break when named key fails policy
+  break when named public key fails policy
     P-&gt;&gt;R: Show unsuccessful registration
   end
-  P-&gt;&gt;+P: Publish &amp; sign public KEY record
+  P-&gt;&gt;+P: Publish &amp; sign named public KEY record
   P-&gt;&gt;R: Show successful registration
 </div>
 <p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
@@ -287,5 +287,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-03 19:43:01.059222+00:00
+Build Date UTC : 2024-02-03 19:45:24.146263+00:00
 -->
