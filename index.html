@@ -126,12 +126,12 @@
 <h3 id="claiming-a-name">Claiming a name</h3>
 <div class="mermaid">sequenceDiagram
 autonumber
-  participant U as Requester
+  participant R as Requester
   participant P as Provider
 
-  U-&gt;&gt;U: Generate keypair
-  U-&gt;&gt;P: Request public key name registration 
-  P-&gt;&gt;P: Apply registration policy
+  R-&gt;&gt;R: Generate keypair
+  R-&gt;&gt;P: Request public key name registration 
+  R-&gt;&gt;P: Apply registration policy
   P-&gt;&gt;+P: Publish &amp; sign public KEY record
 </div>
 <p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
@@ -283,5 +283,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-03 09:31:04.282927+00:00
+Build Date UTC : 2024-02-03 09:32:35.085560+00:00
 -->
