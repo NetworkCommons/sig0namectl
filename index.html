@@ -80,11 +80,6 @@
 </div>
 </div></div>
 <div class="col-md-9" role="main">
-<!---<p align="center">
-  <a href="https://www.dyne.org">
-    <img alt="sig0namectl" src="/public/logo.png" width="150" />
-  </a>
-</p>--->
 <h1 align="center">
   sig0namectl
 <sub></sub>
@@ -132,13 +127,12 @@
 <div class="mermaid">sequenceDiagram
 autonumber
   participant U as Requester
-  participant P as Provider
-  participant S as Domain_Name_Server
+  participant S as Provider
 
   U-&gt;&gt;U: Generate keypair
   U-&gt;&gt;P: Request public key name registration 
-  P-&gt;&gt;P: Apply registration policy
-  P-&gt;&gt;+S: Publish &amp; sign public KEY record
+  S-&gt;&gt;S: Apply registration policy
+  S-&gt;&gt;+S: Publish &amp; sign public KEY record
 </div>
 <p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
 <p>To request a key registration within a compatible domain (<em>zenr.io</em> is an example domain for a public playground), use the <code>request_key</code> tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the <em>zenr.io</em> domain, issuing:</p>
@@ -182,7 +176,6 @@ autonumber
 <p><strong><a href="#toc">🔝 back to top</a></strong></p>
 <hr/>
 <h2 id="contributing">👤 Contributing</h2>
-<p>Please first take a look at the <a href="CONTRIBUTING.md">Contributor License Agreement</a> then</p>
 <ol>
 <li>🔀 <a href="../../fork">FORK IT</a></li>
 <li>Create your feature branch <code>git checkout -b feature/branch</code></li>
@@ -290,5 +283,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-02 14:07:51.490119+00:00
+Build Date UTC : 2024-02-03 09:28:45.015072+00:00
 -->
