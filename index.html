@@ -129,10 +129,10 @@ autonumber
   participant R as Requester
   participant P as Provider
 
-  R-&gt;&gt;R: Generate keypair
-  R-&gt;&gt;P: Request registration of public named key
+  R-&gt;&gt;R: Generate named keypair
+  R-&gt;&gt;P: Request registration of named public key
   P-&gt;&gt;P: Apply registration policy
-  break when policy fails
+  break when named key fails policy
     P-&gt;&gt;R: Show unsuccessful registration
   end
   P-&gt;&gt;+P: Publish &amp; sign public KEY record
@@ -287,5 +287,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-03 11:11:01.626186+00:00
+Build Date UTC : 2024-02-03 19:43:01.059222+00:00
 -->
