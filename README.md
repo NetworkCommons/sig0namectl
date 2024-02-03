@@ -1,9 +1,3 @@
-<!---<p align="center">
-  <a href="https://www.dyne.org">
-    <img alt="sig0namectl" src="/public/logo.png" width="150" />
-  </a>
-</p>--->
-
 <h1 align="center">
   sig0namectl</br>
   <sub></sub>
@@ -156,8 +150,6 @@ Designed, written and maintained by Adam Burns.
 
 ***
 ## 👤 Contributing
-
-Please first take a look at the [Contributor License Agreement](CONTRIBUTING.md) then
 
 1.  🔀 [FORK IT](../../fork)
 2.  Create your feature branch `git checkout -b feature/branch`
