@@ -133,9 +133,11 @@ autonumber
   R-&gt;&gt;P: Request registration of public named key
   P-&gt;&gt;P: Apply registration policy
   break when policy fails
-    P-&gt;&gt;R: show failure
+    P-&gt;&gt;R: Show unsuccessful registration
   end
   P-&gt;&gt;+P: Publish &amp; sign public KEY record
+  P-&gt;&gt;R: Show successful registration
+
 </div>
 <p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
 <p>To request a key registration within a compatible domain (<em>zenr.io</em> is an example domain for a public playground), use the <code>request_key</code> tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the <em>zenr.io</em> domain, issuing:</p>
@@ -286,5 +288,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-03 11:05:22.354629+00:00
+Build Date UTC : 2024-02-03 11:10:08.801711+00:00
 -->
