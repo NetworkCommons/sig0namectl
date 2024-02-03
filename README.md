@@ -64,14 +64,17 @@ No system install yet. Clone this git repository and use from working directory.
 ```mermaid
 sequenceDiagram
 autonumber
-  participant U as Requester
+  participant R as Requester
   participant P as Provider
-  participant S as Domain_Name_Server
 
-  U->>U: Generate keypair
-  U->>P: Request public key name registration 
+  R->>R: Generate keypair
+  R->>P: Request registration of public named key
   P->>P: Apply registration policy
-  P->>+S: Publish & sign public KEY record
+  break when policy fails
+    P->>R: Show unsuccessful registration
+  end
+  P->>+P: Publish & sign public KEY record
+  P->>R: Show successful registration
 ```
 
 By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
