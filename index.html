@@ -123,7 +123,7 @@
 <h2 id="install">💾 Install</h2>
 <p>No system install yet. Clone this git repository and use from working directory. Note: Currently tools must be used from working directory.</p>
 <h2 id="quick-start">🎮 Quick start</h2>
-<h3 id="claiming-a-name">Claiming a name</h3>
+<h3 id="registering-a-named-key">Registering a named key</h3>
 <div class="mermaid">sequenceDiagram
 autonumber
   participant R as Requester
@@ -136,7 +136,7 @@ autonumber
     P-&gt;&gt;R: Show unsuccessful registration
   end
   P-&gt;&gt;+P: Publish &amp; sign named public KEY record
-  P-&gt;&gt;R: Show successful registration
+  P-&gt;&gt;R: Show successful named key registration
 </div>
 <p>By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.</p>
 <p>To request a key registration within a compatible domain (<em>zenr.io</em> is an example domain for a public playground), use the <code>request_key</code> tool, specifying the fully qualified domain name (FQDN) of the new domain you wish to control. For example, under the <em>zenr.io</em> domain, issuing:</p>
@@ -147,16 +147,19 @@ autonumber
 <p>returning the listed public key for the specific FQDN.</p>
 <p>the keypair is enabled to add, modify or delete any DNS resource record at or under [<em>.]</em>mysubdomain.zenr.io*.</p>
 <p>Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.</p>
-<h3 id="using-a-name">Using a name</h3>
+<h3 id="updating-resource-records-with-a-named-key">Updating resource records with a named key</h3>
 <div class="mermaid">sequenceDiagram
 autonumber
-  participant U as 🤓_User
-  participant S as Domain_Name_Server
-  U-&gt;&gt;U: Create &amp; sign update
-  U-&gt;&gt;S: Send update
-  S-&gt;&gt;S: Verify update signature against key record
-  S-&gt;&gt;S: Publish and DNSSEC sign update
-  S-&gt;&gt;U: Return status of update
+  participant R as Requester
+  participant P as Provider
+  R-&gt;&gt;R: Create resource record update &amp; sign with named private key
+  R-&gt;&gt;P: Request publication of updated records
+  P-&gt;&gt;P: Verify update request signature against registered named key
+  break when named public key fails policy
+    P--&gt;&gt;R: Show unsuccessful update
+  end
+  P-&gt;&gt;P: Publish &amp; sign updated records under DNSSEC
+  P-&gt;&gt;R: Show successful update
 </div>
 <p>To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.</p>
 <h4 id="dyn_ip-fqdn-ip4ip6"><code>dyn_ip fqdn [ip4]|[ip6] ...</code></h4>
@@ -287,5 +290,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-03 19:45:24.146263+00:00
+Build Date UTC : 2024-02-04 10:01:42.715402+00:00
 -->
