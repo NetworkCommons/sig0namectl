@@ -126,8 +126,8 @@
 <h3 id="registering-a-named-key">Registering a named key</h3>
 <div class="mermaid">sequenceDiagram
 autonumber
-  participant R as Requester
-  participant P as Provider
+  participant R as Requester&lt;br&gt;&lt;br&gt;(DNSSEC client)
+  participant P as Provider&lt;br&gt;&lt;br&gt;(DNSSEC server)
 
   R-&gt;&gt;R: Generate named keypair
   R-&gt;&gt;P: Request registration of named public key
@@ -150,15 +150,15 @@ autonumber
 <h3 id="updating-resource-records-with-a-named-key">Updating resource records with a named key</h3>
 <div class="mermaid">sequenceDiagram
 autonumber
-  participant R as Requester
-  participant P as Provider
-  R-&gt;&gt;R: Create resource record update &amp; sign with named private key
+  participant R as Requester&lt;br&gt;&lt;br&gt; (DNSSEC client)
+  participant P as Provider&lt;br&gt;&lt;br&gt;(DNSSEC server)
+  R-&gt;&gt;R: Create resource record updates &amp; sign with named private key
   R-&gt;&gt;P: Request publication of updated records
   P-&gt;&gt;P: Verify update request signature against registered named key
-  break when named public key fails policy
+  break when update signature does not match a registered named public key
     P--&gt;&gt;R: Show unsuccessful update
   end
-  P-&gt;&gt;P: Publish &amp; sign updated records under DNSSEC
+  P-&gt;&gt;P: Publish &amp; sign updated resource records
   P-&gt;&gt;R: Show successful update
 </div>
 <p>To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.</p>
@@ -290,5 +290,5 @@ mermaid.initialize({});</script></body>
 </html>
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-02-04 10:01:42.715402+00:00
+Build Date UTC : 2024-02-04 10:43:45.980800+00:00
 -->
