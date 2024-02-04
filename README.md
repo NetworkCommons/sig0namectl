@@ -59,22 +59,22 @@ No system install yet. Clone this git repository and use from working directory.
 
 ## 🎮 Quick start
 
-### Claiming a name
+### Registering a named key
 
 ```mermaid
 sequenceDiagram
 autonumber
-  participant R as Requester
-  participant P as Provider
+  participant R as Requester<br><br>(DNSSEC client)
+  participant P as Provider<br><br>(DNSSEC server)
 
-  R->>R: Generate keypair
-  R->>P: Request registration of public named key
+  R->>R: Generate named keypair
+  R->>P: Request registration of named public key
   P->>P: Apply registration policy
-  break when policy fails
+  break when named public key fails policy
     P->>R: Show unsuccessful registration
   end
-  P->>+P: Publish & sign public KEY record
-  P->>R: Show successful registration
+  P->>+P: Publish & sign named public KEY record
+  P->>R: Show successful named key registration
 ```
 
 By default, DNS key labels beneath a compatible domain can be claimed on a "First Come, First Served" (FCFS) basis.
@@ -96,18 +96,21 @@ the keypair is enabled to add, modify or delete any DNS resource record at or un
 
 Note: It may take a minute or so for your local DNS resolver to update its cache with the new key.
 
-### Using a name
+### Updating resource records with a named key
 
 ```mermaid
 sequenceDiagram
 autonumber
-  participant U as 🤓_User
-  participant S as Domain_Name_Server
-  U->>U: Create & sign update
-  U->>S: Send update
-  S->>S: Verify update signature against key record
-  S->>S: Publish and DNSSEC sign update
-  S->>U: Return status of update
+  participant R as Requester<br><br> (DNSSEC client)
+  participant P as Provider<br><br>(DNSSEC server)
+  R->>R: Create resource record updates & sign with named private key
+  R->>P: Request publication of updated records
+  P->>P: Verify update request signature against registered named key
+  break when update request signature does not match registered named public key
+    P-->>R: Show unsuccessful update
+  end
+  P->>P: Publish & sign updated resource records
+  P->>R: Show successful update
 ```
 
 To manage a fully qualified domain name, you will need the keypair for that FQDN in your local keystore directory (./keystore). Advanced users can use -k and -s flags to specify other keys when needed.
