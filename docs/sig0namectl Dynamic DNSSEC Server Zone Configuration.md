@@ -25,7 +25,7 @@ Firstly, an initial zone management keypair with the label **`vortex.zenr.io`** 
 
     ./register_key vortex.zenr.io
 
- (or using dnssec-keygen directly) and the contents of the public key file is copied into a corresponding KEY RR into the `zenr.io` zone.
+ (or using dnssec-keygen directly) and the contents of the public key file is copied into a corresponding KEY RR into the `zenr.io` zonefile.
 
 Secondly, a dynamic DNSSEC update policy is applied to the `zenr.io` zone configuration
 
