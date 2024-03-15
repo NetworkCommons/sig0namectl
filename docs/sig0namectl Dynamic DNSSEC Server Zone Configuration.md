@@ -3,7 +3,7 @@
 ## DNSSEC Zone configuration for primary DNS servers
 
 ### DNSSEC
----
+
 DNSSEC must be enabled in all parent zones.
 
 In a primary authorative BIND9 DNS server zone configuration, this can be enabled, for example, the following enables DNSSEC in the **`zenr.io`** zone :
