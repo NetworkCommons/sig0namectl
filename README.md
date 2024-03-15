@@ -121,7 +121,7 @@ Manages A & AAAA records for the specified fully qualified domain name, fqdn.
 
 #### `dyn_loc fqdn`
 
-Updates LOC records for fqdn (Currently compatible with termux-location)
+Updates LOC records for fqdn from GPS source (currently compatible with Android mobile devices using termux-location).
 
 #### `dnssd-domain fqdn`
 
