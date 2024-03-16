@@ -36,7 +36,7 @@ Secondly, a dynamic DNSSEC update policy is applied to the `zenr.io` zone config
 
 ### Dynamic Subzone for named key registration requests
 
-A subzone with dynamic DNS is configured to allow clients to submit name requests within the zone. The default subzone update policy is to allow all update requests.
+A subzone with dynamic DNS is configured to allow clients to submit named key requests below the zone. The default subzone registration policy is to allow all registration requests for any new label with **no existing resource records of any type**. This default registration policy is also known as "First Come, First Served".
 
 sig0namectl uses the environment variable `SIGNAL_SUBZONE` to define the subzone where name requests are managed. It can be set though configuration files or overriden on command line invocation.
 
