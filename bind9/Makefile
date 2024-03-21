@@ -1,22 +1,23 @@
 PROJECT := sig0namectl
 
-play:
-	ansible-playbook -i hosts.yml install.yml
-
-apply:
-	terraform apply -auto-approve
-
-create-zone:
-	ansible-playbook -i hosts.yml -vvv create_zone.yml
-
-so:
-	ansible-playbook -i hosts.yml -vvv so_playbook.yml
-
 init:
-	terraform init
+	make -C terraform init
 
-## recreate terraform resources
-rebuild: destroy apply
+build:
+	make -C terraform apply
 
 destroy:
-	terraform destroy -auto-approve
+	make -C terraform destroy
+
+play:
+	make -C ansible play
+
+create-zone:
+	make -C ansible create-zone
+
+so:
+	make -C ansible so
+
+deploy: destroy build play
+
+all:	destroy init build play
