@@ -1,0 +1,77 @@
+---
+- name: Install some packages
+  hosts: dns_servers
+  tasks:
+
+# Wait until host is ready
+   - name: Wait for host {{inventory_hostname}} connection
+     wait_for_connection:
+    
+# Upgrade all packages
+   - name: upgrade all packages on CentOS/Fedora
+     yum:
+       name: "*"
+       state: latest
+     when: ansible_os_family == 'RedHat'
+     register: result
+     tags:
+       - upgrade
+   - debug:
+       var: result.changed
+     tags:
+       - upgrade
+
+# Upgrade all packages
+   - name: update apt cache on Debian derivative
+     apt:
+       update_cache: yes
+   - name: upgrade all packages on Debian derivative
+     apt:
+       name: "*"
+       state: latest
+     when: ansible_os_family == 'Debian'
+     register: result
+     tags:
+       - upgrade
+   - debug:
+       var: result.changed
+     tags:
+       - upgrade
+
+# Some useful packages for Debian
+   - name: install bind9 for Debian derivative
+     package:
+       name: bind9
+       state: present
+     when: ansible_os_family == 'Debian'
+
+# Some useful packages for Debian
+   - name: install bind-utils for Debian derivative
+     package:
+       name: bind9utils
+       state: present
+     when: ansible_os_family == 'Debian'
+
+
+# Install for all distributions Debian/Redhat
+   - name: install bash-completion 
+     package:
+       name: bash-completion
+       state: present
+
+   - name: install wireguard-tools
+     package:
+       name: wireguard-tools
+       state: present
+
+# Set timezone
+   - name: set timezone
+     timezone:
+       name: Europe/Berlin
+
+# Reboot when all things done
+#  - reboot:
+#      msg: "Reboot to finish setup."
+#      reboot_timeout: 60
+#    when: result.changed == "true"
+

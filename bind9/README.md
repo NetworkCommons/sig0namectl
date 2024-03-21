@@ -1,6 +1,30 @@
 # sig0namectl: BIND9 DNS server utilities
 
+## dependencies
+    - terraform
+    - ansible
+
+optional
+
+    - libvirt-nss (to access to VM by hostname - highly recommended)
+
 see Makefile for detailed actions
+
+To initialise:
+
+```
+make init
+```
+(only required to be invoked once)
+
+To raise BIND9 name server virtual machine under KVM:
+
+```
+cd bind9
+./start.sh
+```
+
+
 
 ## Terraform 
 
@@ -10,14 +34,8 @@ Using terraform with a libvirt adapter, a local VM for DNS testing can be create
 
 - [How To Install Terraform on Fedora ...](https://computingforgeeks.com/how-to-install-terraform-on-fedora/)
 
-- [Terraform libvirt provider](https://registry.terraform.io/providers/dmacvicar/libvirt/latest)
-  - in the local directory where main.tf &  
-
-  - old method used before libvirt provider was accepted into terraform registry
-    - [Quick Start KVM libvirt VMs with Terraform and Ansible – Part 1](https://www.desgehtfei.net/en/quick-start-kvm-libvirt-vms-with-terraform-and-ansible-part-1-2/)
-    - [Quick Start KVM libvirt VMs with Terraform and Ansible – Part 2](https://www.desgehtfei.net/en/quick-start-kvm-libvirt-vms-with-terraform-and-ansible-part-2/)
-
-
+- Initialise [Terraform libvirt provider](https://registry.terraform.io/providers/dmacvicar/libvirt/latest)
+  - in the local directory where main.tf & terraform.tfvars are located,   
 
 ### Terraform and ENV variables
 
