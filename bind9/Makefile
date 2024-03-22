@@ -4,13 +4,16 @@ init:
 	make -C terraform init
 
 build:
-	make -C terraform apply
+	make -C terraform build
 
 destroy:
 	make -C terraform destroy
 
+clean:
+	make -C terraform clean
+	make -C ansible clean_ssh_key
 play:
-	make -C ansible play
+	ANSIBLE_HOST_KEY_CHECKING=False make -C ansible play
 
 create-zone:
 	make -C ansible create-zone
@@ -18,6 +21,5 @@ create-zone:
 so:
 	make -C ansible so
 
-deploy: destroy build play
 
 all:	destroy init build play
