@@ -3,28 +3,20 @@
 ## dependencies
     - terraform
     - ansible
+    - libvirt-nss (optional to access to VM by hostname from host)
+    - virt-manager (optional gui for local VM management)
 
-optional
+## system configuration
+    - ensure libvirt permissions for host user
+    - configure nsswitch.conf for libvirt-nss (optional)
+    - issue `make init` to configure terraform & ansible
 
-    - libvirt-nss (to access to VM by hostname - highly recommended)
+## quick start
+    - issue `./start.sh` (note pause to allow terraform time to reboot host)
 
 see Makefile for detailed actions
 
-To initialise:
-
-```
-make init
-```
-(only required to be invoked once)
-
-To raise BIND9 name server virtual machine under KVM:
-
-```
-cd bind9
-./start.sh
-```
-
-
+# Further Research & Notes
 
 ## Terraform 
 
