@@ -14,6 +14,17 @@
 ## quick start
     - issue `./start.sh` (note pause to allow terraform time to reboot host)
 
+## access to VM
+    - default VM hostname is sig0namectl
+    - ssh access to DNS VM via ansible user key (`ansible/ansible_ssh_key`) ie `ssh -i ansible/ansible_ssh_key ansible@sig0namectl` (with libvirt-nss configured)
+
+## TODO
+    - [ ] ansible scripting for
+        - [ ] dynamic zone
+        - [ ] dynamic \_signal zone
+        - [ ] DNSSEC
+
+
 see Makefile for detailed actions
 
 # Further Research & Notes
