@@ -1,7 +1,12 @@
 # exclude everything
 keystore/*
 zones/*
-
+# terraform
+bind9/terraform/terraform.tfstate*
+bind9/terraform/.terraform.lock.hcl
+bind9/terraform/.terraform/
+# ansible
+bind9/ansible/ansible_ssh_key*
 # exceptions to the rule
 !keystore/.keep
 !zones/.keep
