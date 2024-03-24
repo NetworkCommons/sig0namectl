@@ -2,6 +2,7 @@
 keystore/*
 zones/*
 # terraform
+bind9/terraform/cloud_init.cfg
 bind9/terraform/terraform.tfstate*
 bind9/terraform/.terraform.lock.hcl
 bind9/terraform/.terraform/
