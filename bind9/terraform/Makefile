@@ -1,6 +1,7 @@
 PROJECT := sig0namectl
 
 init:
+	cp cloud_init.cfg.tmpl cloud_init.cfg
 	@./ansible-ssh-keygen.sh
 	terraform init
 
