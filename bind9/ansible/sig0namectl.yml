@@ -1,0 +1,20 @@
+---
+- name: Configure BIND to be ready for sig0namectl
+  hosts: dns_servers
+  tasks:
+
+# Wait until host is ready
+  - name: Wait for host {{inventory_hostname}} connection
+    wait_for_connection:
+
+  - name: checkout sig0namectl
+    ansible.builtin.git:
+      repo: 'https://github.com/NetworkCommons/sig0namectl.git'
+      dest: src/sig0namectl
+
+# test/review bind9 ansible roles
+# https://github.com/bertvv/ansible-role-bind 9 years old, 3years last, 442 commits, arch, freebsd, centos6 support, bsd licence, 3 maintainers, many contributors!
+  - name: checkout sig0namectl
+    ansible.builtin.git:
+      repo: 'https://github.com/bertvv/ansible-role-bind.git'
+      dest: src/bertvv-ansible-role-bind

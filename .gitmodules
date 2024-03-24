@@ -1,0 +1,6 @@
+[submodule "bind9/ansible/bind9"]
+	path = bind9/ansible/bind9
+	url = git@github.com:adam-burns/ansible-role-bind.git
+[submodule "bind9/ansible/roles/bind9"]
+	path = bind9/ansible/roles/bind9
+	url = git@github.com:adam-burns/ansible-role-bind.git
