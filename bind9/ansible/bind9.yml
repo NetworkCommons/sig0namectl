@@ -4,6 +4,7 @@
   vars:
     bind_zones:
       - name: vmtest.zenr.io
+        auto_dnssec: maintain
         create_reverse_zones: false
         primaries:
           - "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
@@ -11,10 +12,16 @@
         name_servers:
           - ns1.example.com.
           - ns2.example.com.
+        update_policy_sig0:
+          - "TODO: POLICY IS STILL HARDCODED IN TEMPLATE"
+          - "grant \"vortex.zenr.io\" name zenr.io. ANY"
+          - "grant \"vortex.zenr.io\" subdomain zenr.io. ANY"
+          - "grant * selfsub . ANY"
         hosts:
           - name: '@'
             ip: 127.1.0.1
       - name: _signal.vmtest.zenr.io
+        auto_dnssec: maintain
         create_reverse_zones: false
         primaries:
           - "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
