@@ -2,6 +2,7 @@
 - name: Configure zones for sig0namectl
   hosts: dns_servers
   vars:
+    allow_new_zones: true
     bind_zones:
       - name: vmtest.zenr.io
         auto_dnssec: maintain
@@ -26,6 +27,7 @@
         primaries:
           - "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
           - "{{ ansible_default_ipv6.address|default(ansible_all_ipv6_addresses[0]) }}"
+        check_names: warn
         name_servers:
           - ns1.example.com.
           - ns2.example.com.
