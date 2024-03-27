@@ -2,7 +2,12 @@
 export ANSIBLE_HOST_KEY_CHECKING=False
 make destroy
 sleep 10
+sed -i.bak '/sig0namectl ssh-ed25519 /d' ~/.ssh/known_hosts
 make build
 sleep 100
-make play
+make -C ansible install
+make -C ansible sig0namectl
+#make -C ansible bind9
+
+#make play
 #make create-demouser
