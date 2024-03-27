@@ -11,5 +11,5 @@
     ansible.builtin.git:
       repo: 'https://github.com/NetworkCommons/sig0namectl.git'
       dest: src/sig0namectl
-      become: yes
-      become: ansible
+    become: true
+    become_user: ansible
