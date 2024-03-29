@@ -2,7 +2,7 @@
 - name: Configure zones for sig0namectl
   hosts: dns_servers
   vars:
-    allow_new_zones: true
+    # allow_new_zones: true # allow zone management through rndc
     bind_zones:
       - name: vmtest.zenr.io
         auto_dnssec: maintain
@@ -20,7 +20,7 @@
           - "grant * selfsub . ANY"
         hosts:
           - name: '@'
-            ip: 127.1.0.1
+            ip: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
       - name: _signal.vmtest.zenr.io
         auto_dnssec: maintain
         create_reverse_zones: false
@@ -34,6 +34,6 @@
         allow_update: ['any']
         hosts:
           - name: '@'
-            ip: 127.1.0.1
+            ip: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
   roles:
     - bind9
