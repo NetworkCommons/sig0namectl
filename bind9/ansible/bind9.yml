@@ -3,6 +3,7 @@
   hosts: dns_servers
   vars:
     # allow_new_zones: true # allow zone management through rndc
+    bind_zone_ttl: "30" # wind down cacheing TTL to 30 seconds
     bind_zones:
       - name: vmtest.zenr.io
         auto_dnssec: maintain
