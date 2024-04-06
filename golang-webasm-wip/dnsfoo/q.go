@@ -1,4 +1,4 @@
-package dnsfoo
+package main
 
 import (
 	"encoding/base64"
