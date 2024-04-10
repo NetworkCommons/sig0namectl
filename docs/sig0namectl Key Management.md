@@ -4,20 +4,31 @@
 
 From man page of `dnssec-keygen`:
 
-## Generated Keys
+> When `dnssec-keygen` completes successfully, it prints a string of the form `Knnnn.+aaa+iiiii` to the standard output. This is an identification string for the key it has generated.
+> * nnnn is the key name.
+> * aaa is the numeric representation of the algorithm.
+> * *iiiii is the key identifier (or footprint).
+>
+> `dnssec-keygen` creates two files, with names based on the printed string. `Knnnn.+aaa+iiiii.key` contains the public key, and `Knnnn.+aaa+iiiii.private` contains the private key.
+>
+> The `.key` file contains a DNS KEY record that can be inserted into a zone file (directly or with a $INCLUDE statement).
+>
+> The `.private` file contains algorithm-specific fields. For obvious security reasons, this file does not have general read permission.
+>
 
-When `dnssec-keygen` completes successfully, it prints a string of the form `Knnnn.+aaa+iiiii` to the standard output. This is an identification string for the key it has generated.
-* nnnn is the key name.
-* aaa is the numeric representation of the algorithm.
-* *iiiii is the key identifier (or footprint). 
+## Key Identifier clarification
 
-`dnssec-keygen` creates two files, with names based on the printed string. `Knnnn.+aaa+iiiii.key` contains the public key, and `Knnnn.+aaa+iiiii.private` contains the private key.
+Key identifiers (key ids or footprints) for KEY & DNSKEY RR files referred to in the `dnssec-keygen` man page correspond to what is referred to as key 'tags' in DNSSEC terminology (RFC4034 see [3.3](https://www.rfc-editor.org/rfc/rfc4034#section-3.3)). For example, the filename id component of a zone's ZSK DNSKEY corresponds to the RRSIG key tag field in the zone it signs. So in theory, the C reference code example in [RFC4034 Appendix B](https://www.rfc-editor.org/rfc/rfc4034#appendix-B) should generate key identifiers.
 
-The `.key` file contains a DNS KEY record that can be inserted into a zone file (directly or with a $INCLUDE statement).
+Note that `dig` also calculates this ID from the KEY RR itself.
 
-The `.private` file contains algorithm-specific fields. For obvious security reasons, this file does not have general read permission.
+For example:
+```
+$ ls Kvortex* && dig +short +dnssec +rrcomments vortex.zenr.io KEY
+Kvortex.zenr.io.+015+56161.key  Kvortex.zenr.io.+015+56161.private
+512 3 15 2MK3KZkUgYQVumU9bhy1KzIZ2FhFQZ8yLP2nFMJRCEQ= ; alg = ED25519 ; key id = 56161
+```
 
-Both `.key` and `.private` files are generated for symmetric encryption algorithms such as HMAC-MD5, even though the public and private key are equivalent.
 
 ## sig0 Key Usage
 

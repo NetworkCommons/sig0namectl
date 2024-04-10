@@ -13,6 +13,7 @@ In a primary authorative BIND9 DNS server zone configuration, this can be enable
         key-directory "dynamic/zenr.io";
         auto-dnssec maintain;
  
+
 ### Dynamic zone update policy configuration
 
 Each dynamic DNSSEC update zone to be managed by sig0namectl must have at least one (or more) KEY resource records that are granted update permissions for within that dynamic zone.
@@ -33,6 +34,9 @@ Secondly, a dynamic DNSSEC update policy is applied to the `zenr.io` zone config
                 grant "vortex.zenr.io" subdomain zenr.io. ANY;
                 grant * selfsub . ANY;
         };
+
+A BIND DNS server authenticates signed update requests only for SIG(0) KEY RRs in zones for which it is authoritative.
+
 
 ### Dynamic Subzone for named key registration requests
 
