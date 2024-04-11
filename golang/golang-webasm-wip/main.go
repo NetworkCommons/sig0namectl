@@ -1,60 +1,40 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
-	// "os"
+	"io"
+	"net/http"
+	"os"
 
+	"github.com/NetworkCommons/sig0poc1/sig0"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
-	"github.com/shynome/doh-client"
 )
 
 func main() {
-	// name := os.Args[1]
-	name := "cryptix.zenr.io"
+	name := os.Args[1]
+	// name := "cryptix.zenr.io"
 	server := "zembla.zenr.io"
-	q := dns.Question{
-		Name:   dns.Fqdn(name),
-		Qtype:  dns.TypeA,
-		Qclass: dns.ClassINET,
-	}
-	m := &dns.Msg{
-		MsgHdr:   dns.MsgHdr{Id: dns.Id(), Opcode: dns.OpcodeQuery, RecursionDesired: true},
-		Question: []dns.Question{q},
-	}
 
-	out, err := m.Pack()
-	check(err)
-
-	// fmt.Printf("Q:(TXT): %s\t\t\t%d\n", q.Name, q.Qtype)
+	q := sig0.QueryA(name)
 	fmt.Printf("Q:(TXT):%v\n", q)
-	fmt.Println("Q:(b64):", base64.StdEncoding.EncodeToString(out))
-	fmt.Println("Q:(DoH):", "https://"+server+"/dns-query="+base64.StdEncoding.EncodeToString(out))
 
-	inputStr := "lzeFAAABAAIAAAAAB2NyeXB0aXgEemVucgJpbwAAAQABwAwAAQABAAAAPAAEX9ko/cAMAAEAAQAAADwABFSiXZs="
-	input, err := base64.StdEncoding.DecodeString(inputStr)
+	fmt.Println("Q:", q)
+
+	// send over DoH
+	url := fmt.Sprintf("https://%s/dns-query?dns=%s", server, q)
+	fmt.Println("Q:(DoH):", url)
+	resp, err := http.Get(url)
 	check(err)
-	var resp = new(dns.Msg)
-
-	err = resp.Unpack(input)
+	defer resp.Body.Close()
+	answerBody, err := io.ReadAll(resp.Body)
 	check(err)
-	// fmt.Printf("A: +%v\n", resp.Answer)
 
-	co := &dns.Conn{Conn: doh.NewConn(nil, nil, server)}
-	if err := co.WriteMsg(m); err != nil {
-		panic(err)
-	}
-	// check(err)
-
-	m, err = co.ReadMsg()
+	var dnsAnswer = new(dns.Msg)
+	err = dnsAnswer.Unpack(answerBody)
 	check(err)
-	if len(m.Answer) == 0 {
-		panic("answer length must greater than 0")
-	}
-	// fmt.Printf("A:(TXT):%+v\n", m.Answer)
-	for _, str := range m.Answer {
-		fmt.Printf("A:(TXT): %s\n",str)
-	}
+
+	spew.Dump(dnsAnswer)
 }
 
 func check(err error) {
