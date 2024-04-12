@@ -11,11 +11,11 @@ import (
 
 func main() {
 	// name := os.Args[1]
-	name := "redb.zenr.io"
-	server := "zenr.io"
+	name := "cryptix.zenr.io"
+	server := "zembla.zenr.io"
 	q := dns.Question{
 		Name:   dns.Fqdn(name),
-		Qtype:  dns.TypeLOC,
+		Qtype:  dns.TypeA,
 		Qclass: dns.ClassINET,
 	}
 	m := &dns.Msg{
