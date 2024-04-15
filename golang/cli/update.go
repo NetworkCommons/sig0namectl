@@ -6,13 +6,14 @@ import (
 	"crypto"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
+	"github.com/shynome/doh-client"
 	"github.com/urfave/cli/v2"
 )
 
@@ -32,7 +33,7 @@ func updateAction(cCtx *cli.Context) error {
 	sig0Keyfile = cCtx.String("key-name")
 
 	// TODO make RR generic, for now A record for..?
-	myRR := fmt.Sprintf("%s.%s 600 IN A 4.3.2.1", host, zone)
+	myRR := fmt.Sprintf("%s.%s 600 IN A 2.3.4.2", host, zone)
 
 	log.Println("-- Set dns.Msg Structure --")
 	m := new(dns.Msg)
@@ -68,7 +69,7 @@ func updateAction(cCtx *cli.Context) error {
 	// test := fmt.Sprintln(dk)
 	// TODO: how best to get public key to insert into keyRR more elegantly! :/
 	// keyFields := strings.Fields(test)
-	keyFields := strings.Fields(fmt.Sprintln(dk))
+	keyFields := strings.Fields(dk.String())
 	keyName := keyFields[0]
 	keyTTL := keyFields[1]
 	keyClass := keyFields[2]
@@ -135,11 +136,11 @@ func updateAction(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to sign %v message: %v", algstr, err)
 	}
 
-	// log.Println(spew.Sdump(mb))
-
 	if err := m.Unpack(mb); err != nil {
 		return fmt.Errorf("failed to unpack message: %v", err)
 	}
+
+	spew.Dump(m)
 
 	// verify signing
 	var sigrrwire *dns.SIG
@@ -165,34 +166,14 @@ func updateAction(cCtx *cli.Context) error {
 	// log.Println(spew.Sdump(m))
 
 	log.Println("-- Configure client DNS method --")
-	// TODO research how to use config & make sure we directly connect to authoritative server
-	config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
-	c := new(dns.Client)
-
-	log.Printf(" ***  Authoritative DNS server (%s) manually selected for message exchange for zone (%s)", server, zone)
-	log.Println("-- Send DNS message --")
-	r, _, err := c.Exchange(m, net.JoinHostPort(server, config.Port))
-	if r == nil {
-		return err
+	co := &dns.Conn{Conn: doh.NewConn(nil, nil, server)}
+	if err := co.WriteMsg(m); err != nil {
+		panic(err)
 	}
-
-	if r.Rcode != dns.RcodeSuccess {
-		if r.Rcode == dns.RcodeRefused {
-			log.Printf(" ***  DNS response refused by server %s for zone (%s)", server, zone)
-		} else {
-			log.Printf(" ***  DNS response error (%d) from server (%s) for zone (%s)", r.Rcode, server, zone)
-		}
-	} else {
-		log.Printf(" ***  DNS response from server %s for zone (%s) reports success", server, zone)
+	respMsg, err := co.ReadMsg()
+	if err != nil {
+		panic(err)
 	}
-	// Stuff must be in the answer section
-	// is this useful? does not return anything
-
-	log.Printf("-- Answer --")
-	for _, a := range r.Answer {
-		fmt.Printf("%v\n", a)
-	}
-	// spew.Dump(r)
-	log.Println(r)
+	fmt.Println(respMsg)
 	return nil
 }
