@@ -41,43 +41,27 @@ done
 
 NSUPDATE_RRTYPE="LOC"
 
-
-LOC_RR_DATA=$(get_loc_termux "${CMDLINE_EXTRA_PARAMS}")
-
-NSUPDATE_ITEM_RR="${NSUPDATE_RRTYPE} ${LOC_RR_DATA}"
-echo "${NSUPDATE_ITEM_RR}"
-exit
-## loop over command line parameter (post getops()) for IPv[4,6] assignments
-#for ip in ${CMDLINE_EXTRA_PARAMS}; do
-#        if validateIPv4 "${ip}";then
-#		NSUPDATE_RRTYPE="A"
-#		# [[ -n ${DEBUG} ]] && echo "$ip is parsed as an IPv4 Address. Set A Record"
-#		NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} ${ip}\n"
-#	else
-#                validateIPv6 "${ip}"
-#                isIPv6="$?"
-#                if [[ $isIPv6 -eq 0 ]];then
-#			NSUPDATE_RRTYPE="AAAA"
-#			# [[ -n ${DEBUG} ]] && echo "$ip is parsed as an IPv6 Address. Set ${NSUPDATE_RRTYPE} Record"
-#			NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} ${ip}\n"
-#                else
-#                        echo "Warning: Skipping Invalid IP Address ($ip)"
-#                fi
-#        fi
-#done
-
 # form nsupdate RR update statements
 case ${NSUPDATE_ACTION} in
 	add)
-		# NSUPDATE_PRECONDITION_SET="nxrrset"
-		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
-		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		LOC_RR_DATA=$(get_loc_termux "${CMDLINE_EXTRA_PARAMS}")
+		NSUPDATE_ITEM_RR="${NSUPDATE_RRTYPE} ${LOC_RR_DATA}"
+		echo "${NSUPDATE_ITEM_RR}"
+		#
+		NSUPDATE_PRECONDITION_SET="nxrrset ${NEW_FQDN} ${NSUPDATE_RRTYPE}"
+		NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET}"
+		NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_ITEM_RR}"
+		echo "send_nsupdate ${NEW_FQDN} $(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})"
 		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
 		;;
 	delete)
-		# NSUPDATE_PRECONDITION_SET="yxrrset"
-		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
-		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		LOC_RR_DATA=""
+		NSUPDATE_ITEM_RR="${NSUPDATE_RRTYPE} ${LOC_RR_DATA}"
+		#
+		NSUPDATE_PRECONDITION_SET="yxrrset ${NEW_FQDN} ${NSUPDATE_RRTYPE}"
+		NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET}"
+		NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_RRTYPE}"
+		echo "send_nsupdate ${NEW_FQDN} $(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})"
 		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
 		;;
 	*)
