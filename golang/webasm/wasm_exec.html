@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="wasm_exec.js"></script>
+		<script>
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch("dnsfoo.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+
+			function concatArrayBuffers(chunks/*: Uint8Array[]*/) {
+					const result = new Uint8Array(chunks.reduce((a, c) => a + c.length, 0));
+					let offset = 0;
+					for (const chunk of chunks) {
+							result.set(chunk, offset);
+							offset += chunk.length;
+					}
+					return result;
+			}
+
+			function _arrayBufferToBase64( buffer ) {
+					var binary = '';
+					var bytes = new Uint8Array( buffer );
+					var len = bytes.byteLength;
+					for (var i = 0; i < len; i++) {
+							binary += String.fromCharCode( bytes[ i ] );
+					}
+					return window.btoa( binary );
+			}
+
+			async function queryViaFetch() {
+				const qryData = document.getElementById("query-data").value
+				if (qryData == "") {
+					console.error("empty #query-data - prepare first")
+					return
+				}
+
+				const qryUrl = new URL(`https://zembla.zenr.io/dns-query?dns=${qryData}`)
+				const resp = await fetch(qryUrl, {
+					method: "get",
+					headers: {
+						"Content-Type": "application/dns-message"
+					}
+				})
+
+				// const data = await streamToBase64(resp.body)
+				const data = await resp.arrayBuffer()
+
+				document.getElementById("dns-answer").value = _arrayBufferToBase64(data)
+			}
+		</script>
+	</head>
+	<body>
+		<h1>Go DNS Query proof-of-concept</h1>
+		
+		<p>
+			<input type="text" id="domain-name" value="cryptix.zenr.io">
+			<button id="prepare">Prepare Query</button>
+		</p>
+
+		<p>
+			<textarea type="text" id="query-data" name="dns">
+			</textarea>
+			<button onclick="queryViaFetch()">Query via fetch()</button>
+		</p>
+
+		<p>
+			<textarea id="dns-answer"></textarea>
+			<button id="parse-answer">̦Parse answer</button>
+		</p>
+
+		<pre id="pretty"></pre>
+	</body>
+</html>
+
