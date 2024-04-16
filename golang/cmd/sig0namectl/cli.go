@@ -19,7 +19,7 @@ func main() {
 			&cli.StringFlag{Name: "key-name", Aliases: []string{"kn"}, Usage: "Kso.me.na.me.+aaa+bbbbb", EnvVars: []string{"GD_SIG0_KEYFILES"}},
 		},
 		Commands: []*cli.Command{
-			loadPrivateKeyCmd, printKeyCmd, updateCmd,
+			queryCmd, loadPrivateKeyCmd, printKeyCmd, updateCmd,
 		},
 	}
 

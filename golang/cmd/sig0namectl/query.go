@@ -22,7 +22,7 @@ var queryCmd = &cli.Command{
 func queryAction(cCtx *cli.Context) error {
 	name := cCtx.Args().First()
 	// name := "cryptix.zenr.io"
-	server := "zembla.zenr.io"
+	server := cCtx.String("server")
 
 	q := sig0.QueryA(name)
 	fmt.Printf("Q:(TXT):%v\n", q)
@@ -37,6 +37,11 @@ func queryAction(cCtx *cli.Context) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP Status: %s", resp.Status)
+	}
+
 	answerBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err

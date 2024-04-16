@@ -8,9 +8,18 @@ import (
 
 // QueryA returns a base64 encoded string of a DNS Question for an A record of the passed domain name
 func QueryA(name string) string {
+	return QueryWithType(name, dns.TypeA)
+}
+
+// uses ANY query type
+func QueryAny(name string) string {
+	return QueryWithType(name, dns.TypeANY)
+}
+
+func QueryWithType(name string, qtype uint16) string {
 	q := dns.Question{
 		Name:   dns.Fqdn(name),
-		Qtype:  dns.TypeA,
+		Qtype:  qtype,
 		Qclass: dns.ClassINET,
 	}
 

@@ -3,8 +3,12 @@
 		<meta charset="utf-8"/>
 		<script src="wasm_exec.js"></script>
 		<script>
+			// not the nices way to hook these up but it works.
+			// might work for "document", too with some better trickery
+			window.goFuncs = {};
+
 			const go = new Go();
-			WebAssembly.instantiateStreaming(fetch("wasm-demo.wasm"), go.importObject).then((result) => {
+			WebAssembly.instantiateStreaming(fetch("demo.wasm"), go.importObject).then((result) => {
 				go.run(result.instance);
 			});
 
