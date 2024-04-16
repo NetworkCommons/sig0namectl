@@ -1,8 +1,8 @@
-PROJECT := wasm-demo
+PROJECT := demo
 
-PORT := 8000
+PORT := 8800
 
-${PROJECT}.wasm: 
+${PROJECT}.wasm: *.go ../sig0/*.go
 	GOOS=js GOARCH=wasm go build  -o ${PROJECT}.wasm
 
 start: ${PROJECT}.wasm
