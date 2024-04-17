@@ -12,7 +12,8 @@ sourceimage = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudi
 baseimagediskpool = "default"
 
 # Domain and network settings
-domainname = "mydomain.vm"  
+#domainname = "mydomain.vm"
+domainname = "zenr.io"
 networkname = "default"    # Virtual Networks: default (=NAT)
 
 # Host specific settings
@@ -22,8 +23,8 @@ networkname = "default"    # Virtual Networks: default (=NAT)
 #    qemu-img info debian-10.3.4-20200429-openstack-amd64.qcow2
 #         virtual size: 2 GiB (2147483648 bytes)
 hosts = {
-   "sig0namectl" = {
-      name     = "sig0namectl",
+   "vmtest" = {
+      name     = "vmtest",
       vcpu     = 8
       memory   = "4096",
       diskpool = "default",

@@ -1,0 +1,12 @@
+---
+
+# Wait until host is ready
+- name: Wait for host {{inventory_hostname}} connection
+  wait_for_connection:
+
+- name: checkout sig0namectl
+  ansible.builtin.git:
+    repo: 'https://github.com/NetworkCommons/sig0namectl.git'
+    dest: src/sig0namectl
+  become: true
+  become_user: ansible

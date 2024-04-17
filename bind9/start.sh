@@ -5,6 +5,4 @@ sleep 10
 sed -i.bak '/sig0namectl ssh-ed25519 /d' ~/.ssh/known_hosts
 make build
 sleep 100
-make -C ansible install
 make -C ansible sig0namectl
-make -C ansible bind9
