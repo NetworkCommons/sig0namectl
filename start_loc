@@ -1,0 +1,6 @@
+#!/bin/bash
+# set NEW_ZONE in env.dyn_loc
+while true; do 
+	./dyn_loc
+	sleep 30
+done
