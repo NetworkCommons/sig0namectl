@@ -107,6 +107,7 @@
 
             /// query domains for LOC entries
             query() {
+                console.log("query update ...");
                 this.domains.forEach( domain => {
                     domain.query();
                 });
@@ -191,11 +192,16 @@
             }
         }
 
+        function timer_query() {
+            to_query.query();
+        }
+
         // -------------------------------------------------------
 
         // set Domains object
         var to_query = new ToQuery([]);
         get_service_pointers("zembla.zenr.io");
+        setInterval(timer_query, 10000);
     </script>
 </body>
 </html>
