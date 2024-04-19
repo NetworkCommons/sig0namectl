@@ -66,44 +66,136 @@
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // --------------------------------------------------
-        // query DoH server
-        // --------------------------------------------------
-
         // create resolver
+        //
+        // There are many different possible public resolvers:
+        // https://dnsprivacy.org/public_resolvers/#dns-over-https-doh
         const resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
+        // const resolver = new doh.DohResolver('https://zembla.zenr.io/dns-query');
 
-        // domain to query
-        var domain = 'redb.zenr.io';
+        // -------------------------------------------------------
 
-        // get DNS LOC entry
-        resolver.query(domain, 'LOC')
-            .then(response => {
-                response.answers.forEach(ans => {
-                    // log Uint8Array
-                    console.log(ans.data);
+        /// Receive Service Pointers
+        function get_service_pointers (domain) {
+            var query_domain = "_loclist._udp." + domain;
 
-                    // create latitude Uint32
-                    let latitude_raw = ntoh_Uint32(ans.data, 4);
-                    let latitude = (latitude_raw - 2147483648.0) / 3600000;
-                    console.log(latitude);
+            console.log("PTR records of " + query_domain);
 
-                    // create longitude Uint32
-                    let longitude_raw = ntoh_Uint32(ans.data, 8);
-                    let longitude = (longitude_raw - 2147483648.0) / 3600000;
-                    console.log(longitude);
+            resolver.query(query_domain, 'PTR')
+                .then(response => {
+                    response.answers.forEach(ans => {
+                        console.log(ans.data);
+                        to_query.add(ans.data);
+                    });
 
-                    // set point of interest on map
-                    var marker = L.marker([latitude, longitude]).addTo(map);
-
-                    // set explanatory pop-up
-                    var popup_text = "<b>" + domain + " DNS LOC Entry</b>";
-                    popup_text += "<hr>Latitude: " + latitude;
-                    popup_text += "<br>Longitude: " + longitude;
-                    marker.bindPopup(popup_text).openPopup();
+                    to_query.query();
                 });
-            })
-            .catch(err => console.error(err));
+        }
+
+        /// Collection of Domains to query
+        class ToQuery {
+            constructor(domains) {
+                // array of Domain objects
+                this.domains = domains;
+            }
+
+            /// add a new domain entry via domain name
+            add(domain_name) {
+                let domain = new Domain(domain_name);
+                this.domains.push(domain);
+            }
+
+            /// query domains for LOC entries
+            query() {
+                this.domains.forEach( domain => {
+                    domain.query();
+                });
+            }
+        };
+
+        /// Domain
+        class Domain {
+            constructor(name) {
+                this.name = name;
+                this.entries = [];
+            }
+
+            /// query the LOC records of a domain
+            query() {
+                resolver.query(this.name, 'LOC')
+                    .then(response => {
+                        var id = 0;
+                        response.answers.forEach(ans => {
+                            // create latitude Uint32
+                            let latitude_raw = ntoh_Uint32(ans.data, 4);
+                            let latitude = (latitude_raw - 2147483648.0) / 3600000;
+
+                            // create longitude Uint32
+                            let longitude_raw = ntoh_Uint32(ans.data, 8);
+                            let longitude = (longitude_raw - 2147483648.0) / 3600000;
+
+                            // update marker on map
+                            this.update_marker(latitude, longitude, id);
+                            id++;
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
+
+            /// update marker on map
+            ///
+            /// the map ID is the answer number
+            update_marker(latitude, longitude, id) {
+                // check if marker exists
+                if (this.entries.length > id) {
+                    // update position
+                    let latLng = new L.LatLng(latitude, longitude);
+                    this.entries[id].setLatLng(latLng);
+
+                    // update popup text
+                    let popup_text = this.create_popup_text(latitude, longitude);
+                    this.entries[id].setPopupContent(popup_text);
+                } else {
+                    // set new map point
+                    this.create_marker(latitude, longitude);
+                }
+            }
+
+            /// create new map marker
+            create_marker(latitude, longitude) {
+                // set point of interest on map
+                let marker = L.marker([latitude, longitude]).addTo(map);
+
+                // set explanatory pop-up
+                let popup_text = this.create_popup_text(latitude, longitude);
+                marker.bindPopup(popup_text);
+
+                // add to entries
+                this.entries.push(marker);
+            }
+
+            /// create popup text
+            create_popup_text(latitude, longitude) {
+                let popup_text = "<b>" + this.name + "</b>";
+                popup_text += "<hr>Latitude: " + latitude;
+                popup_text += "<br>Longitude: " + longitude;
+                
+                return popup_text;
+            }
+
+            /// Trim location array to defined length
+            trim_entries(length) {
+                while(length > this.entries.length()) {
+                    this.entries.pop();
+                }
+            }
+        }
+
+        // -------------------------------------------------------
+
+        // set Domains object
+        var to_query = new ToQuery([]);
+        get_service_pointers("zembla.zenr.io");
     </script>
 </body>
 </html>
