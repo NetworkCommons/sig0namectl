@@ -10,3 +10,57 @@
     dest: src/sig0namectl
   become: true
   become_user: ansible
+
+# if keypair for host exists in local keystore, copy .key & .private files to host keystore
+#
+- name: does host .key exist in local keystore
+  delegate_to: localhost
+  find:
+    paths: "{{ sig0namectl_local_keystore }}"
+    patterns: "K{{ sig0namectl_key }}*.key"
+  register: sig0_keyfile
+
+- name: does host .private exist in local keystore
+  delegate_to: localhost
+  find:
+    paths: "{{ sig0namectl_local_keystore }}"
+    patterns: "K{{ sig0namectl_key }}*.private"
+  register: sig0_privatefile
+
+- name: copy keyfile if key exists in local keystore
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ sig0namectl_remote_keystore }}"
+    mode: preserve
+  loop: "{{ sig0_keyfile.files|map(attribute='path')|list }}"
+  become: true
+  become_user: ansible
+  when: sig0_keyfile.matched|int == 1
+
+- name: copy privatefile if key exists in local keystore
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ sig0namectl_remote_keystore }}"
+    mode: preserve
+  loop: "{{ sig0_privatefile.files|map(attribute='path')|list }}"
+  become: true
+  become_user: ansible
+  when: sig0_privatefile.matched|int == 1
+
+  # - name: debug getting KEY RR from host .key file
+  #   ansible.builtin.slurp:
+  #     src: "{{ sig0_keyfile.files|map(attribute='path') }}"
+  #   register: sig0_keyfile_RR
+
+  #- name: testing
+  #  debug:
+  #    # msg: "{{ lookup('file', sig0_keyfile.files['path']|string) }}"
+  #    msg: "{{ lookup('file', sig0_keyfile.files|map(attribute='path')|string) }}"
+  #    # msg: "{{ sig0_keyfile.files|map(attribute='path')|string }}"
+  #
+- name: get KEY RR
+  command: "cat {{ sig0namectl_remote_keystore }}/{{ sig0_keyfile.files[0].path|basename }}"
+  become: true
+  become_user: ansible
+  register: sig0_keyRR
+  when: sig0_keyfile.matched|int == 1

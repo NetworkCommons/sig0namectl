@@ -3,10 +3,15 @@
   hosts: dns_servers
   vars:
     # allow_new_zones: true # allow zone management through rndc
+    # sig0namectl_local_keystore: "/home/vortex/src/sig0namectl/keystore"
+    sig0namectl_local_keystore: "~/src/sig0namectl/keystore"
+    sig0namectl_remote_keystore: "~/src/sig0namectl/keystore"
+    sig0namectl_key: vmtest.zenr.io
     bind_zone_ttl: "30" # wind down cacheing TTL to 30 seconds
     bind_zone_subdirs: true
     bind_zones:
-      - name: vmtest.zenr.io
+      - name: "{{ sig0namectl_key }}"
+        add_sig0_key: true
         # auto_dnssec: maintain
         dnssec_policy_default: true
         create_reverse_zones: false
@@ -25,7 +30,7 @@
           - name: '@'
             ip: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
             ipv6: "{{ ansible_default_ipv6.address|default(ansible_all_ipv6_addresses[0]) }}"
-      - name: _signal.vmtest.zenr.io
+      - name: "_signal.{{ sig0namectl_key }}"
         # auto_dnssec: maintain
         dnssec_policy_default: true
         create_reverse_zones: false
