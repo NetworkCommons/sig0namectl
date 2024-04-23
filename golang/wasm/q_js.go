@@ -31,7 +31,7 @@ func main() {
 		msg, err := sig0.ParseBase64Answer(answer.String())
 		check(err)
 		js.Global().Get("document").Call("getElementById", "pretty").Set("innerHTML", spew.Sdump(msg))
-		return msg
+		return ""
 	})
 	js.Global().Get("document").Call("getElementById", "parse-answer").Call("addEventListener", "click", parse)
 
