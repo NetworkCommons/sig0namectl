@@ -41,6 +41,7 @@ do
 	case ${NSUPDATE_ACTION} in
                 add)
                         NSUPDATE_PRECONDITION_SET="nxrrset"
+			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}check-names off\n"
 			# service type browsing instance pointer
 			NSUPDATE_ITEMS="${NSUPDATE_ITEMS}update ${NSUPDATE_ACTION} _services._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${service}.${DNSSD_DOMAIN}.\n"
 			# service instance of service to browse
