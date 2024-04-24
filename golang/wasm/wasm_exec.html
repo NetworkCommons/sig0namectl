@@ -22,6 +22,16 @@
 					return result;
 			}
 
+			function _base64ToArrayBuffer( buffer ) {
+					var binary_string =  window.atob( buffer );
+					var len = binary_string.length;
+					var bytes = new Uint8Array( len );
+					for (var i = 0; i < len; i++)        {
+							bytes[i] = binary_string.charCodeAt(i);
+					}
+					return bytes;
+			}
+
 			function _arrayBufferToBase64( buffer ) {
 					var binary = '';
 					var bytes = new Uint8Array( buffer );
@@ -30,6 +40,20 @@
 							binary += String.fromCharCode( bytes[ i ] );
 					}
 					return window.btoa( binary );
+			}
+
+			const input = Uint8Array.from("foo".split("").map(c => c.charCodeAt(0)));
+			const converted = _arrayBufferToBase64(input);
+			const andBack = _base64ToArrayBuffer(converted)
+			
+			// make sure input and andBack are the same
+			if (input.length != andBack.length) {
+				console.error("input and andBack are different lengths")
+			}
+			for (let i = 0; i < input.length; i++) {
+				if (input[i] != andBack[i]) {
+					console.error("input and andBack differ at index", i)
+				}
 			}
 
 			async function queryViaFetch() {
@@ -47,32 +71,63 @@
 					}
 				})
 
-				// const data = await streamToBase64(resp.body)
 				const data = await resp.arrayBuffer()
+				document.getElementById("dns-answer").value = _arrayBufferToBase64(data)
+			}
 
+			async function updateViaFetch() {
+				const entryAddr = document.getElementById("entry-address").value
+				if (entryAddr == "") {
+					alert("empty #entry-address")
+					return
+				}
+
+				const encodedUpdate = goFuncs["update"](entryAddr)
+				const bodyBuf = _base64ToArrayBuffer(encodedUpdate)
+				
+				const qryUrl = new URL(`https://zembla.zenr.io/dns-query`)
+				const resp = await fetch(qryUrl, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/dns-message"
+					},
+					body: bodyBuf
+				})
+
+				const data = await resp.arrayBuffer()
 				document.getElementById("dns-answer").value = _arrayBufferToBase64(data)
 			}
 		</script>
 	</head>
 	<body>
 		<h1>Go DNS Query proof-of-concept</h1>
+
 		
 		<p>
 			<input type="text" id="domain-name" value="cryptix.zenr.io">
 			<button id="prepare">Prepare Query</button>
 		</p>
-
+		
+		<h2>Query</h2>
 		<p>
 			<textarea type="text" id="query-data" name="dns">
 			</textarea>
 			<button onclick="queryViaFetch()">Query via fetch()</button>
 		</p>
 
+		<h2>Update</h2>
+		<p>
+			<input type="text" id="entry-address" value="23.42.0.1">
+			<button onclick="updateViaFetch()">Update</button>
+		</p>
+
+		<h3>Reply</h3>
 		<p>
 			<textarea id="dns-answer"></textarea>
 			<button id="parse-answer">̦Parse answer</button>
 		</p>
 
+		<h3>Parsed</h3>
 		<pre id="pretty"></pre>
 	</body>
 </html>

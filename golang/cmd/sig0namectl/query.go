@@ -24,7 +24,10 @@ func queryAction(cCtx *cli.Context) error {
 	// name := "cryptix.zenr.io"
 	server := cCtx.String("server")
 
-	q := sig0.QueryA(name)
+	q, err := sig0.QueryA(name)
+	if err != nil {
+		return err
+	}
 	fmt.Printf("Q:(TXT):%v\n", q)
 
 	fmt.Println("Q:", q)
