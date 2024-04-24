@@ -64,7 +64,10 @@ For custom service types other DNS RR may be added, but are not defined within c
 
 ## Compatibility with existing DNS-SD stacks
 
-For the avahi DNS-SD stack to succesfully resolve a service, at least one SRV record and one TXT record must be present for each service instance.
+For the avahi DNS-SD stack to successfully resolve a service, 
+    - at least one SRV record and one TXT record must be present for each service instance
+    - service types must be defined as at least a pair of underscored labels (single underscored labels do not work)
+    - the closest to root label must be either \_udp or \_tcp
 
 ## Further Resources
 
