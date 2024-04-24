@@ -7,16 +7,16 @@ import (
 )
 
 // QueryA returns a base64 encoded string of a DNS Question for an A record of the passed domain name
-func QueryA(name string) string {
+func QueryA(name string) (string, error) {
 	return QueryWithType(name, dns.TypeA)
 }
 
 // uses ANY query type
-func QueryAny(name string) string {
+func QueryAny(name string) (string, error) {
 	return QueryWithType(name, dns.TypeANY)
 }
 
-func QueryWithType(name string, qtype uint16) string {
+func QueryWithType(name string, qtype uint16) (string, error) {
 	q := dns.Question{
 		Name:   dns.Fqdn(name),
 		Qtype:  qtype,
@@ -29,13 +29,9 @@ func QueryWithType(name string, qtype uint16) string {
 	}
 
 	out, err := m.Pack()
-	check(err)
-
-	return base64.URLEncoding.EncodeToString(out)
-}
-
-func check(err error) {
 	if err != nil {
-		panic(err)
+		return "", err
 	}
+
+	return base64.URLEncoding.EncodeToString(out), nil
 }
