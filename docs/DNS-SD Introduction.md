@@ -57,6 +57,7 @@ zembla._http._tcp                                     IN SRV 0 0 80 zembla.zenr.
 \032*\032SlashDot,\032News\032for\032Nerds._http._tcp IN SRV 0 0 80 slashdot.com.
 ...
 ```
+Note SRV targets should resolve to at least one IPv4 or IPv6 address.
 
 ## Custom Service Types
 
@@ -68,6 +69,7 @@ For the avahi DNS-SD stack to successfully resolve a service,
     - at least one SRV record and one TXT record must be present for each service instance
     - service types must be defined as at least a pair of underscored labels (single underscored labels do not work)
     - the closest to root label must be either \_udp or \_tcp
+    - the SRV target must resolve to a IPv4 or IPv6 address, if not, service resolution fails
 
 ## Further Resources
 
