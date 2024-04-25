@@ -32,3 +32,4 @@ How to curate a decentralised list of location markers
     - ./dnssd-services <sig0-keyname>
     - add service instance label PTR entries under <tag>.\_loclist.\_udp.<sig0-keyname>
     - add service instance SRV & TXT entries pointing to known DNS LOC resource record
+    - (for SRV target, ensure the target resolves to at least one IPv4 or IPv6 address - avahi requires it)
