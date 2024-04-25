@@ -30,20 +30,6 @@ func (signer *Signer) UpdateA(host, zone, addr string) (*dns.Msg, error) {
 
 	m.Insert([]dns.RR{rrInsert})
 
-	// create & fill KEY structure (see sig0_test.go for guidance)
-	log.Println("-- Create and fill KEY structure from dnssec-keygen keyfiles --")
-	keyRR := new(dns.KEY)
-	keyRR.Hdr.Name = "cryptix.zenr.io." // TODO set to RRset 1st space separated field of dnssec-keygen .key file eg vortex.zenr.io.
-	keyRR.Hdr.Rrtype = dns.TypeKEY
-	keyRR.Hdr.Class = dns.ClassINET
-	keyRR.Hdr.Ttl = 600
-	keyRR.Flags = 512 // Take from RR Header
-	keyRR.Protocol = 3
-	keyRR.Algorithm = signer.dnsKey.Algorithm
-	keyRR.PublicKey = signer.dnsKey.PublicKey
-
-	// spew.Dump(keyRR)
-
 	// create & fill SIG structure (see sig0_test.go for guidance)
 	log.Println("-- Create, fill & attach SIG RR to dns.Msg Structure --")
 	now := uint32(time.Now().Unix())
@@ -54,12 +40,12 @@ func (signer *Signer) UpdateA(host, zone, addr string) (*dns.Msg, error) {
 	sig0RR.Algorithm = signer.dnsKey.Algorithm
 	sig0RR.Expiration = now + 300
 	sig0RR.Inception = now - 300
-	sig0RR.KeyTag = keyRR.KeyTag()
-	sig0RR.SignerName = keyRR.Hdr.Name
+	sig0RR.KeyTag = signer.dnsKey.KeyTag()
+	sig0RR.SignerName = signer.dnsKey.Hdr.Name
 
 	mb, err := sig0RR.Sign(signer.private.(crypto.Signer), m)
 	if err != nil {
-		algstr := dns.AlgorithmToString[keyRR.Algorithm]
+		algstr := dns.AlgorithmToString[signer.dnsKey.Algorithm]
 		return nil, fmt.Errorf("failed to sign %v message: %w", algstr, err)
 	}
 
