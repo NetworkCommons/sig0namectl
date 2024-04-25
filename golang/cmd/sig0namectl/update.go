@@ -54,28 +54,6 @@ func updateAction(cCtx *cli.Context) error {
 	}
 	// spew.Dump(m)
 
-	// TODO: would need return intermediate values from UpdateA
-	// Rather write a test for this in the sig0 package
-
-	// verify signing
-	// var sigrrwire *dns.SIG
-	// switch rr := m.Extra[0].(type) {
-	// case *dns.SIG:
-	// 	sigrrwire = rr
-	// default:
-	// 	return fmt.Errorf("expected SIG RR, instead: %w", rr)
-	// }
-
-	// for _, rr := range []*dns.SIG{sig0RR, sigrrwire} {
-	// 	id := "sig0RR"
-	// 	if rr == sigrrwire {
-	// 		id = "sigrrwire"
-	// 	}
-	// 	if err := rr.Verify(keyRR, mb); err != nil {
-	// 		return fmt.Errorf("failed to verify %q signed SIG(%s): %w", algstr, id, err)
-	// 	}
-	// }
-
 	log.Println("-- Configure DoH client --")
 	co := &dns.Conn{Conn: doh.NewConn(nil, nil, server)}
 
