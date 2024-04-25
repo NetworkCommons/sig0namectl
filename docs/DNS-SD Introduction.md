@@ -74,3 +74,4 @@ For the avahi DNS-SD stack to successfully resolve a service,
 ## Further Resources
 
 - [RFC 6763](https://www.rfc-editor.org/rfc/rfc6763)
+- [Service Discovery for IP Applications](https://datatracker.ietf.org/meeting/106/materials/slides-106-edu-sessf-service-discovery-for-ip-applications-00.pdf), Dr Stuart Cheshire, IETF 106, Singapore, Sunday 17th November 2019
