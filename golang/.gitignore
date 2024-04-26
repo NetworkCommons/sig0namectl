@@ -1,5 +1,4 @@
 cmd/sig0namectl/sig0namectl
 wasm/demo.wasm
 wasm/nohup.out
-sig0namectl
 K*.private
