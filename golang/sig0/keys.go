@@ -20,6 +20,7 @@ func GenerateKey(zone string) (*Signer, error) {
 	k.Hdr.Class = dns.ClassINET
 	k.Hdr.Rrtype = dns.TypeKEY
 	k.Algorithm = dns.ED25519
+	k.Hdr.Ttl = 0xe10
 	// TODO: find consts for these magic numbers
 	k.Flags = 0x200
 	k.Protocol = 3
