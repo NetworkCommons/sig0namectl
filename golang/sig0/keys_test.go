@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadKey(t *testing.T) {
@@ -41,6 +43,19 @@ func TestParseKeyFile(t *testing.T) {
 	if signer == nil {
 		t.Fatal("signer is nil")
 	}
+
+	// signer.dnsKey.Hdr.Ttl = 0
+	t.Logf("pk type: %T", signer.private)
+
+	k := signer.dnsKey.DNSKEY
+
+	out := k.String()
+	out = strings.ReplaceAll(out, "\t", " ")
+
+	assert.Equal(t, string(keyContent), out)
+
+	pk := signer.dnsKey.PrivateKeyString(signer.private)
+	assert.Equal(t, string(privateContent), pk)
 }
 
 func createKey(t *testing.T) string {
