@@ -28,9 +28,9 @@ func queryAction(cCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Q:(TXT):%v\n", q)
+	fmt.Printf("Q:(TXT):%v\n", name)
 
-	fmt.Println("Q:", q)
+	fmt.Println("Q:(B64)", q)
 
 	// send over DoH
 	url := fmt.Sprintf("https://%s/dns-query?dns=%s", server, q)
