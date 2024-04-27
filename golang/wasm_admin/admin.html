@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>sig0namectl WASM Administration Demo</title>
+    <link rel="stylesheet" href="admin.css"  type="text/css">
+    <script src="wasm_exec.js"></script>
+    <script src="admin_wasm.js"></script>
+    <script>
+        /// ##Page Logic
+        var credentials = {"entries":[]};
+
+        /// change to a specific screen
+        function set_screen(screen_name) {
+            // hide all screens
+            document.getElementById("splash").style.display="none";
+            document.getElementById("credentials").style.display="none";
+            document.getElementById("domain").style.display="none";
+
+            // show specific screen
+            document.getElementById(screen_name).style.display="block";
+        }
+
+        /// start demo
+        /// 
+        /// this set's up everything for the demo
+        function start_demo() {
+            // set up credential screen
+            load_credentials();
+
+            // show credential screen
+            set_screen("credentials");
+        }
+
+        /// ##Credential Screen
+
+        /// load credentials from local storage
+        ///
+        /// this function returns null on error
+        /// and the storage object on success
+        function load_credentials() {
+            // get credentials from local storage
+            let credentials_json = localStorage.getItem("credentials");
+            if (!credentials_json) {
+                return null;
+            }
+            
+            // parse JSON
+            credentials = JSON.parse(credentials_json);
+
+            // check validity of saved object
+            if (credentials.entries.length < 1) {
+                console.log("stored credentials failed validation");
+                
+                // remove saved credentials
+                localStorage.removeItem("credentials");
+                credentials = {"entries":[]};
+
+                return null;
+            }
+
+            // fill credentials into GUI
+            document.getElementById("domain-name").setAttribute("value", credentials.entries[0].domain);
+            document.getElementById("public-key").setAttribute("value", credentials.entries[0].public);
+            document.getElementById("private-key").value=credentials.entries[0].private;
+        }
+
+        /// update credential entry
+        function update_credentials(new_entry) {
+            let entry_updated = false;
+            // check if entry already exists
+            credentials.entries.forEach((entry) => {
+                if (entry.domain == new_entry.domain) {
+                    entry.public = new_entry.public;
+                    entry.private = new_entry.private;
+                    entry_updated = true;
+                    console.log("entry updated")
+                }
+            })
+
+            // add entry to credentials
+            if (!entry_updated) {
+                credentials.entries.push(new_entry);
+            }
+
+            // save credentials in browser cache
+            localStorage.setItem("credentials", JSON.stringify(credentials));
+
+        }
+
+        /// very credentials
+        ///
+        /// validate input, send to WASM for verification
+        /// and save to local storage.
+        ///
+        /// function returns null on error
+        /// and returns the storage object on success
+        function verify_credentials() {
+            let entry = {};
+
+            // get credential values from DOM
+            let name_field = document.getElementById("domain-name");
+            if (!name_field.checkValidity()) {return false}
+            entry.domain = name_field.value;
+
+            let public_field = document.getElementById("public-key");
+            if (!name_field.checkValidity()) {return false}
+            entry.public = public_field.value;
+
+            let private_field = document.getElementById("private-key");
+            if (!private_field.checkValidity()) {return false}
+            entry.private = private_field.value;
+
+            // send them to WASM for verification
+            if (!window.goFuncs.setDomainCredentials(entry.public, entry.private)) {
+                console.error("WASM credential verification failed");
+                alert("WASM credential verification failed");
+                return null;
+            }
+
+            // update and save entry
+            update_credentials(entry);
+
+            console.log("verify_credentials successful");
+
+            return true;
+        }
+
+        /// update A Domain entry
+        async function updateA() {
+            console.log(credentials)
+
+            // get address from DOM
+            let address_field = document.getElementById("ipv4");
+            if (!address_field.checkValidity()) {return false}
+            const ipv4 = document.getElementById("ipv4").value;
+            console.log("ip address: " +ipv4)
+        
+            // generate host from domain name
+            var domain = credentials.entries[0].domain;
+            console.log("domain: " +domain);
+            const host = domain.substring(0, domain.indexOf("."));
+            console.log("host: " +host);
+
+            let encodedUpdate = window.goFuncs.updateA(host, "zenr.io", ipv4);
+            if (!encodedUpdate) {
+                console.error("update A failed");
+                return false;
+            }
+            const bodyBuf = _base64ToArrayBuffer(encodedUpdate);
+            
+            const qryUrl = new URL(`https://zembla.zenr.io/dns-query`);
+            const resp = await fetch(qryUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/dns-message"
+                },
+                body: bodyBuf
+            });
+        
+            const data = await resp.arrayBuffer();
+            console.log(data);
+
+            address_field.value = "";
+            alert("Update Successful!");
+        }
+
+        /// start administrating domain
+        function start_administration() {
+            // check credentials
+            if (!verify_credentials()) {
+                return;
+            }
+
+            // change to administration screen
+            set_screen("domain");
+        }
+    </script>
+</head>
+<body>
+<main>
+<section id="splash">
+    <h1>sig0namectl<br/>Administration</h1>
+    <p>
+        <button onclick="start_demo()">Start</button>
+    </p>
+</section>
+<section id="credentials">
+    <p>Please enter the credentials for your domain.<br/>
+        This information will stay in the browser on your computer and not be sent or stored anywhere else.
+    </p>
+    <form onsubmit="event.preventDefault(); return false;">
+    <p>
+        <label for="domain-name">Domain Name</label>
+        <input type="text" id="domain-name" value="" required placeholder="yourdomain.zenr.io">
+    </p>
+    <p>
+        <label for="public-key">Public Key</label>
+        <input type="text" id="public-key" value="" required placeholder="yourdomain.zenr.io. IN KEY 512 3 15 YYYYYYYYYYYYYYYYYY">
+    </p>
+    <p>
+        <label for="private-key">Private Key</label>
+        <textarea type="text" id="private-key" name="dns" required placeholder="Private-key-format: v1.3
+Algorithm: 15 (ED25519)
+PrivateKey: XXXXXXXXXXXXXXXXXXXX
+Created: 20211125154602
+Publish: 20211125154602
+Activate: 20211125154602
+"></textarea>
+    </p>
+    <p>
+        <button id="credentials-verify" onclick="start_administration()">Next</button>
+    </p>
+    </form>
+</section>
+<section id="domain">
+<nav></nav>
+<article>
+    <!-- administration -->
+    <h2>Update A Entry</h2>
+    <form onsubmit="event.preventDefault(); return false;"></form>
+    <p>
+        <label for="ipv4">IPv4 Address</label>
+        <input type="text" id="ipv4" value="" required placeholder="1.2.3.4"/>
+    </p>
+    <p>
+        <button onclick="updateA()">Update</button>
+    </p>
+    </form>
+</article>
+</section>
+</main>
+
+<script>
+    /// show splash screen at start
+    set_screen("splash");
+</script>
+
+</body>
+</html>
