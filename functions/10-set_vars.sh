@@ -72,7 +72,7 @@ set_vars() {
 	ZONE="${ZONE:-$(get_soa ${NEW_FQDN})}" # sanity check?
 	NEW_SUBZONE=${NEW_SUBZONE:-${NEW_FQDN%*.${ZONE}}}
 	[[ -n ${DEBUG_SET_VARS} ]] && echo "NEW_FQDN='${NEW_FQDN}'" && echo "ZONE='${ZONE}'" && echo "NEW_SUBZONE='${NEW_SUBZONE}'" && echo "NSUPDATE_SIG0_KEYPATH='${NSUPDATE_SIG0_KEYPATH}'"
-	if [[ ${#ZONE} < 2 ]]; then
+	if (( ${#ZONE} < 2 )); then
 		echo "Error: DNS zone ZONE='${ZONE}' environment variable is not set & could not be determined from \$DOMAINNAME or \$HOSTNAME"
 		echo "DEBUG: NEW_FQDN='${NEW_FQDN}'"
 		exit 1
