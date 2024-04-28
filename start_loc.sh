@@ -1,5 +1,5 @@
 #!/bin/bash
 while true; do 
-	./dyn_loc redb.zenr.io
+	./dyn_loc ${1}
 	sleep 10
 done
