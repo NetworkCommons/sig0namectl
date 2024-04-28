@@ -15,15 +15,26 @@ done
 
 set_vars $*
 
-# find existing SIG0 auth keypair for nsupdate parameter
-[[ ! -n ${NSUPDATE_AUTH_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID ${NSUPDATE_AUTH_SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
-
 # find zone master for ${SIGNAL_SUBZONE}.${ZONE} which may be different from zone master of ${ZONE}
 SIGNAL_SOA_MASTER=$( get_soa_master "${SIGNAL_SUBZONE}.${ZONE}" )
 if [[ ! -n ${SIGNAL_SOA_MASTER} ]]; then
          echo "Warning: ZONE ${SIGNAL_SUBZONE}.${ZONE} SOA record does not resolve"
          exit 1
 fi
+
+# if not set, set default update auth key to zonename
+if [[ ! -n ${NSUPDATE_AUTH_SIG0_KEY_FQDN} ]]; then
+         [[ -n ${DEBUG_PROCESS_REQUESTS} ]] && echo "Warning: ZONE update KEY FQDN not set, setting default to zone FQDN '${ZONE}'"
+         NSUPDATE_AUTH_SIG0_KEY_FQDN="${NSUPDATE_AUTH_SIG0_KEY_FQDN:-${ZONE}}"
+fi
+
+# find existing SIG0 auth keypair for nsupdate parameter
+[[ ! -n ${NSUPDATE_AUTH_SIG0_KEYID} ]] && get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID ${NSUPDATE_AUTH_SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
+if [[ ! -n ${NSUPDATE_AUTH_SIG0_KEYID} ]]; then
+         echo "Warning: ZONE ${ZONE}: SIG(0) keypair for ${NSUPDATE_AUTH_SIG0_KEY_FQDN} not found in keystore ${NSUPDATE_AUTH_SIG0_KEYPATH}"
+         exit 1
+fi
+
 
 NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"} # ensures default action
 NSUPDATE_TTL=${NSUPDATE_TTL:-"60"} # ensures default TTLs for RRs
@@ -63,7 +74,7 @@ for request_ptr in ${REQUEST_QUEUE}; do
 				send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_PRECONDITION};echo ${NSUPDATE_ITEM_SIG0_KEY})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}" 
 				#send_update
 				key_display="`dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +nocrypto +idnout ${request_key_fqdn} KEY`"
-				request_key_fqdn_status="KEY '${request_key_fqdn}' submitted to ${NSUPDATE_ACTION} under zone '${ZONE}' with '[${key_display#*[}', IDN '${key_display%.*}'."
+				request_key_fqdn_status="KEY '${request_key_fqdn}' submitted to ${NSUPDATE_ACTION} under zone '${ZONE}' with '[${key_display#*[}', IDN '${key_display%.*}' by KEY FQDN: ${NSUPDATE_AUTH_SIG0_KEY_FQDN} KEYID: ${NSUPDATE_AUTH_SIG0_KEYID} ."
 			else
 				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as DNS resource records for '${request_key_fqdn}' already exist."
 			fi
