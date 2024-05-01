@@ -41,7 +41,7 @@ get_sig0_keyid NEW_SUBZONE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
 if [[ ! -n ${NEW_SUBZONE_SIG0_KEYID} ]]; then
 	[[ -n ${DEBUG} ]] && echo "No SIG0 keypair for ${SIG0_KEY_FQDN} found in ${NSUPDATE_SIG0_KEYPATH}"
 	SIG0_KEY_ALGO=${SIG0_KEY_ALGO:-"ED25519"}
-	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN}
+	dnssec-keygen -K ${NSUPDATE_SIG0_KEYPATH} -a ${SIG0_KEY_ALGO} -n HOST -T KEY ${SIG0_KEY_FQDN} || exit 1
 	echo "New SIG0 keypair for ${SIG0_KEY_FQDN} generated in ${NSUPDATE_SIG0_KEYPATH}"
 	get_sig0_keyid NEW_SUBZONE_SIG0_KEYID ${SIG0_KEY_FQDN} ${NSUPDATE_SIG0_KEYPATH}
 	[[ ! -n ${NEW_SUBZONE_SIG0_KEYID} ]] && echo "Error creating new key for ${SIG0_KEY_FQDN} in keystore ${NSUPDATE_SIG0_KEYPATH}" && exit 1
