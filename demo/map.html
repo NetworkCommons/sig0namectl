@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
     <script src="dohjs_helpers.js"></script>
+    <script src="map.js"></script>
     <style>
 		html, body {
 			height: 100%;
@@ -41,132 +42,8 @@
         const resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
         // const resolver = new doh.DohResolver('https://zembla.zenr.io/dns-query');
 
-        // -------------------------------------------------------
-
-        /// Receive Service Pointers
-        function get_service_pointers (domain) {
-            var query_domain = "_loc._udp." + domain;
-
-            console.log("PTR records of " + query_domain);
-
-            resolver.query(query_domain, 'PTR')
-                .then(response => {
-                    response.answers.forEach(ans => {
-                        console.log(ans.data);
-                        to_query.add(ans.data);
-                    });
-
-                    to_query.query();
-                });
-        }
-
-        /// Collection of Domains to query
-        class ToQuery {
-            constructor(domains) {
-                // array of Domain objects
-                this.domains = domains;
-            }
-
-            /// add a new domain entry via domain name
-            add(domain_name) {
-                let domain = new Domain(domain_name);
-                this.domains.push(domain);
-            }
-
-            /// query domains for LOC entries
-            query() {
-                console.log("query update ...");
-                this.domains.forEach( domain => {
-                    domain.query();
-                });
-            }
-        };
-
-        /// Location 
-
-        /// Domain
-        class Domain {
-            constructor(name) {
-                this.name = name;
-                this.entries = [];
-            }
-
-            /// query the LOC records of a domain
-            query() {
-                resolver.query(this.name, 'LOC')
-                    .then(response => {
-                        var id = 0;
-                        response.answers.forEach(ans => {
-                            // decode LOC wireformat package
-                            let loc = new LocDecoder(ans.data);
-
-                            // update marker on map
-                            this.update_marker(loc.latitude, loc.longitude, id);
-                            id++;
-                        });
-                    })
-                    .catch(err => console.error(err));
-            }
-
-            /// update marker on map
-            ///
-            /// the map ID is the answer number
-            update_marker(latitude, longitude, id) {
-                // check if marker exists
-                if (this.entries.length > id) {
-                    // update position
-                    let latLng = new L.LatLng(latitude, longitude);
-                    this.entries[id].setLatLng(latLng);
-
-                    // update popup text
-                    let popup_text = this.create_popup_text(latitude, longitude);
-                    this.entries[id].setPopupContent(popup_text);
-                } else {
-                    // set new map point
-                    this.create_marker(latitude, longitude);
-                }
-            }
-
-            /// create new map marker
-            create_marker(latitude, longitude) {
-                // set point of interest on map
-                let marker = L.marker([latitude, longitude]).addTo(map);
-
-                // set explanatory pop-up
-                let popup_text = this.create_popup_text(latitude, longitude);
-                marker.bindPopup(popup_text);
-
-                // add to entries
-                this.entries.push(marker);
-            }
-
-            /// create popup text
-            create_popup_text(latitude, longitude) {
-                let popup_text = "<b>" + this.name + "</b>";
-                popup_text += "<hr>Latitude: " + latitude;
-                popup_text += "<br>Longitude: " + longitude;
-                
-                return popup_text;
-            }
-
-            /// Trim location array to defined length
-            trim_entries(length) {
-                while(length > this.entries.length()) {
-                    this.entries.pop();
-                }
-            }
-        }
-
-        function timer_query() {
-            to_query.query();
-        }
-
-        // -------------------------------------------------------
-
         // set Domains object
-        var to_query = new ToQuery([]);
-        get_service_pointers("zembla.zenr.io");
-        setInterval(timer_query, 10000);
+        var map_loc_query = new MapLocQuery("zembla.zenr.io");
     </script>
 </body>
 </html>
