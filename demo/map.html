@@ -8,39 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
-    <script>
-        /// Uint32 helper Class for byte conversion
-        class Uint32
-        {
-            constructor(Value) 
-            {
-                this.Number = new Uint32Array(1);
-                this.Number[0] = Value;
-            }
-            get Get() 
-            {
-                return this.Number[0];
-            }
-            set Set(newValue) 
-            {
-                this.Number[0] = newValue;
-            }
-        };
-
-        /// Convert u8 Byte array from network byte order (big-endian) to 32bit unsigned integer (little-endian)
-        function ntoh_Uint32 (Source_Byte_Array, Start_Position)
-        {
-            var Uint32_Num = new Uint32(0);
-            var Multiplier = 1;
-            for (let i = 3; i >= 0; i--)
-            {
-                Uint32_Num.Set = Uint32_Num.Get + Source_Byte_Array[Start_Position + i] * Multiplier;
-                Multiplier = Multiplier * 256;
-            }
-            return (Uint32_Num.Get);
-        }
-
-    </script>
+    <script src="dohjs_helpers.js"></script>
     <style>
 		html, body {
 			height: 100%;
@@ -114,6 +82,8 @@
             }
         };
 
+        /// Location 
+
         /// Domain
         class Domain {
             constructor(name) {
@@ -127,16 +97,11 @@
                     .then(response => {
                         var id = 0;
                         response.answers.forEach(ans => {
-                            // create latitude Uint32
-                            let latitude_raw = ntoh_Uint32(ans.data, 4);
-                            let latitude = (latitude_raw - 2147483648.0) / 3600000;
-
-                            // create longitude Uint32
-                            let longitude_raw = ntoh_Uint32(ans.data, 8);
-                            let longitude = (longitude_raw - 2147483648.0) / 3600000;
+                            // decode LOC wireformat package
+                            let loc = new LocDecoder(ans.data);
 
                             // update marker on map
-                            this.update_marker(latitude, longitude, id);
+                            this.update_marker(loc.latitude, loc.longitude, id);
                             id++;
                         });
                     })
