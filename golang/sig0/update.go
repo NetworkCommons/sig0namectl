@@ -37,15 +37,15 @@ func (signer *Signer) UpdateA(host, zone, addr string) (*dns.Msg, error) {
 	sig0RR.Hdr.Name = "."
 	sig0RR.Hdr.Rrtype = dns.TypeSIG
 	sig0RR.Hdr.Class = dns.ClassANY
-	sig0RR.Algorithm = signer.dnsKey.Algorithm
+	sig0RR.Algorithm = signer.Key.Algorithm
 	sig0RR.Expiration = now + 300
 	sig0RR.Inception = now - 300
-	sig0RR.KeyTag = signer.dnsKey.KeyTag()
-	sig0RR.SignerName = signer.dnsKey.Hdr.Name
+	sig0RR.KeyTag = signer.Key.KeyTag()
+	sig0RR.SignerName = signer.Key.Hdr.Name
 
 	mb, err := sig0RR.Sign(signer.private.(crypto.Signer), m)
 	if err != nil {
-		algstr := dns.AlgorithmToString[signer.dnsKey.Algorithm]
+		algstr := dns.AlgorithmToString[signer.Key.Algorithm]
 		return nil, fmt.Errorf("failed to sign %v message: %w", algstr, err)
 	}
 

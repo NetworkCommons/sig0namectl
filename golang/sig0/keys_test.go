@@ -7,51 +7,55 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadKey(t *testing.T) {
-	keyName := createKey(t)
+	r := require.New(t)
+	keyName := createKeyViaBind(t)
 
 	signer, err := LoadKeyFile(keyName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if signer == nil {
-		t.Fatal("signer is nil")
-	}
+	r.NoError(err)
+	r.NotNil(signer)
 }
 
 func TestParseKeyFile(t *testing.T) {
-	keyName := createKey(t)
+	r := require.New(t)
+	keyName := createKeyViaBind(t)
 
 	keyContent, err := os.ReadFile(keyName + ".key")
-	if err != nil {
-		t.Fatal(err)
-	}
+	r.NoError(err)
 
 	privateContent, err := os.ReadFile(keyName + ".private")
-	if err != nil {
-		t.Fatal(err)
-	}
+	r.NoError(err)
 
 	signer, err := ParseKeyData(string(keyContent), string(privateContent))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if signer == nil {
-		t.Fatal("signer is nil")
-	}
+	r.NoError(err)
+	r.NotNil(signer)
 }
 
-func createKey(t *testing.T) string {
+func TestCompareFlags(t *testing.T) {
+	a := assert.New(t)
+
+	bindKey := createAndLoadKey(t)
+
+	ourKey, err := GenerateKey("go.te.st")
+	require.NoError(t, err)
+
+	a.Equal(bindKey.Key.Algorithm, ourKey.Key.Algorithm, "Algorithm")
+	a.Equal(bindKey.Key.Flags, ourKey.Key.Flags, "Flags")
+	a.Equal(bindKey.Key.Protocol, ourKey.Key.Protocol, "Protocol")
+}
+
+func createKeyViaBind(t *testing.T) string {
 	var buf bytes.Buffer
 	cmd := exec.Command("dnssec-keygen", "-K", "/tmp", "-a", "ED25519", "-n", "HOST", "-T", "KEY", "go.te.st")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = &buf
 	err := cmd.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	keyName := filepath.Join("/tmp", strings.TrimSpace(buf.String()))
 
@@ -66,15 +70,11 @@ func createKey(t *testing.T) string {
 }
 
 func createAndLoadKey(t *testing.T) *Signer {
-	keyName := createKey(t)
+	keyName := createKeyViaBind(t)
 
 	signer, err := LoadKeyFile(keyName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if signer == nil {
-		t.Fatal("signer is nil")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, signer)
 
 	return signer
 }

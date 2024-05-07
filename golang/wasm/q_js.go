@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
+	"strings"
 	"syscall/js"
 
 	"github.com/davecgh/go-spew/spew"
@@ -10,23 +12,7 @@ import (
 	"github.com/NetworkCommons/sig0namectl/sig0"
 )
 
-// TODO: use a proper key storage mechanism or <input type="file"> to load key files
-const (
-	keyFile = `cryptix.zenr.io. IN KEY 512 3 15 YYYYYYYYYYYYYYYYYY`
-
-	privateKey = `Private-key-format: v1.3
-Algorithm: 15 (ED25519)
-PrivateKey: XXXXXXXXXXXXXXXXXXXX
-Created: 20211125154602
-Publish: 20211125154602
-Activate: 20211125154602
-`
-)
-
 func main() {
-	signer, err := sig0.ParseKeyData(keyFile, privateKey)
-	check(err)
-
 	var (
 		query, queryFromDOM js.Func
 		parse, update       js.Func
@@ -68,6 +54,10 @@ func main() {
 			check(fmt.Errorf("expected 1 string argument"))
 			return ""
 		}
+
+		// TODO: remove hardcoding
+		signer := getSignerForZone("cryptix.zenr.io")
+		log.Println("signer loaded", signer.Key.Hdr.Name, signer.Key.KeyTag())
 		m, err := signer.UpdateA("cryptix", "zenr.io", args[0].String())
 		check(err)
 
@@ -95,4 +85,29 @@ func check(err error) {
 		js.Global().Call("alert", err.Error())
 		panic(err)
 	}
+}
+
+func getSignerForZone(zone string) *sig0.Signer {
+	if !strings.HasSuffix(zone, ".") {
+		zone += "."
+	}
+
+	found, err := sig0.ListKeys(".")
+	check(err)
+
+	var signer *sig0.Signer
+	for i, keyName := range found {
+		fmt.Printf("Loading key No.%d: %s", i, keyName)
+
+		signer, err = sig0.LoadKeyFile(keyName)
+		check(err)
+		if signer.Key.Hdr.Name == zone {
+			return signer
+		}
+	}
+
+	fmt.Println("No key found for zone. Generating a new one.")
+	signer, err = sig0.GenerateKeyAndSave(zone)
+	check(err)
+	return signer
 }

@@ -25,7 +25,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = rr.Verify(signer.dnsKey, mb)
+	err = rr.Verify(signer.Key, mb)
 	if err != nil {
 		t.Fatal(err)
 	}

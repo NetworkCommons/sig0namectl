@@ -4,54 +4,40 @@ import (
 	"crypto"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/miekg/dns"
 )
 
-type Signer struct {
-	dnsKey  *dns.KEY
-	private crypto.PrivateKey
+// GenerateKey creates a new ED25519 key for the given zone
+func GenerateKey(zone string) (*Signer, error) {
+	if !strings.HasSuffix(zone, ".") {
+		zone += "."
+	}
+
+	var k = new(dns.KEY)
+	k.Hdr.Name = zone
+	k.Hdr.Class = dns.ClassINET
+	k.Hdr.Rrtype = dns.TypeKEY
+	k.Algorithm = dns.ED25519
+	// TODO: find consts for these magic numbers
+	k.Flags = 0x200
+	k.Protocol = 3
+
+	pk, err := k.Generate(256)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate key: %w", err)
+	}
+
+	return &Signer{
+		Key:     k,
+		private: pk,
+	}, nil
 }
 
-func LoadKeyFile(keyfile string) (*Signer, error) {
-	var (
-		pubKeyName    = keyfile + ".key"
-		secretKeyName = keyfile + ".private"
-	)
-
-	pubfh, err := os.Open(pubKeyName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", pubKeyName, err)
-	}
-	defer pubfh.Close()
-
-	rr, err := dns.ReadRR(pubfh, pubKeyName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read RR from %q: %w", pubKeyName, err)
-	}
-
-	dnsKey, ok := rr.(*dns.KEY)
-	if !ok {
-		return nil, fmt.Errorf("expected dns.KEY, instead: %T", rr)
-	}
-
-	hdr := rr.Header()
-	log.Println(keyfile+".key import:", hdr.Name, hdr.Ttl, hdr.Class, hdr.Rrtype, dnsKey.Flags, dnsKey.Protocol, dnsKey.Algorithm, dnsKey.PublicKey)
-
-	privfh, err := os.Open(secretKeyName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open %q: %w", secretKeyName, err)
-	}
-	defer privfh.Close()
-
-	privkey, err := dnsKey.ReadPrivateKey(privfh, secretKeyName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key material from %q: %w", secretKeyName, err)
-	}
-
-	return &Signer{dnsKey, privkey}, nil
+type Signer struct {
+	Key     *dns.KEY
+	private crypto.PrivateKey
 }
 
 func ParseKeyData(key, private string) (*Signer, error) {
