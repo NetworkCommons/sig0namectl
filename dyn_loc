@@ -2,7 +2,7 @@
 #
 # Sends LOC updates of GPS co-ordinates
 # (currently only for Android with Termux using termux-location tool)
-# TODO add gpsd for *nix/*bsd
+#  * added gpsd for *nix/*bsd in functions/get_loc.sh
 #------------------------------------------------------------------------------
 
 
@@ -44,7 +44,7 @@ NSUPDATE_RRTYPE="LOC"
 # form nsupdate RR update statements
 case ${NSUPDATE_ACTION} in
 	add)
-		LOC_RR_DATA=$(get_loc_termux "${CMDLINE_EXTRA_PARAMS}")
+		LOC_RR_DATA=$(get_loc "${CMDLINE_EXTRA_PARAMS}")
 		NSUPDATE_ITEM_RR="${NSUPDATE_RRTYPE} ${LOC_RR_DATA}"
 		#
 		NSUPDATE_ITEM_RR="update delete ${NEW_FQDN} ${NSUPDATE_RRTYPE}\n"
