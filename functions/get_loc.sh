@@ -1,5 +1,5 @@
 #!/bin/bash
-function get_loc_termux {
+function get_loc {
 	HOST_OS="`uname -o`"
 	case "${HOST_OS}" in
 		"Android")
