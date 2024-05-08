@@ -1,0 +1,7 @@
+baseURL: https://sig0namectl.networkcommons.org/
+languageCode: en-us
+params:
+  contact:
+    email: sig0namectl@networkcommons.org
+  subtitle: to name is to own
+title: sig0namectl
