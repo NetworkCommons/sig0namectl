@@ -17,8 +17,23 @@ func GenerateKeyAndSave(zone string) (*Signer, error) {
 	if err != nil {
 		return nil, err
 	}
-	_ = signer
-	return nil, fmt.Errorf("TODO: not yet implemented persistence")
+
+	keyName := signer.KeyName()
+
+	keyData := []byte(signer.Key.String())
+	err = os.WriteFile(keyName+".key", keyData, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write %q: %w", keyName+".key", err)
+	}
+
+	privateData := []byte(signer.Key.PrivateKeyString(signer.private))
+	err = os.WriteFile(keyName+".private", privateData, 0600)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write %q: %w", keyName+".private", err)
+	}
+
+	return signer, nil
+
 }
 
 func ListKeys(dir string) ([]string, error) {

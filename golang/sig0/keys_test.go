@@ -41,17 +41,48 @@ func TestParseKeyFile(t *testing.T) {
 	a.Equal(uint8(0xf), signer.Key.Algorithm, "Algorithm")
 	a.Equal(uint16(0x200), signer.Key.Flags, "Flags")
 	a.Equal(uint8(0x3), signer.Key.Protocol, "Protocol")
-	a.Equal(uint32(0xe10), signer.Key.Hdr.Ttl, "TTL")
+	a.Equal(DefaultKeyTTL, signer.Key.Hdr.Ttl, "TTL")
 
+	// re-create the key string
 	k := signer.Key
-
 	out := k.String()
 	out = strings.ReplaceAll(out, "\t", " ")
-
+	out += "\n"
 	a.Equal(string(keyContent), out)
 
+	// TODO: recreate the private string
 	// pk := signer.Key.PrivateKeyString(signer.private)
 	// assert.Equal(t, string(privateContent), pk)
+}
+
+func TestWritingAndParsingInBind(t *testing.T) {
+	r := require.New(t)
+
+	signer, err := GenerateKeyAndSave("go.te.st")
+	r.NoError(err)
+
+	kn := signer.KeyName()
+	t.Log("KeyName:", kn)
+	t.Cleanup(func() {
+		os.Remove(kn + ".key")
+		os.Remove(kn + ".private")
+	})
+
+	nsUpdateVersion, err := exec.Command("nsupdate", "-V").CombinedOutput()
+	r.NoError(err)
+	// TODO: add regexp for >= 9.18
+	r.Contains(string(nsUpdateVersion), "nsupdate 9.18")
+
+	nsUpdateInput := strings.NewReader(`
+update add go.te.st 60 A 1.1.1.1
+show
+`)
+	cmd := exec.Command("nsupdate", "-k", kn)
+	cmd.Stdin = nsUpdateInput
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stderr
+	err = cmd.Run()
+	r.NoError(err)
 }
 
 func TestCompareFlags(t *testing.T) {
@@ -70,7 +101,7 @@ func TestCompareFlags(t *testing.T) {
 
 func createKeyViaBind(t *testing.T) string {
 	var buf bytes.Buffer
-	cmd := exec.Command("dnssec-keygen", "-K", "/tmp", "-a", "ED25519", "-n", "HOST", "-T", "KEY", "go.te.st")
+	cmd := exec.Command("dnssec-keygen", "-K", "/tmp", "-a", "ED25519", "-n", "HOST", "-T", "KEY", "-L", "60", "go.te.st")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = &buf
 	err := cmd.Run()

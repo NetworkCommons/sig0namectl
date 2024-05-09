@@ -9,6 +9,18 @@ import (
 	"github.com/miekg/dns"
 )
 
+var DefaultKeyTTL uint32 = 60
+
+type Signer struct {
+	Key     *dns.KEY
+	private crypto.PrivateKey
+}
+
+func (s Signer) KeyName() string {
+	zone := s.Key.Hdr.Name
+	return fmt.Sprintf("K%s+%03d+%d", zone, s.Key.Algorithm, s.Key.KeyTag())
+}
+
 // GenerateKey creates a new ED25519 key for the given zone
 func GenerateKey(zone string) (*Signer, error) {
 	if !strings.HasSuffix(zone, ".") {
@@ -20,12 +32,13 @@ func GenerateKey(zone string) (*Signer, error) {
 	k.Hdr.Class = dns.ClassINET
 	k.Hdr.Rrtype = dns.TypeKEY
 	k.Algorithm = dns.ED25519
-	k.Hdr.Ttl = 0xe10
+	k.Hdr.Ttl = DefaultKeyTTL
 	// TODO: find consts for these magic numbers
 	k.Flags = 0x200
 	k.Protocol = 3
 
-	pk, err := k.Generate(256)
+	const keySize = 256
+	pk, err := k.Generate(keySize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key: %w", err)
 	}
@@ -34,11 +47,6 @@ func GenerateKey(zone string) (*Signer, error) {
 		Key:     k,
 		private: pk,
 	}, nil
-}
-
-type Signer struct {
-	Key     *dns.KEY
-	private crypto.PrivateKey
 }
 
 func ParseKeyData(key, private string) (*Signer, error) {
