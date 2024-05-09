@@ -21,6 +21,30 @@ func (s Signer) KeyName() string {
 	return fmt.Sprintf("K%s+%03d+%d", zone, s.Key.Algorithm, s.Key.KeyTag())
 }
 
+func LoadOrGenerateKey(zone string) (*Signer, error) {
+	if !strings.HasSuffix(zone, ".") {
+		zone += "."
+	}
+
+	keyNames, err := ListKeys(".")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, keyName := range keyNames {
+		if strings.HasPrefix(keyName, "K"+zone) {
+			signer, err := LoadKeyFile(keyName)
+			if err == nil {
+				return signer, nil
+			}
+		}
+	}
+
+	log.Println("generating new key for", zone)
+	return GenerateKeyAndSave(zone)
+
+}
+
 // GenerateKey creates a new ED25519 key for the given zone
 func GenerateKey(zone string) (*Signer, error) {
 	if !strings.HasSuffix(zone, ".") {
