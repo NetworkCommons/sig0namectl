@@ -14,6 +14,8 @@ var DefaultKeyTTL uint32 = 60
 type Signer struct {
 	Key     *dns.KEY
 	private crypto.PrivateKey
+
+	update *dns.Msg
 }
 
 func (s Signer) KeyName() string {
@@ -92,5 +94,5 @@ func ParseKeyData(key, private string) (*Signer, error) {
 		return nil, fmt.Errorf("failed to read private key material from private key data: %w", err)
 	}
 
-	return &Signer{dnsKey, privkey}, nil
+	return &Signer{Key: dnsKey, private: privkey}, nil
 }
