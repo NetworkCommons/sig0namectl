@@ -12,6 +12,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
+      - name: install bind9 utilities
+        run: sudo apt-get install bind9utils
       - name: Run tests
         run: go test -v ./...
         working-directory: ./golang
