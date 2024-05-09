@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"strings"
 	"syscall/js"
 
 	"github.com/davecgh/go-spew/spew"
@@ -57,10 +56,12 @@ func main() {
 
 		// TODO: remove hardcoding
 		zone := "cryptix.zenr.io"
-		signer := getSignerForZone(zone)
+		signer, err := sig0.LoadOrGenerateKey(zone)
+		check(err)
+
 		log.Println("signer loaded", signer.Key.Hdr.Name, signer.Key.KeyTag())
 
-		err := signer.StartUpdate(zone)
+		err = signer.StartUpdate(zone)
 		check(err)
 
 		err = signer.UpdateA("cryptix", "zenr.io", args[0].String())
@@ -93,29 +94,4 @@ func check(err error) {
 		js.Global().Call("alert", err.Error())
 		panic(err)
 	}
-}
-
-func getSignerForZone(zone string) *sig0.Signer {
-	if !strings.HasSuffix(zone, ".") {
-		zone += "."
-	}
-
-	found, err := sig0.ListKeys(".")
-	check(err)
-
-	var signer *sig0.Signer
-	for i, keyName := range found {
-		fmt.Printf("Loading key No.%d: %s", i, keyName)
-
-		signer, err = sig0.LoadKeyFile(keyName)
-		check(err)
-		if signer.Key.Hdr.Name == zone {
-			return signer
-		}
-	}
-
-	fmt.Println("No key found for zone. Generating a new one.")
-	signer, err = sig0.GenerateKeyAndSave(zone)
-	check(err)
-	return signer
 }
