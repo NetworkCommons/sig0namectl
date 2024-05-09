@@ -17,6 +17,9 @@ jobs:
       - name: Run tests
         run: go test -v ./...
         working-directory: ./golang
+      - name: Check CLI compilation
+        run: go build
+        working-directory: ./golang/cmd/sig0namectl
       - name: Check WASM compilation
         run: GOOS=js GOARCH=wasm go build -o test.wasm
         working-directory: ./golang/wasm
