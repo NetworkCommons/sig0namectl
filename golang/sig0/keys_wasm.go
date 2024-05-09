@@ -49,7 +49,7 @@ type storedKeyData struct {
 
 func ListKeys(dir string) ([]string, error) {
 	if dir != "." {
-		return nil, fmt.Errorf("directories not supported - use '.'")
+		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
 	}
 
 	n := js.Global().Get("localStorage").Get("length").Int()
