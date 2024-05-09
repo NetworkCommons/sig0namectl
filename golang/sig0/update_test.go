@@ -4,29 +4,29 @@ import (
 	"testing"
 
 	"github.com/miekg/dns"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUpdate(t *testing.T) {
+	r := require.New(t)
 	signer := createAndLoadKey(t)
 
-	signedUpdate, err := signer.UpdateA("host", "zone", "1.2.3.4")
-	if err != nil {
-		t.Fatal(err)
-	}
+	err := signer.StartUpdate("zone")
+	r.NoError(err)
+
+	err = signer.UpdateA("host", "zone", "1.2.3.4")
+	r.NoError(err)
+
+	signedUpdate, err := signer.SignUpdate()
+	r.NoError(err)
 
 	// verify signing
 	rr, ok := signedUpdate.Extra[0].(*dns.SIG)
-	if !ok {
-		t.Fatalf("expected SIG RR, instead: %T", signedUpdate.Extra[0])
-	}
+	r.True(ok, "expected SIG RR, instead: %T", signedUpdate.Extra[0])
 
 	mb, err := signedUpdate.Pack()
-	if err != nil {
-		t.Fatal(err)
-	}
+	r.NoError(err)
 
 	err = rr.Verify(signer.Key, mb)
-	if err != nil {
-		t.Fatal(err)
-	}
+	r.NoError(err)
 }

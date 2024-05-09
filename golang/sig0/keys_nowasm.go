@@ -102,5 +102,5 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 		return nil, fmt.Errorf("failed to read private key material from %q: %w", secretKeyName, err)
 	}
 
-	return &Signer{dnsKey, privkey}, nil
+	return &Signer{Key: dnsKey, private: privkey}, nil
 }

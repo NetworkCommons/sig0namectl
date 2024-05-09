@@ -48,7 +48,17 @@ func updateAction(cCtx *cli.Context) error {
 		return err
 	}
 
-	m, err := signer.UpdateA(host, zone, ipAddrStr)
+	err = signer.StartUpdate(zone)
+	if err != nil {
+		return err
+	}
+
+	err = signer.UpdateA(host, zone, ipAddrStr)
+	if err != nil {
+		return err
+	}
+
+	m, err := signer.SignUpdate()
 	if err != nil {
 		return err
 	}

@@ -56,9 +56,17 @@ func main() {
 		}
 
 		// TODO: remove hardcoding
-		signer := getSignerForZone("cryptix.zenr.io")
+		zone := "cryptix.zenr.io"
+		signer := getSignerForZone(zone)
 		log.Println("signer loaded", signer.Key.Hdr.Name, signer.Key.KeyTag())
-		m, err := signer.UpdateA("cryptix", "zenr.io", args[0].String())
+
+		err := signer.StartUpdate(zone)
+		check(err)
+
+		err = signer.UpdateA("cryptix", "zenr.io", args[0].String())
+		check(err)
+
+		m, err := signer.SignUpdate()
 		check(err)
 
 		enc, err := m.Pack()
