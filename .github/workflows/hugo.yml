@@ -63,6 +63,9 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./hugo-gh/public
+      - name: Setup tmate session
+          uses: mxschmitt/action-tmate@v3
+
 
   # Deployment job
   deploy:
