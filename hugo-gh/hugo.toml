@@ -5,4 +5,4 @@ title = 'sig0namectl'
   subtitle = 'to name is to own'
   [params.contact]
     email = 'sig0namectl@networkcommons.org'
-theme = ["github.com/theNewDynamic/gohugo-theme-ananke"]
+theme = 'ananke'
