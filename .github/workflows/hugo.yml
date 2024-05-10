@@ -64,7 +64,7 @@ jobs:
         with:
           path: ./hugo-gh/public
       - name: Setup tmate session
-          uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@v3
 
 
   # Deployment job
