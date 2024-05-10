@@ -56,6 +56,7 @@ jobs:
         working-directory: ./hugo-gh
         run: |
           hugo \
+            --verbose \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
       - name: Upload artifact
