@@ -1,8 +1,4 @@
 baseURL = 'https://sig0namectl.networkcommons.org/'
 languageCode = 'en-us'
 title = 'sig0namectl'
-[params]
-  subtitle = 'to name is to own'
-  [params.contact]
-    email = 'sig0namectl@networkcommons.org'
 theme = 'ananke'
