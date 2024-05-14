@@ -9,7 +9,7 @@ function validateIPv4()
 	#       return value 0 = valid address
 	#	non zero value = invalid address
 	local ip=$1
-	ipcalc -s -4 -c ${ip} || exit 1
+	ipcalc -s -4 -c ${ip}
 	local stat=$?
 	#local stat=1
 	#if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
