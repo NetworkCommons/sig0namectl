@@ -45,7 +45,7 @@
 			const input = Uint8Array.from("foo".split("").map(c => c.charCodeAt(0)));
 			const converted = _arrayBufferToBase64(input);
 			const andBack = _base64ToArrayBuffer(converted)
-			
+
 			// make sure input and andBack are the same
 			if (input.length != andBack.length) {
 				console.error("input and andBack are different lengths")
@@ -63,7 +63,7 @@
 					return
 				}
 
-				const qryUrl = new URL(`https://zembla.zenr.io/dns-query?dns=${qryData}`)
+				const qryUrl = new URL(`https://doh.zenr.io/dns-query?dns=${qryData}`)
 				const resp = await fetch(qryUrl, {
 					method: "get",
 					headers: {
@@ -84,8 +84,8 @@
 
 				const encodedUpdate = goFuncs["update"](entryAddr)
 				const bodyBuf = _base64ToArrayBuffer(encodedUpdate)
-				
-				const qryUrl = new URL(`https://zembla.zenr.io/dns-query`)
+
+				const qryUrl = new URL(`https://doh.zenr.io/dns-query`)
 				const resp = await fetch(qryUrl, {
 					method: "POST",
 					headers: {
@@ -102,12 +102,12 @@
 	<body>
 		<h1>Go DNS Query proof-of-concept</h1>
 
-		
+
 		<p>
 			<input type="text" id="domain-name" value="cryptix.zenr.io">
 			<button id="prepare">Prepare Query</button>
 		</p>
-		
+
 		<h2>Query</h2>
 		<p>
 			<textarea type="text" id="query-data" name="dns">
@@ -131,4 +131,3 @@
 		<pre id="pretty"></pre>
 	</body>
 </html>
-

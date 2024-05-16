@@ -1,7 +1,11 @@
 package sig0
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"strings"
+
+	"fmt"
 
 	"github.com/miekg/dns"
 )
@@ -34,4 +38,24 @@ func QueryWithType(name string, qtype uint16) (string, error) {
 	}
 
 	return base64.URLEncoding.EncodeToString(out), nil
+}
+
+func QuerySOA(zone string) (string, error) {
+	buf := make([]byte, 5)
+	rand.Read(buf)
+	zone = strings.Repeat(fmt.Sprintf("%x.", buf), 2) + zone
+	return QueryWithType(zone, dns.TypeSOA)
+}
+
+func ExpectAdditonalSOA(answer *dns.Msg) (string, error) {
+	if len(answer.Ns) < 1 {
+		return "", fmt.Errorf("expected at least one authority section.")
+	}
+	firstNS := answer.Ns[0]
+	soa, ok := firstNS.(*dns.SOA)
+	if !ok {
+		return "", fmt.Errorf("expected SOA but got type of RR: %T: %+v", firstNS, firstNS)
+	}
+
+	return soa.Ns, nil
 }

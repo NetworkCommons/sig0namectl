@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/miekg/dns"
 	"github.com/urfave/cli/v2"
 )
 
@@ -32,30 +29,11 @@ func queryAction(cCtx *cli.Context) error {
 
 	fmt.Println("Q:(B64)", q)
 
-	// send over DoH
-	url := fmt.Sprintf("https://%s/dns-query?dns=%s", server, q)
-	fmt.Println("Q:(DoH):", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP Status: %s", resp.Status)
-	}
-
-	answerBody, err := io.ReadAll(resp.Body)
+	answer, err := sig0.SendDOHQuery(server, q)
 	if err != nil {
 		return err
 	}
 
-	var dnsAnswer = new(dns.Msg)
-	err = dnsAnswer.Unpack(answerBody)
-	if err != nil {
-		return err
-	}
-
-	spew.Dump(dnsAnswer)
+	spew.Dump(answer)
 	return nil
 }
