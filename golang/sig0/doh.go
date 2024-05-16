@@ -1,43 +1,22 @@
 package sig0
 
 import (
-	"fmt"
-	"io"
-	"net/http"
-
 	"github.com/miekg/dns"
+	"github.com/shynome/doh-client"
 )
 
-func SendDOHQuery(server, q string) (*dns.Msg, error) {
-	// send over DoH
-	url := fmt.Sprintf("https://%s/dns-query?dns=%s", server, q)
-	fmt.Println("Q:(DoH):", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+func SendDOHQuery(server string, m *dns.Msg) (*dns.Msg, error) {
+	co := &dns.Conn{Conn: doh.NewConn(nil, nil, server)}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP Status: %s", resp.Status)
-	}
-
-	answerBody, err := io.ReadAll(resp.Body)
+	err := co.WriteMsg(m)
 	if err != nil {
 		return nil, err
 	}
 
-	var answer = new(dns.Msg)
-	err = answer.Unpack(answerBody)
+	answer, err := co.ReadMsg()
 	if err != nil {
 		return nil, err
 	}
 
 	return answer, nil
 }
-
-/*
-func SendUDPQuery(server, q string) (*dns.Msg, error) {
-
-   }
-*/

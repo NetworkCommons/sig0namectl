@@ -2,25 +2,25 @@ package sig0
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"strings"
 
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
 )
 
 // QueryA returns a base64 encoded string of a DNS Question for an A record of the passed domain name
-func QueryA(name string) (string, error) {
+func QueryA(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeA)
 }
 
 // uses ANY query type
-func QueryAny(name string) (string, error) {
+func QueryAny(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeANY)
 }
 
-func QueryWithType(name string, qtype uint16) (string, error) {
+func QueryWithType(name string, qtype uint16) (*dns.Msg, error) {
 	q := dns.Question{
 		Name:   dns.Fqdn(name),
 		Qtype:  qtype,
@@ -31,16 +31,13 @@ func QueryWithType(name string, qtype uint16) (string, error) {
 		MsgHdr:   dns.MsgHdr{Id: dns.Id(), Opcode: dns.OpcodeQuery, RecursionDesired: true},
 		Question: []dns.Question{q},
 	}
+	fmt.Println("query:")
+	spew.Dump(m)
 
-	out, err := m.Pack()
-	if err != nil {
-		return "", err
-	}
-
-	return base64.URLEncoding.EncodeToString(out), nil
+	return m, nil
 }
 
-func QuerySOA(zone string) (string, error) {
+func QuerySOA(zone string) (*dns.Msg, error) {
 	buf := make([]byte, 5)
 	rand.Read(buf)
 	zone = strings.Repeat(fmt.Sprintf("%x.", buf), 2) + zone

@@ -18,17 +18,14 @@ var queryCmd = &cli.Command{
 
 func queryAction(cCtx *cli.Context) error {
 	name := cCtx.Args().First()
-	// name := "cryptix.zenr.io"
-	server := cCtx.String("server")
+	fmt.Printf("Q:(TXT):%v\n", name)
 
 	q, err := sig0.QueryA(name)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Q:(TXT):%v\n", name)
 
-	fmt.Println("Q:(B64)", q)
-
+	server := cCtx.String("server")
 	answer, err := sig0.SendDOHQuery(server, q)
 	if err != nil {
 		return err
