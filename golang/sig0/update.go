@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/miekg/dns"
@@ -20,6 +21,21 @@ func (signer *Signer) StartUpdate(zone string) error {
 
 	signer.update = m
 	return nil
+}
+
+func (signer *Signer) UnsignedUpdate(zone string) (*dns.Msg, error) {
+	if signer.update == nil {
+		return nil, fmt.Errorf("no update in progress")
+	}
+
+	if !strings.HasSuffix(zone, ".") {
+		zone += "."
+	}
+
+	m := signer.update
+	m.SetUpdate(zone)
+	signer.update = nil
+	return m, nil
 }
 
 func (signer *Signer) SignUpdate() (*dns.Msg, error) {
@@ -56,24 +72,27 @@ func (signer *Signer) SignUpdate() (*dns.Msg, error) {
 	return m, nil
 }
 
-func (signer *Signer) UpdateRR(rr string) error {
+func (signer *Signer) UpdateParsedRR(rr string) error {
+	rrInsert, err := dns.NewRR(rr)
+	if err != nil {
+		return fmt.Errorf("sig0: failed to parse RR: %w", err)
+	}
+
+	return signer.UpdateRR(rrInsert)
+}
+
+func (signer *Signer) UpdateRR(rr dns.RR) error {
 	if signer.update == nil {
 		return fmt.Errorf("no update in progress")
 	}
 
-	log.Println("-- Attach RR to dns.Msg --")
-	rrInsert, err := dns.NewRR(rr)
-	if err != nil {
-		return err
-	}
-
-	signer.update.Insert([]dns.RR{rrInsert})
+	signer.update.Insert([]dns.RR{rr})
 	return nil
 }
 
 // UpdateA is a convenience function to update an A record.
 // Need to call StartUpdate first, then UpdateA for each record to update, then SignUpdate.
-func (signer *Signer) UpdateA(host, zone, addr string) error {
+func (signer *Signer) UpdateA(subZone, zone, addr string) error {
 	if signer.update == nil {
 		return fmt.Errorf("no update in progress")
 	}
@@ -83,6 +102,6 @@ func (signer *Signer) UpdateA(host, zone, addr string) error {
 		return fmt.Errorf("invalid IPv4 address: %s", addr)
 	}
 
-	myRR := fmt.Sprintf("%s.%s 600 IN A %s", host, zone, addr)
-	return signer.UpdateRR(myRR)
+	myRR := fmt.Sprintf("%s.%s %d IN A %s", subZone, zone, DefaultTTL, addr)
+	return signer.UpdateParsedRR(myRR)
 }
