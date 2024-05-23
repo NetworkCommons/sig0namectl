@@ -1,3 +1,6 @@
 [submodule "hugo-gh/themes/ananke"]
 	path = hugo-gh/themes/ananke
 	url = https://github.com/theNewDynamic/gohugo-theme-ananke.git
+[submodule "hugo-gh/themes/hugo-embed-pdf-shortcode"]
+	path = hugo-gh/themes/hugo-embed-pdf-shortcode
+	url = https://github.com/anvithks/hugo-embed-pdf-shortcode.git
