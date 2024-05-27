@@ -3,8 +3,8 @@ title = 'README'
 layout = 'posts'
 date = 2024-04-10T11:12:15+02:00
 draft = false
-featured_image = '/images/mycosystem-quarter.jpg'
-#featured_image = ""
+#featured_image = '/images/mycosystem-quarter.jpg'
+featured_image = ""
 toc = true
 +++
 
