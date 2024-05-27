@@ -1,0 +1,60 @@
+/* sig0namectl SD-Browser UI CSS */
+
+/* sd structural column layout */
+#sd-structural {
+    display: flex;
+    flex-wrap: nowrap;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+#sd-structural div {
+    padding: 0;
+    margin: 0;
+}
+@media only screen and (max-width: 800px) {
+    #sd-structural {
+        flex-direction: column;
+    }
+    #sd-structural div {
+        width: 100%;
+        border-bottom: 1px solid #000;    
+    }
+}
+@media only screen and (min-width: 800px) {
+    #sd-sructural {
+        flex-direction: row;
+    }
+    #sd-structural div {
+        width: 80rem;
+        height: 100vh;
+        border-right: 1px solid #000;    
+    }
+}
+
+/* Elements in all Columns */
+#sd-structural h2 {
+    font-size: 1rem;
+    font-weight: normal;
+    color: #666;
+    border-bottom: 1px solid #666;
+    padding: 0.25rem;
+    margin: 0;
+}
+#sd-structural ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+#sd-structural li a {
+    display: block;
+    padding: 0.25rem;
+    border-bottom: 1px solid #ddd;
+}
+#sd-structural li a:hover {
+    background-color: #eee;
+}
+#sd-structural li a.active {
+    background-color: #eee;
+}
