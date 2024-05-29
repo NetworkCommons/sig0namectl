@@ -1,6 +1,0 @@
-site_name: sig0namectl
-repo_url: https://github.com/adam-burns/sig0namectl
-docs_dir: docs
-plugins:
-    - search
-    - mermaid2
