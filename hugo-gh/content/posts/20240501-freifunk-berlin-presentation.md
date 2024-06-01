@@ -26,5 +26,5 @@ No database and no webserver is required for this demo. Mathias demonstrated a t
 
 You can follow the presentation here:
 
-{{< embed-pdf url="./20240501%20Freifunk%20Berlin%20May%20meeting%20Presentation.pdf" >}}
+{{< embed-pdf url="./20240501%20Freifunk%20Berlin%20May%20meeting%20Presentation.pdf" hideLoader="true" hidePaginator="true" >}}
 

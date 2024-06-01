@@ -22,4 +22,4 @@ As usual, it is the simplest questions that can lead to the most inspirational o
 
 For more information about the history, politics and culture of free networking we recommend the book Freie Netze by Armin Medosch 
 
-{{< embed-pdf url="./Freie Netze.pdf" >}}
+{{< embed-pdf url="./Freie Netze.pdf" hideLoader="true" hidePaginator="true" >}}
