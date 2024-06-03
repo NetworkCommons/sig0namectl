@@ -1,7 +1,10 @@
 /// DNS-SD Service Discovery Library
 
-/// DNS-SD Domain List to Inspect
-class SdDomains {
+/// DNS-SD Service Discovery Object
+///
+/// This object is the main entry point for the DNS-SD library.
+/// It takes a domain-name string for it's instantiation.
+class ServiceDiscovery {
     /// construct this object with a domain-name string
     constructor(domain_name) {
         this.domains = [];
