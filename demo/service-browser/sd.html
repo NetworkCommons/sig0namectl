@@ -7,44 +7,75 @@
     <title>DNS Service-Discovery Browser</title>
     <link rel="stylesheet" href="sig0namectl.css"/>
     <link rel="stylesheet" href="sd.css"/>
+	<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+    <script src="dns.js"></script>
     <script src="sd_ui.js"></script>
-    <script src="sd.js"></script>
+    <script>
+        /// add a new domain name
+        function add_new_domain(domain_name) {
+            let ul = document.getElementById("domains").getElementsByTagName("ul")[0];
+            let li = new UiDomain(domain_name)
+            ul.appendChild(li);
+        }
+
+        /// submit a domain name for addition
+        function submit_domain(event, form) {
+            add_new_domain(form.domain_name.value);
+            event.preventDefault();
+            form.domain_name.value = null;
+        }
+    </script>
 </head>
 <body>
 <section id="sd-structural">
-<div id="domains">
+<div id="domains" class="column">
     <h2>Domains</h2>
     <ul>
-        <li><a onclick="">zembla.zenr.io</a></li>
     </ul>
-</div>
-<div id="browsing-domains">
-    <h2>Browsing Domains</h2>
-    <ul>
-        <li><a onclick="" class="active">zembla.zenr.io</a></li>
-        <li><a onclick="">dns-sd.org</a></li>
-    </ul>
-</div>
-<div id="service-types">
-    <h2>Service Types</h2>
-    <ul>
-        <li><a onclick="" class="active">locations</a></li>
-        <li><a onclick="">web resources</a></li>
-        <li><a onclick="">printers</a></li>
-    </ul>
-</div>
-<div id="service-Instances">
-    <h2>Service Instances</h2>
-    <ul>
-        <li><a onclick="">redb.zenr.io</a></li>
-    </ul>
-</div>
-<div id="service-info">
-    <h2>Service Info</h2>
-    Latitude: 52.53161111111111<br/>
-    Longitude: 13.407972222222222<br/>
-    comment=Hello_this_is_a__loc._udp_service_instance
+    <div class="add">
+        <form onsubmit="submit_domain(event, this);">
+            <input type="text" 
+                placeholder="add domain"
+                name="domain_name"
+                class="fqdn"
+                required
+                minlength="4"
+                maxlength="253"
+                pattern="[a-z0-9._\-]{4,253}"
+                />
+            <input type="submit" value="+" class="submit"/>
+        </form>
+    </div>
 </div>
 </section>
+<!-- Templates -->
+<section style="display:none;">
+    <div id="loading-template">
+        <div class="loading-spinner"></div>
+    </div>
+    <div id="container-template">
+        <div class="container">
+            <div class="column">
+                <h2 class="title"></h2>
+                <ul class="entries">
+                </ul>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+    <ul id="entry-template">
+        <li class="entry"></li>
+    </ul>
+    <div id="info-template">
+        <div class="column info">
+            <h2 class="title"></h2>
+            <div class="content">
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    add_new_domain("zembla.zenr.io");
+</script>
 </body>
 </html>

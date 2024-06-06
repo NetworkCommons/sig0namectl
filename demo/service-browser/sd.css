@@ -8,7 +8,7 @@
     padding: 0;
     margin: 0;
 }
-#sd-structural div {
+#sd-structural div.column {
     padding: 0;
     margin: 0;
 }
@@ -16,7 +16,7 @@
     #sd-structural {
         flex-direction: column;
     }
-    #sd-structural div {
+    #sd-structural div.column {
         width: 100%;
         border-bottom: 1px solid #000;    
     }
@@ -28,8 +28,9 @@
     #sd-sructural {
         flex-direction: row;
     }
-    #sd-structural div {
-        width: 80rem;
+    #sd-structural div.column {
+        max-width: 30rem;
+        min-width: 20rem;
         height: 100vh;
         border-right: 1px solid #000;    
     }
@@ -50,14 +51,32 @@
     padding: 0;
     width: 100%;
 }
-#sd-structural li a {
+#sd-structural li {
     display: block;
     padding: 0.25rem;
     border-bottom: 1px solid #ddd;
 }
-#sd-structural li a:hover {
+#sd-structural li:hover {
     background-color: #eee;
 }
-#sd-structural li a.active {
+#sd-structural li.active {
     background-color: #eee;
 }
+
+div.add {
+    padding: 0.25rem;
+}
+div.add .fqdn {
+    width: 80%;
+}
+
+.loading-spinner {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: #000 #0000;
+    animation: l1 1s infinite;
+    margin: 10vh auto;
+}
+@keyframes l1 {to{transform: rotate(.5turn)}}
