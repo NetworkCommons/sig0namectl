@@ -8,12 +8,10 @@ get_soa() {
 	#	returns string of most granular superdomain of fqdn parameter that contains a SOA resource record
 	#
 	local soa_fqdn="${1}"
-	
-	while [[ ! -n $(dig +short ${soa_fqdn} SOA) ]]
-	do
-		soa_fqdn=${soa_fqdn#*.}
-		[[ ! "${soa_fqdn}" == *"."* ]] && soa_fqdn="" && break 
-	done
+        soa_fqdn="$(dig +noall +authority ${1} SOA | cut -f1)"
+	if [[ "${soa_fqdn}" == "" ]]; then
+		soa_fqdn="${1}"
+	fi
 	echo ${soa_fqdn}
 }
 
