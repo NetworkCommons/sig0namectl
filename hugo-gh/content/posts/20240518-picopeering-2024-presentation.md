@@ -1,6 +1,6 @@
 +++
 title = 'sig0namectl at Picopeering 2024 Unconference'
-date = 2024-05-23T13:42:20+02:00
+date = 2024-05-18T13:42:20+02:00
 draft = false
 featured_image = "images/20240517 photo from sebastian signal.png"
 +++
