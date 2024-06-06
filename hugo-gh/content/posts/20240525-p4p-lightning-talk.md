@@ -9,5 +9,5 @@ With all the team present in Berlin, we took the opportunity to hold an informal
 
 Afterwards Mathias Jud gave a lightning talk for the sig0namectl project.
 
-A get-together for local first protocols, the event was well attended by distributed crypto application developers (including Secure Scuttlebutt). Mathias' talk generated a good amount of interest because many distributed systems (such as IPFS) choose to utilise the DNS space to provide links to resources.
+A get-together for local first protocols, the event was well attended by distributed crypto application developers (including <a href=http://ssbc.github.io/ssb-db/>Secure Scuttlebutt</a>). Mathias' talk generated a good amount of interest because many distributed systems (such as i<a href=https://ipfs.tech/>IPFSi</a>) choose to utilise the DNS space to provide links to resources.
 
