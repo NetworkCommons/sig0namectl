@@ -32,6 +32,7 @@ class UiEntry {
         node.query = this.query;
         node.update_entries = this.update_entries;
         node.append_entry = this.append_entry;
+        node.deactivate_active_siblings = this.deactivate_active_siblings;
 
         // next query
         node.query_info = {
@@ -51,6 +52,8 @@ class UiEntry {
     }
 
     add_container = function() {
+        this.deactivate_active_siblings();
+
         let container = this.get_template("container-template");
 
         let title = container.getElementsByClassName("title");
@@ -60,6 +63,32 @@ class UiEntry {
 
         let entry = document.getElementById("sd-structural");
         this.container = entry.appendChild(container);
+
+        // set active class
+        this.classList.add("active");
+    }
+
+    deactivate_active_siblings = function() {
+        // remove active class from siblings
+        let sibling = this.previousElementSibling;
+        while (sibling) {
+            sibling.classList.remove("active");
+            sibling = sibling.previousElementSibling;
+        }
+        sibling = this.nextElementSibling;
+        while (sibling) {
+            sibling.classList.remove("active");
+            sibling = sibling.nextElementSibling;
+        }
+
+        // remove columns
+        let column = this.parentNode;
+        while (column.classList.contains("column") == false) {
+            column = column.parentNode;
+        }
+        while (column.nextElementSibling) {
+            column.nextElementSibling.remove();
+        }
     }
 
     get_template = function(template_id) {

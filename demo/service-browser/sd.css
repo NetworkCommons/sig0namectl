@@ -27,6 +27,7 @@
 @media only screen and (min-width: 800px) {
     #sd-sructural {
         flex-direction: row;
+        overflow-x:auto;
     }
     #sd-structural div.column {
         max-width: 30rem;
