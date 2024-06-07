@@ -27,6 +27,7 @@ class UiEntry {
         // customize the element
         node.dns = dns;
         node.onclick = this.onclick;
+        node.clicked = this.clicked;
         node.add_container = this.add_container;
         node.get_template = this.get_template;
         node.query = this.query;
@@ -47,6 +48,11 @@ class UiEntry {
 
     // on click
     onclick = function(event) {
+        this.clicked();
+    }
+
+    // clicked function
+    clicked = function() {
         this.add_container();
         this.query();
     }
@@ -142,7 +148,7 @@ class UiDomain extends UiEntry {
         let dns = new Dns(domain_name);
         super(dns, domain_name);
 
-        this.query_info.title = "Browse Domains";
+        this.query_info.title = "Browse Domains (PTR Entries)";
         this.query_info.type = "PTR";
         this.query_info.domain = "b._dns-sd._udp." +domain_name;
     }
@@ -159,7 +165,7 @@ class UiBrowseDomain extends UiEntry {
     constructor(dns, domain_name) {
         super(dns, domain_name);
 
-        this.query_info.title = "Service Types";
+        this.query_info.title = "Service Types (PTR Entries)";
         this.query_info.type = "PTR";
         this.query_info.domain = "_services._dns-sd._udp." +domain_name;
     }
@@ -176,42 +182,115 @@ class UiServiceType extends UiEntry {
     constructor(dns, domain_name) {
         super(dns, domain_name);
 
-        this.query_info.title = "Service Instances";
+        this.query_info.title = "Service Instances (PTR Entries)";
         this.query_info.type = "PTR";
         this.query_info.domain = domain_name;
+        this.query_info.service = get_service(domain_name);
     }
 
     append_entry = function(item, referrer) {
         let ul = referrer.container.getElementsByClassName("entries")[0];
-        let li = new UiServiceInstance(referrer.dns, item);
+        let li = new UiServiceInstance(referrer.dns, item, referrer.query_info.service);
         ul.appendChild(li);
     }
 }
 
 /// Service Instances UI Object
 class UiServiceInstance extends UiEntry {
-    constructor(dns, domain_name) {
+    constructor(dns, domain_name, service) {
         super(dns, domain_name);
 
-        this.query_info.title = "Service Info";
+        this.query_info.title = "Service (SRV Entries)";
         this.query_info.type = "SRV";
         this.query_info.domain = domain_name;
+        this.query_info.service = service;
+    }
+
+    query = function() {
+        // query for SRV records
+        this.dns.query(this.query_info.domain, this.query_info.type, this.update_entries, this);
+        // query for TXT records
+        this.dns.query(this.query_info.domain, "TXT", this.update_TXT, this);
     }
 
     append_entry = function(item, referrer) {
         let ul = referrer.container.getElementsByClassName("entries")[0];
-        let li = new UiServiceInfo(referrer.dns, item);
+        let li = new UiServiceInfo(referrer.dns, item, referrer.query_info.service);
         ul.appendChild(li);
+    }
+
+    update_TXT = function(list, referrer) {
+        let content = referrer.container.getElementsByClassName("info")[0];
+        if(content.getElementsByTagName("P").length > 0) {
+            console.log("TODO: update existing child nodes");
+        } else {
+            if (list.length > 0) {
+                let h2 = document.createElement("H2");
+                let text = document.createTextNode("TXT Entries");
+                h2.appendChild(text);
+                content.appendChild(h2);
+            }
+            
+            // add entries
+            for(let i=0; i<list.length; i++) {
+                if (i>0) {
+                    // append hr
+                    let hr = document.createElement("HR");
+                    content.appendChild(hr);
+                }
+
+                let p = document.createElement("P");
+                let text = document.createTextNode(list[i]);
+                p.appendChild(text);
+                content.appendChild(p);
+            }
+        }
     }
 }
 
 /// Service Info UI Object
 class UiServiceInfo extends UiEntry {
-    constructor(dns, srv_item) {
-        super(dns, srv_item.target);
+    constructor(dns, srv_item, service) {
+        super(dns, srv_item.target +",");
 
         this.query_info.title = "Service Info";
         this.query_info.type = "TXT";
         this.query_info.domain = srv_item.target;
+        this.query_info.srv_item = srv_item;
+        this.query_info.service = service;
+
+        // create SRV entry
+        this.appendChild(document.createElement("br"));
+        this.appendChild(document.createTextNode("port: " +this.query_info.srv_item.port +","));
+        this.appendChild(document.createElement("br"));
+        this.appendChild(document.createTextNode("weight: " +this.query_info.srv_item.weight +","));
+        this.appendChild(document.createElement("br"));
+        this.appendChild(document.createTextNode("priority: " +this.query_info.srv_item.priority +""));
+    }
+
+    clicked = function() {
+        if (this.query_info.service.service == '_http') {
+            let url = "http://";
+            let port = "";
+
+            if (this.query_info.srv_item.port == 443) {
+                url = "https://";
+            } else if (this.query_info.srv_item.port != 80) {
+                port = ":" +this.query_info.srv_item.port;
+            }
+
+            url += this.query_info.srv_item.target;
+            url += port;
+
+            window.open(url, '_blank').focus();
+        } else if (this.query_info.service.service == '_loc') {
+            this.show_loc();
+        } else {
+            // do nothing
+        }
+    }
+
+    show_loc = function() {
+        // query and show location
     }
 }

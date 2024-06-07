@@ -29,3 +29,13 @@ class Dns {
         return query_result;
     }
 }
+
+/// Return Service from a domain
+function get_service(domain) {
+
+    const domain_array = domain.split(".");
+    return {
+        service: domain_array[0],
+        protocol: domain_array[1]
+    }
+}

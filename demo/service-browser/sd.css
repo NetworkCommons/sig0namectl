@@ -58,10 +58,19 @@
     border-bottom: 1px solid #ddd;
 }
 #sd-structural li:hover {
-    background-color: #eee;
+    background-color: #efefef;
 }
 #sd-structural li.active {
     background-color: #eee;
+}
+#sd-structural div.column div.info h2 {
+    padding-top: 2rem;
+}
+div.column div.info p {
+    margin: 0;
+    padding: 0.5rem 0.3rem;
+    overflow-wrap: break-word;
+    border-bottom: 1px solid #ddd;
 }
 
 div.add {
