@@ -163,4 +163,55 @@ class UiBrowseDomain extends UiEntry {
         this.query_info.type = "PTR";
         this.query_info.domain = "_services._dns-sd._udp." +domain_name;
     }
+
+    append_entry = function(item, referrer) {
+        let ul = referrer.container.getElementsByClassName("entries")[0];
+        let li = new UiServiceType(referrer.dns, item);
+        ul.appendChild(li);
+    }
+}
+
+/// Service Type UI Object
+class UiServiceType extends UiEntry {
+    constructor(dns, domain_name) {
+        super(dns, domain_name);
+
+        this.query_info.title = "Service Instances";
+        this.query_info.type = "PTR";
+        this.query_info.domain = domain_name;
+    }
+
+    append_entry = function(item, referrer) {
+        let ul = referrer.container.getElementsByClassName("entries")[0];
+        let li = new UiServiceInstance(referrer.dns, item);
+        ul.appendChild(li);
+    }
+}
+
+/// Service Instances UI Object
+class UiServiceInstance extends UiEntry {
+    constructor(dns, domain_name) {
+        super(dns, domain_name);
+
+        this.query_info.title = "Service Info";
+        this.query_info.type = "SRV";
+        this.query_info.domain = domain_name;
+    }
+
+    append_entry = function(item, referrer) {
+        let ul = referrer.container.getElementsByClassName("entries")[0];
+        let li = new UiServiceInfo(referrer.dns, item);
+        ul.appendChild(li);
+    }
+}
+
+/// Service Info UI Object
+class UiServiceInfo extends UiEntry {
+    constructor(dns, srv_item) {
+        super(dns, srv_item.target);
+
+        this.query_info.title = "Service Info";
+        this.query_info.type = "TXT";
+        this.query_info.domain = srv_item.target;
+    }
 }
