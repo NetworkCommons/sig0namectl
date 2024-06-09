@@ -3,6 +3,7 @@ package sig0
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -14,10 +15,37 @@ var (
 	DefaultDOHResolver  = "dns.quad9.net"
 )
 
-func CreateRequestKeyMsg(subZone, zone string) (*dns.Msg, string, error) {
+func CreateRequestKeyMsg(newName string) (*dns.Msg, string, error) {
+	querySOAForNewZone, err := QuerySOA(newName)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error: ZONE %s SOA record does not resolve: %w", newName, err)
+	}
+
+	newZoneSOAAnswer, err := SendDOHQuery(DefaultDOHResolver, querySOAForNewZone)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error: DOH query failed for %s: %w", DefaultDOHResolver, err)
+	}
+
+	soaForZone, err := AnySOA(newZoneSOAAnswer)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error: SOA record not found in response for %s: %w", newName, err)
+	}
+
+	zoneOfName := soaForZone.Hdr.Name
+	log.Printf("[requestKey] Found zone for new name: %s", zoneOfName)
+
+	newNameFQDN := newName
+	if !strings.HasSuffix(newNameFQDN, ".") {
+		newNameFQDN += "."
+	}
+
+	if !strings.HasSuffix(newNameFQDN, zoneOfName) {
+		return nil, "", fmt.Errorf("Error: expected new zone to be under it's SOA. Instead got SOA %q for %q", zoneOfName, newNameFQDN)
+	}
+	subDomain := strings.TrimSuffix(newNameFQDN, zoneOfName)
 
 	// Determine the zone master using the provided sub zone and base zone
-	signalZone := fmt.Sprintf("%s.%s", SignalSubzonePrefix, zone)
+	signalZone := fmt.Sprintf("%s.%s", SignalSubzonePrefix, zoneOfName)
 	querySOAForSignal, err := QuerySOA(signalZone)
 	if err != nil {
 		return nil, "", fmt.Errorf("Error: ZONE %s SOA record does not resolve: %w", signalZone, err)
@@ -28,38 +56,41 @@ func CreateRequestKeyMsg(subZone, zone string) (*dns.Msg, string, error) {
 		return nil, "", fmt.Errorf("Error: DOH query failed for %s: %w", DefaultDOHResolver, err)
 	}
 
-	zoneSoa, err := ExpectSOA(soaAnswer)
+	signalZoneSoa, err := ExpectSOA(soaAnswer)
 	if err != nil {
 		return nil, "", fmt.Errorf("Error: SOA record not found in response for %s: %w", signalZone, err)
 	}
 
-	if zoneSoa != "ns1.free2air.org." {
-		return nil, "", fmt.Errorf("Unexpected SOA: %s - TODO: Query SVCB to get the zone master's DOH endpoint", zoneSoa)
+	if !strings.HasSuffix(signalZoneSoa.Hdr.Name, soaForZone.Hdr.Name) {
+		return nil, "", fmt.Errorf("Expected signal zone to be under requested zonet got %q and %q", signalZoneSoa.Hdr.Name, soaForZone.Hdr.Name)
+	}
+
+	if signalZoneSoa.Ns != "ns1.free2air.org." {
+		return nil, "", fmt.Errorf("Unexpected SOA: %s - TODO: Query SVCB to get the zone master's DOH endpoint", zoneOfName)
 	}
 	var dohUpdateHost = "doh.zenr.io"
 
 	// Check if zone already exists
-	newSubZone := fmt.Sprintf("%s.%s", subZone, zone)
-	err = checkZoneDoesntExist(dohUpdateHost, newSubZone)
+	err = checkZoneDoesntExist(dohUpdateHost, newName)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("exists check for new name %q failed: %w", newName, err)
 	}
 
-	zoneRequest := fmt.Sprintf("%s.%s.%s", subZone, SignalSubzonePrefix, zone)
+	zoneRequest := fmt.Sprintf("%s%s.%s", subDomain, SignalSubzonePrefix, zoneOfName)
 	err = checkZoneDoesntExist(dohUpdateHost, zoneRequest)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("exists check for zoneRequest %q failed: %w", zoneRequest, err)
 	}
 
 	// craft RRs and create signed update
-	subZoneSigner, err := LoadOrGenerateKey(newSubZone)
+	subZoneSigner, err := LoadOrGenerateKey(newName)
 	if err != nil {
 		return nil, "", err
 	}
 
-	err = subZoneSigner.StartUpdate(zone)
+	err = subZoneSigner.StartUpdate(zoneOfName)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("unable to start update for zone: %q: %w", zoneOfName, err)
 	}
 
 	// Here we split the key details
@@ -75,18 +106,18 @@ func CreateRequestKeyMsg(subZone, zone string) (*dns.Msg, string, error) {
 	nsupdateItemSig0Key := fmt.Sprintf("%s %d %s", zoneRequest, DefaultTTL, keyData)
 	err = subZoneSigner.UpdateParsedRR(nsupdateItemSig0Key)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to add KEY RR: %w", err)
 	}
 
 	nsupdateItemPtr := fmt.Sprintf("%s %d IN PTR %s", signalZone, DefaultTTL, zoneRequest)
 	err = subZoneSigner.UpdateParsedRR(nsupdateItemPtr)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to add PTR RR: %w", err)
 	}
 
 	updateMsg, err := subZoneSigner.UnsignedUpdate(signalZone)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("unable to create update message")
 	}
 
 	return updateMsg, dohUpdateHost, nil

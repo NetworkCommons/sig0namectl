@@ -12,23 +12,22 @@ import (
 
 var requestKeyCmd = &cli.Command{
 	Name:    "requestKey",
-	Usage:   "requestKey <subZone> <zone>",
+	Usage:   "requestKey <my.new.name>",
 	Aliases: []string{"rk"},
 	Action:  requestKeyAction,
 }
 
 func requestKeyAction(cCtx *cli.Context) error {
-	newSubZone := cCtx.Args().Get(0)
-	zone := cCtx.Args().Get(1)
-	if newSubZone == "" || zone == "" {
-		return cli.Exit("subZone and zone are required", 1)
+	newName := cCtx.Args().Get(0)
+	if newName == "" {
+		return cli.Exit("newName required", 1)
 	}
 
-	reqMsg, dohServer, err := sig0.CreateRequestKeyMsg(newSubZone, zone)
+	reqMsg, dohServer, err := sig0.CreateRequestKeyMsg(newName)
 	if err != nil {
 		return fmt.Errorf("Failed to create request key message: %w", err)
 	}
-	log.Println("Requesting key for", newSubZone, "under", zone, "from", dohServer)
+	log.Println("Requesting key for", newName, "from", dohServer)
 	spew.Dump(reqMsg)
 
 	answer, err := sig0.SendDOHQuery(dohServer, reqMsg)

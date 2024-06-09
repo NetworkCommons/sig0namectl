@@ -35,12 +35,12 @@ func TestQuerySOA(t *testing.T) {
 
 		soa, err := ExpectSOA(answer)
 		r.NoError(err, testdata)
-		a.Equal(testdata.soa, soa)
+		a.Equal(testdata.soa, soa.Ns)
 
 		verifyication, err := QueryWithType(testdata.zone, dns.TypeSOA)
 		r.NoError(err, testdata)
 
-		verifyAnswer, err := SendUDPQuery(soa, verifyication)
+		verifyAnswer, err := SendUDPQuery(soa.Ns, verifyication)
 		r.NoError(err, testdata)
 		r.True(verifyAnswer.Authoritative, verifyAnswer)
 	}

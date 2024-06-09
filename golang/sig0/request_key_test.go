@@ -13,9 +13,9 @@ func TestRequestKey(t *testing.T) {
 
 	buf := make([]byte, 5)
 	rand.Read(buf)
-	testSubZone := fmt.Sprintf("sig0namectl-test-%x", buf)
+	testName := fmt.Sprintf("sig0namectl-test-%x.zenr.io", buf)
 
-	zoneRequestMsg, dohServer, err := CreateRequestKeyMsg(testSubZone, "zenr.io")
+	zoneRequestMsg, dohServer, err := CreateRequestKeyMsg(testName)
 	r.NoError(err)
 	r.Equal("doh.zenr.io", dohServer)
 	t.Log(zoneRequestMsg)
