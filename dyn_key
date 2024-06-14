@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# Manages KEY entries under a writable domain
+# usage
+# 	./dyn_key fqdn pkey pkey ....
+# where
+# 	- fqdn is the fully qualified domain name to place the public keys
+# 	- pkey is the fqdn of the key(s) to add
+#
+# by default all key RRs of pkey are added or deleted from fqdn
+# if no pkey is specified, all exisiting KEY RRs at fqdn are listed
+#------------------------------------------------------------------------------
+
+
+# load helpful functions
+for i in functions/*.sh
+do
+        . ${i}
+        [[ -n ${DEBUG_SET_VARS} ]] && echo "Sourced ${PWD}/$i ..."
+done
+
+set_vars $*
+
+#------------------------------------------------------------------------------
+
+# define default update add
+NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"}
+NSUPDATE_TTL="60"
+
+# For a given ${NEW_FQDN}, recursively search keystore for closest (most particular) keypair
+subdomain="${NEW_FQDN}"
+while [[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && [[ "${subdomain}" == *"."* ]]
+do
+	[[ -n ${DEBUG} ]] && echo "DEBUG: get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID '${subdomain}' '${NSUPDATE_SIG0_KEYPATH}'"
+	get_sig0_keyid NSUPDATE_AUTH_SIG0_KEYID "${subdomain}" "${NSUPDATE_SIG0_KEYPATH}"
+	[[ ! -n "${NSUPDATE_AUTH_SIG0_KEYID}" ]] && subdomain="${subdomain#*.}" || NSUPDATE_AUTH_SIG0_KEY_FQDN="${subdomain}"
+done
+
+if [[ -n ${DEBUG} ]]; then
+        echo
+        echo "NEW_FQDN='${NEW_FQDN}'"
+        echo "subdomain='${subdomain}'"
+        echo "NSUPDATE_AUTH_SIG0_KEYID='${NSUPDATE_AUTH_SIG0_KEYID}'"
+        echo "NSUPDATE_AUTH_SIG0_KEY_FQDN='${NSUPDATE_AUTH_SIG0_KEY_FQDN}'"
+        echo "ZONE='${ZONE}'"
+        echo "---"
+        #echo "cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_AUTH_SIG0_KEYID}.key | cut -f4- -d' '"
+        echo "keystore  public key for ${NSUPDATE_AUTH_SIG0_KEY_FQDN}: $(cat ${NSUPDATE_SIG0_KEYPATH}/${NSUPDATE_AUTH_SIG0_KEYID}.key)"
+        #echo "dig +short ${NSUPDATE_AUTH_SIG0_KEY_FQDN} KEY"
+        echo "DNS named public key for ${NSUPDATE_AUTH_SIG0_KEY_FQDN}: $(dig +noall +nottlid +answer ${NSUPDATE_AUTH_SIG0_KEY_FQDN} KEY)"
+        echo "---"
+        echo "Processing named KEY parameters"
+fi
+
+# loop over command line parameter (post getops()) for IPv[4,6] assignments
+
+NSUPDATE_ITEM_RR=""
+for keyname in ${CMDLINE_EXTRA_PARAMS}; do
+        if validateKEY "${keyname}";then
+		NSUPDATE_RRTYPE="KEY"
+		[[ -n ${DEBUG} ]] && echo "KEY '${keyname}' resolves, marked to ${NSUPDATE_ACTION}"
+		NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} $(dig +short ${keyname} ${NSUPDATE_RRTYPE})\n"
+	else
+                echo "Warning: Skipping no KEY resolved with FQDN '${keyname}'"
+        fi
+done
+
+if [[ -n ${DEBUG} ]]; then
+	echo "---"
+	echo NSUPDATE_ITEM_RR
+	echo -e ${NSUPDATE_ITEM_RR}
+fi
+# form nsupdate RR update statements
+case ${NSUPDATE_ACTION} in
+	add)
+		# NSUPDATE_PRECONDITION_SET="nxrrset"
+		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
+		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
+		;;
+	delete)
+		# NSUPDATE_PRECONDITION_SET="yxrrset"
+		# NSUPDATE_PRECONDITION="prereq ${NSUPDATE_PRECONDITION_SET} ${word}._dns-sd._udp.${DNSSD_DOMAIN}. IN PTR"
+		# NSUPDATE_ITEM_RR="update ${NSUPDATE_ACTION} ${word}._dns-sd._udp.${DNSSD_DOMAIN} ${NSUPDATE_TTL} PTR ${DNSSD_DOMAIN}."
+		send_nsupdate "${NEW_FQDN}" "$(echo ${NSUPDATE_PRECONDITION};echo -e ${NSUPDATE_ITEM_RR})" "${subdomain}"
+		;;
+	*)
+		# NSUPDATE_ACTION should default to "add" - should never get here
+		echo "Error: NSUPDATE_ACTION is set to '${NSUPDATE_ACTION}', but must be set to 'add' or 'delete'."
+		exit 1
+		;;
+esac
+
+
+DIG_QUERY_PARAM="@${ZONE_SOA_MASTER} +noall +answer +dnssec"
+echo "$( dig ${DIG_QUERY_PARAM} ${NEW_FQDN} KEY )"
