@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,6 +25,5 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n\n", err)
-		spew.Dump(err)
 	}
 }
