@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
+	"log"
 	"syscall/js"
 
 	"github.com/miekg/dns"
@@ -18,7 +20,7 @@ func main() {
 	goFuncs.Set("setDefaultDOHResolver", js.FuncOf(setDefaultDOHResolver))
 
 	goFuncs.Set("listKeys", js.FuncOf(listKeys))
-	goFuncs.Set("requestKey", js.FuncOf(requestKey))
+	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
 
 	goFuncs.Set("queryAny", js.FuncOf(queryAny))
@@ -61,27 +63,50 @@ func listKeys(_ js.Value, _ []js.Value) any {
 // create a keypair and request a key
 // arguments: the name to request
 // returns nill or an error string
-func requestKey(_ js.Value, args []js.Value) any {
+func newKeyRequest(_ js.Value, args []js.Value) any {
 	if len(args) != 1 {
 		return "expected 1 argument"
 	}
 	domainName := args[0].String()
 
-	msg, soaDOHServer, err := sig0.CreateRequestKeyMsg(domainName)
+	keyReq, err := sig0.NewKeyRequest(domainName)
 	if err != nil {
 		return err.Error()
 	}
 
-	answer, err := sig0.SendDOHQuery(soaDOHServer, msg)
-	if err != nil {
-		return err.Error()
-	}
+	return map[string]any{
+		"next": js.FuncOf(func(_ js.Value, _ []js.Value) any {
+			return keyReq.Next()
+		}),
 
-	if answer.Rcode != dns.RcodeSuccess {
-		return fmt.Sprintf("did not get success answer\n:%#v", answer)
-	}
+		"do": js.FuncOf(func(_ js.Value, args []js.Value) any {
+			if len(args) != 1 {
+				log.Println("invalid args count", len(args))
+				return js.Null()
+			}
+			var answer *dns.Msg
+			if !args[0].IsNull() {
+				answer, err = sig0.ParseBase64Answer(args[0].String())
+				check(err)
+			}
+			qry := keyReq.Do(answer)
+			if qry == nil {
+				return js.Null()
+			}
 
-	return js.Null()
+			out, err := qry.Pack()
+			check(err)
+			return base64.StdEncoding.EncodeToString(out)
+		}),
+
+		"err": js.FuncOf(func(_ js.Value, _ []js.Value) any {
+			err := keyReq.Err()
+			if err == nil {
+				return js.Null()
+			}
+			return err.Error()
+		}),
+	}
 }
 
 // creates a new updater for the passed zone.

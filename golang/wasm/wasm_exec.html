@@ -1,3 +1,4 @@
+
 <html>
 	<head>
 		<meta charset="utf-8"/>
@@ -67,6 +68,7 @@
 				const resp = await fetch(qryUrl, {
 					method: "get",
 					headers: {
+                        'Accept': 'application/dns-message',
 						"Content-Type": "application/dns-message"
 					}
 				})
@@ -97,10 +99,60 @@
 				const data = await resp.arrayBuffer()
 				document.getElementById("dns-answer").value = _arrayBufferToBase64(data)
 			}
+
+          async function requestKey() {
+              const newName = document.getElementById("new-name").value
+				if (newName == "") {
+					alert("empty #new-name")
+					return
+				}
+
+              const zr = goFuncs["newKeyRequest"](newName)
+
+              let answer = null
+              while (zr.next()) {
+                  const query = zr.do(answer)
+                  if (query == null) break
+                  console.log(query)
+
+				  const bodyBuf = _base64ToArrayBuffer(query)
+
+				  const qryUrl = new URL(`https://doh.zenr.io/dns-query`)
+				  const resp = await fetch(qryUrl, {
+					  method: "POST",
+					  headers: {
+						  "Content-Type": "application/dns-message"
+					  },
+					  body: bodyBuf
+				  })
+
+
+				  const data = await resp.arrayBuffer()
+                  answer = _arrayBufferToBase64(data)
+                  console.log(answer)
+              }
+
+              if (zr.err() !== null) {
+                  console.error("requestKey failed:"+zr.err())
+                  throw new Error(zr.err())
+              }
+
+              console.log("done!")
+          }
 		</script>
 	</head>
 	<body>
-		<h1>Go DNS Query proof-of-concept</h1>
+		<h2>Go Request Key</h1>
+
+
+
+		<p>
+			<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
+			<button onclick="requestKey()">Requset new Key</button>
+		</p>
+
+	  <h2>Go DNS Query</h1>
+
 
 
 		<p>
