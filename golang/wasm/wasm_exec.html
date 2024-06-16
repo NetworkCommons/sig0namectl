@@ -107,11 +107,11 @@
 					return
 				}
 
-              const zr = goFuncs["newKeyRequest"](newName)
+              const keyReq = goFuncs["newKeyRequest"](newName)
 
               let answer = null
-              while (zr.next()) {
-                  const query = zr.do(answer)
+              while (keyReq.next()) {
+                  const query = keyReq.do(answer)
                   if (query == null) break
                   console.log(query)
 
@@ -132,9 +132,9 @@
                   console.log(answer)
               }
 
-              if (zr.err() !== null) {
-                  console.error("requestKey failed:"+zr.err())
-                  throw new Error(zr.err())
+              if (keyReq.err() !== null) {
+                  console.error("requestKey failed:"+keyReq.err())
+                  throw new Error(keyReq.err())
               }
 
               console.log("done!")

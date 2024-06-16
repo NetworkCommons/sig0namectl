@@ -67,6 +67,7 @@ func (kr *KeyRequest) Do(answer *dns.Msg) *dns.Msg {
 }
 
 func (kr *KeyRequest) querySOAForNewZone(_ *dns.Msg) *dns.Msg {
+	log.Println("[requestKey] query SOA for", kr.newName)
 	query, err := QuerySOA(kr.newName)
 	if err != nil {
 		kr.err = fmt.Errorf("Error: ZONE %s SOA record does not resolve: %w", kr.newName, err)
@@ -125,9 +126,8 @@ func (kr *KeyRequest) compareSignalSOA(answer *dns.Msg) *dns.Msg {
 		kr.err = fmt.Errorf("Unexpected SOA: %s - TODO: Query SVCB to get the zone master's DOH endpoint", zoneOfName)
 		return nil
 	}
-	//var dohUpdateHost = "doh.zenr.io"
 
-	// Check if requested zone already exists
+	// Check if requested name already exists
 	existQuery, err := QueryAny(kr.newName)
 	if err != nil {
 		kr.err = err
@@ -141,6 +141,8 @@ func (kr *KeyRequest) checkNewZoneDoesntExist(answer *dns.Msg) *dns.Msg {
 		kr.err = fmt.Errorf("new zone %s already exists: %v", kr.newName, answer)
 		return nil
 	}
+
+	log.Printf("[requestKey/debug] %s is not yet taken", kr.newName)
 
 	// check request doesnt exist
 	var err error
@@ -163,13 +165,15 @@ func (kr *KeyRequest) createRequest(answer *dns.Msg) *dns.Msg {
 	}
 
 	// craft RRs and create signed update
-	subZoneSigner, err := LoadOrGenerateKey(kr.newName)
+	nameSigner, err := LoadOrGenerateKey(kr.newName)
 	if err != nil {
 		kr.err = err
 		return nil
 	}
 
-	err = subZoneSigner.StartUpdate(zoneOfName)
+	log.Printf("[requestKey/debug] creating request with key %s", nameSigner.Key.String())
+
+	err = nameSigner.StartUpdate(zoneOfName)
 	if err != nil {
 		kr.err = fmt.Errorf("unable to start update for zone: %q: %w", zoneOfName, err)
 		return nil
@@ -178,7 +182,7 @@ func (kr *KeyRequest) createRequest(answer *dns.Msg) *dns.Msg {
 	// Here we split the key details
 	// turn it into an RR and split of the first 3 fields
 	// so that we can re-use the key for a different zone
-	keyDetails := strings.TrimSpace(subZoneSigner.Key.String())
+	keyDetails := strings.TrimSpace(nameSigner.Key.String())
 	keyFields := strings.Fields(keyDetails)
 	if len(keyFields) < 6 {
 		kr.err = errors.New("Invalid key data")
@@ -187,20 +191,20 @@ func (kr *KeyRequest) createRequest(answer *dns.Msg) *dns.Msg {
 	keyData := strings.Join(keyFields[3:], " ")
 
 	nsupdateItemSig0Key := fmt.Sprintf("%s %d %s", zoneRequest, DefaultTTL, keyData)
-	err = subZoneSigner.UpdateParsedRR(nsupdateItemSig0Key)
+	err = nameSigner.UpdateParsedRR(nsupdateItemSig0Key)
 	if err != nil {
 		kr.err = fmt.Errorf("failed to add KEY RR: %w", err)
 		return nil
 	}
 
 	nsupdateItemPtr := fmt.Sprintf("%s %d IN PTR %s", kr.signalZone, DefaultTTL, zoneRequest)
-	err = subZoneSigner.UpdateParsedRR(nsupdateItemPtr)
+	err = nameSigner.UpdateParsedRR(nsupdateItemPtr)
 	if err != nil {
 		kr.err = fmt.Errorf("failed to add PTR RR: %w", err)
 		return nil
 	}
 
-	updateMsg, err := subZoneSigner.UnsignedUpdate(kr.signalZone)
+	updateMsg, err := nameSigner.UnsignedUpdate(kr.signalZone)
 	if err != nil {
 		kr.err = fmt.Errorf("unable to create update message: %w", err)
 		return nil
