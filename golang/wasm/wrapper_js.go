@@ -17,30 +17,16 @@ import (
 func main() {
 	// setup functions for access from js side
 	goFuncs := js.Global().Get("window").Get("goFuncs")
-	goFuncs.Set("setDefaultDOHResolver", js.FuncOf(setDefaultDOHResolver))
 
 	goFuncs.Set("listKeys", js.FuncOf(listKeys))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
-
-	goFuncs.Set("queryAny", js.FuncOf(queryAny))
 
 	// cant let main return
 	forever := make(chan bool)
 	select {
 	case <-forever:
 	}
-}
-
-// the DOH resolver to lookup SOAs and check zones for existence
-// returns null or an error string
-func setDefaultDOHResolver(_ js.Value, args []js.Value) any {
-	if len(args) != 1 {
-		return "expected 1 argument"
-	}
-	resolver := args[0].String()
-	sig0.DefaultDOHResolver = resolver
-	return js.Null()
 }
 
 // Key Managment
@@ -149,54 +135,78 @@ func newUpdater(_ js.Value, args []js.Value) any {
 
 		// send signed update
 		// no arguments
-		// returns null or an error string
+		// returns a promise
+		// which resolves to null or an error string
 		"signedUpdate": js.FuncOf(func(this js.Value, _ []js.Value) any {
-			msg, err := signer.SignUpdate()
-			if err != nil {
-				return err.Error()
-			}
-			answer, err := sig0.SendDOHQuery(dohServer, msg)
-			if err != nil {
-				return err.Error()
-			}
-			if answer.Rcode != dns.RcodeSuccess {
-				return fmt.Sprintf("did not get success answer\n:%#v", answer)
-			}
-			return js.Null()
+			handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+				resolve := args[0]
+				reject := args[1]
+
+				go func() {
+					msg, err := signer.SignUpdate()
+					if err != nil {
+						reject.Invoke(jsErr(err))
+						return
+					}
+					answer, err := sig0.SendDOHQuery(dohServer, msg)
+					if err != nil {
+
+						reject.Invoke(jsErr(err))
+						return
+					}
+					if answer.Rcode != dns.RcodeSuccess {
+						err = fmt.Errorf("did not get success answer\n:%#v", answer)
+						reject.Invoke(jsErr(err))
+						return
+					}
+
+					resolve.Invoke(js.Null())
+				}()
+
+				return nil
+			})
+
+			promiseConstructor := js.Global().Get("Promise")
+			return promiseConstructor.New(handler)
 		}),
 
 		// send unsigned update
 		// no arguments
-		// returns null or an error string
+		// returns a promise
+		// which resolves to null or an error string
 		"unsignedUpdate": js.FuncOf(func(this js.Value, _ []js.Value) any {
-			msg, err := signer.UnsignedUpdate(zone)
-			if err != nil {
-				return err.Error()
-			}
-			answer, err := sig0.SendDOHQuery(dohServer, msg)
-			if err != nil {
-				return err.Error()
-			}
-			if answer.Rcode != dns.RcodeSuccess {
-				return fmt.Sprintf("did not get success answer\n:%#v", answer)
-			}
-			return js.Null()
+			handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+				resolve := args[0]
+				reject := args[1]
+
+				go func() {
+					msg, err := signer.UnsignedUpdate(zone)
+					if err != nil {
+						reject.Invoke(jsErr(err))
+						return
+					}
+					answer, err := sig0.SendDOHQuery(dohServer, msg)
+					if err != nil {
+
+						reject.Invoke(jsErr(err))
+						return
+					}
+					if answer.Rcode != dns.RcodeSuccess {
+						err = fmt.Errorf("did not get success answer\n:%#v", answer)
+						reject.Invoke(jsErr(err))
+						return
+					}
+
+					resolve.Invoke(js.Null())
+				}()
+
+				return nil
+			})
+
+			promiseConstructor := js.Global().Get("Promise")
+			return promiseConstructor.New(handler)
 		}),
 	}
-}
-
-// queries
-// =======
-
-func queryAny(this js.Value, args []js.Value) any {
-	if len(args) != 1 {
-		panic("expected 1 argument")
-	}
-	domainName := args[0].String()
-	fmt.Println("Domain:", domainName)
-	q, err := sig0.QueryAny(domainName)
-	check(err)
-	return q
 }
 
 // Utilities
@@ -207,4 +217,11 @@ func check(err error) {
 		js.Global().Call("alert", err.Error())
 		panic(err)
 	}
+}
+
+// err should be an instance of `error`, eg `errors.New("some error")`
+func jsErr(err error) js.Value {
+	errorConstructor := js.Global().Get("Error")
+	errorObject := errorConstructor.New(err.Error())
+	return errorObject
 }
