@@ -138,20 +138,45 @@
               }
 
               console.log("done!")
-          }
+           }
+
+           function listKeys() {
+				                const div = document.getElementById("existing-keys")
+                                if (div.children.length > 0) {
+                                  div.removeChild(div.children[0])
+                                }
+
+                                const ul = document.createElement("ul")
+
+                                const list = window.goFuncs.listKeys
+                                for (const k of list()) {
+                                  const li = document.createElement("li")
+                                  li.innerHTML = k
+                                  ul.appendChild(li)
+                                }
+                                div.appendChild(ul)
+
+					            return
+		    }
+
+
 		</script>
 	</head>
 	<body>
-		<h2>Go Request Key</h1>
+	  <h2>DNS Keys</h2>
+
+      <h3>List</h3>
+      <button onclick="listKeys()">Update</button>
+      <div id="existing-keys"></div>
 
 
+      <h3>Request</h3>
+	  <p>
+		<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
+		<button onclick="requestKey()">Requset new Key</button>
+	  </p>
 
-		<p>
-			<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
-			<button onclick="requestKey()">Requset new Key</button>
-		</p>
-
-	  <h2>Go DNS Query</h1>
+	  <h2>Previous Go DNS Query Demo</h1>
 
 
 
