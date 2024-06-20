@@ -27,6 +27,9 @@ func TestRequestKey(t *testing.T) {
 		t.Log("Loop", i)
 		qry := zr.Do(answer)
 		t.Log(qry)
+		if qry == nil {
+			break
+		}
 
 		answer, err = SendDOHQuery("doh.zenr.io", qry)
 		r.NoError(err)
@@ -34,6 +37,8 @@ func TestRequestKey(t *testing.T) {
 		i++
 	}
 	r.NoError(zr.Err())
+
+	t.Log("registered key - checking registration")
 
 	for i = 10; true; i-- {
 		accepted, err := QueryAny(testName)

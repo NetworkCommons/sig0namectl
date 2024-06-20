@@ -37,6 +37,7 @@ func NewKeyRequest(newName string) (*KeyRequest, error) {
 		kr.compareSignalSOA,
 		kr.checkNewZoneDoesntExist,
 		kr.createRequest,
+		kr.checkRequestAnswer,
 	}
 
 	return kr, nil
@@ -211,4 +212,16 @@ func (kr *KeyRequest) createRequest(answer *dns.Msg) *dns.Msg {
 	}
 
 	return updateMsg
+}
+
+func (kr *KeyRequest) checkRequestAnswer(answer *dns.Msg) *dns.Msg {
+	if answer == nil {
+		kr.err = fmt.Errorf("answer is nil")
+		return nil
+	}
+	if answer.Rcode != dns.RcodeSuccess {
+		kr.err = fmt.Errorf("update failed: %v", answer)
+		return nil
+	}
+	return nil
 }
