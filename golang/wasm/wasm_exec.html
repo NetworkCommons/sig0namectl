@@ -107,58 +107,31 @@
 					return
 				}
 
-              const keyReq = goFuncs["newKeyRequest"](newName)
+                const newKeyReq = goFuncs["newKeyRequest"]
 
-              let answer = null
-              while (keyReq.next()) {
-                  const query = keyReq.do(answer)
-                  if (query == null) break
-                  console.log(query)
-
-				  const bodyBuf = _base64ToArrayBuffer(query)
-
-				  const qryUrl = new URL(`https://doh.zenr.io/dns-query`)
-				  const resp = await fetch(qryUrl, {
-					  method: "POST",
-					  headers: {
-						  "Content-Type": "application/dns-message"
-					  },
-					  body: bodyBuf
-				  })
-
-
-				  const data = await resp.arrayBuffer()
-                  answer = _arrayBufferToBase64(data)
-                  console.log(answer)
-              }
-
-              if (keyReq.err() !== null) {
-                  console.error("requestKey failed:"+keyReq.err())
-                  throw new Error(keyReq.err())
-              }
-
-              console.log("done!")
+                newKeyReq(newName, "doh.zenr.io").then(() => {
+                  console.log("key requested!")
+                }).catch(err => alert(err.message))
            }
 
-           function listKeys() {
-				                const div = document.getElementById("existing-keys")
-                                if (div.children.length > 0) {
-                                  div.removeChild(div.children[0])
-                                }
+          function listKeys() {
+			const div = document.getElementById("existing-keys")
+            if (div.children.length > 0) {
+              div.removeChild(div.children[0])
+            }
 
-                                const ul = document.createElement("ul")
+            const ul = document.createElement("ul")
 
-                                const list = window.goFuncs.listKeys
-                                for (const k of list()) {
-                                  const li = document.createElement("li")
-                                  li.innerHTML = k
-                                  ul.appendChild(li)
-                                }
-                                div.appendChild(ul)
+            const list = window.goFuncs.listKeys
+            for (const k of list()) {
+              const li = document.createElement("li")
+              li.innerHTML = k
+              ul.appendChild(li)
+            }
+            div.appendChild(ul)
 
-					            return
-		    }
-
+			return
+		  }
 
 		</script>
 	</head>
@@ -175,36 +148,5 @@
 		<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
 		<button onclick="requestKey()">Requset new Key</button>
 	  </p>
-
-	  <h2>Previous Go DNS Query Demo</h1>
-
-
-
-		<p>
-			<input type="text" id="domain-name" value="cryptix.zenr.io">
-			<button id="prepare">Prepare Query</button>
-		</p>
-
-		<h2>Query</h2>
-		<p>
-			<textarea type="text" id="query-data" name="dns">
-			</textarea>
-			<button onclick="queryViaFetch()">Query via fetch()</button>
-		</p>
-
-		<h2>Update</h2>
-		<p>
-			<input type="text" id="entry-address" value="23.42.0.1">
-			<button onclick="updateViaFetch()">Update</button>
-		</p>
-
-		<h3>Reply</h3>
-		<p>
-			<textarea id="dns-answer"></textarea>
-			<button id="parse-answer">̦Parse answer</button>
-		</p>
-
-		<h3>Parsed</h3>
-		<pre id="pretty"></pre>
 	</body>
 </html>

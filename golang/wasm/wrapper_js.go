@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"syscall/js"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
@@ -50,49 +50,65 @@ func listKeys(_ js.Value, _ []js.Value) any {
 // arguments: the name to request
 // returns nill or an error string
 func newKeyRequest(_ js.Value, args []js.Value) any {
-	if len(args) != 1 {
-		return "expected 1 argument"
+	if len(args) != 2 {
+		return "expected 2 arguments: domainName and dohServer"
 	}
 	domainName := args[0].String()
+	dohServer := args[1].String()
 
 	keyReq, err := sig0.NewKeyRequest(domainName)
 	if err != nil {
 		return err.Error()
 	}
 
-	return map[string]any{
-		"next": js.FuncOf(func(_ js.Value, _ []js.Value) any {
-			return keyReq.Next()
-		}),
+	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		resolve := args[0]
+		reject := args[1]
 
-		"do": js.FuncOf(func(_ js.Value, args []js.Value) any {
-			if len(args) != 1 {
-				log.Println("invalid args count", len(args))
-				return js.Null()
-			}
+		go func() {
+			log.Println("Requesting key for", domainName, "from", dohServer)
+
 			var answer *dns.Msg
-			if !args[0].IsNull() {
-				answer, err = sig0.ParseBase64Answer(args[0].String())
-				check(err)
-			}
-			qry := keyReq.Do(answer)
-			if qry == nil {
-				return js.Null()
+			var i = 0
+			for keyReq.Next() {
+				qry := keyReq.Do(answer)
+				if qry == nil {
+					break
+				}
+				spew.Dump(qry)
+
+				answer, err = sig0.SendDOHQuery(dohServer, qry)
+				if err != nil {
+					err = fmt.Errorf("Failed to create request key message: %w", err)
+					reject.Invoke(jsErr(err))
+					return
+				}
+
+				spew.Dump(answer)
+				i++
 			}
 
-			out, err := qry.Pack()
-			check(err)
-			return base64.StdEncoding.EncodeToString(out)
-		}),
-
-		"err": js.FuncOf(func(_ js.Value, _ []js.Value) any {
-			err := keyReq.Err()
-			if err == nil {
-				return js.Null()
+			err = keyReq.Err()
+			if err != nil {
+				err = fmt.Errorf("request loop failed: %w", err)
+				reject.Invoke(jsErr(err))
+				return
 			}
-			return err.Error()
-		}),
-	}
+
+			if answer.Rcode != dns.RcodeSuccess {
+				err = fmt.Errorf("Update failed: %v", answer)
+				reject.Invoke(jsErr(err))
+				return
+			}
+
+			resolve.Invoke(js.Null())
+		}()
+
+		return nil
+	})
+
+	promiseConstructor := js.Global().Get("Promise")
+	return promiseConstructor.New(handler)
 }
 
 // creates a new updater for the passed zone.
@@ -104,13 +120,14 @@ func newKeyRequest(_ js.Value, args []js.Value) any {
 //
 // returns an object with three functions {addRR, signedUpdate, unsignedUpdate}
 func newUpdater(_ js.Value, args []js.Value) any {
-	if len(args) != 2 {
-		panic("expected 2 arguments: zone, dohHostname")
+	if len(args) != 3 {
+		panic("expected 3 arguments: keyName, zone, dohHostname")
 	}
-	zone := args[0].String()
-	dohServer := args[1].String()
+	keyName := args[0].String()
+	zone := args[1].String()
+	dohServer := args[2].String()
 
-	signer, err := sig0.LoadOrGenerateKey(zone)
+	signer, err := sig0.LoadKeyFile(keyName)
 	if err != nil {
 		panic(fmt.Errorf("failed to load key: %w", err))
 	}
@@ -150,7 +167,6 @@ func newUpdater(_ js.Value, args []js.Value) any {
 					}
 					answer, err := sig0.SendDOHQuery(dohServer, msg)
 					if err != nil {
-
 						reject.Invoke(jsErr(err))
 						return
 					}
@@ -187,7 +203,6 @@ func newUpdater(_ js.Value, args []js.Value) any {
 					}
 					answer, err := sig0.SendDOHQuery(dohServer, msg)
 					if err != nil {
-
 						reject.Invoke(jsErr(err))
 						return
 					}
