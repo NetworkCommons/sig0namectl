@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/miekg/dns"
-	"github.com/shynome/doh-client"
 	"github.com/urfave/cli/v2"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
@@ -48,21 +46,24 @@ func updateAction(cCtx *cli.Context) error {
 		return err
 	}
 
-	m, err := signer.UpdateA(host, zone, ipAddrStr)
+	err = signer.StartUpdate(zone)
+	if err != nil {
+		return err
+	}
+
+	err = signer.UpdateA(host, zone, ipAddrStr)
+	if err != nil {
+		return err
+	}
+
+	m, err := signer.SignUpdate()
 	if err != nil {
 		return err
 	}
 	// spew.Dump(m)
 
 	log.Println("-- Configure DoH client --")
-	co := &dns.Conn{Conn: doh.NewConn(nil, nil, server)}
-
-	err = co.WriteMsg(m)
-	if err != nil {
-		return err
-	}
-
-	respMsg, err := co.ReadMsg()
+	respMsg, err := sig0.SendDOHQuery(server, m)
 	if err != nil {
 		return err
 	}
