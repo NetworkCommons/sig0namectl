@@ -150,6 +150,15 @@ func newUpdater(_ js.Value, args []js.Value) any {
 			return js.Null()
 		}),
 
+		"deleteRR": js.FuncOf(func(this js.Value, args []js.Value) any {
+			rr := args[0].String()
+			err := signer.RemoveParsedRR(rr)
+			if err != nil {
+				return err.Error()
+			}
+			return js.Null()
+		}),
+
 		// send signed update
 		// no arguments
 		// returns a promise
