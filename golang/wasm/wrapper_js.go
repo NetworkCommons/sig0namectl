@@ -150,9 +150,26 @@ func newUpdater(_ js.Value, args []js.Value) any {
 			return js.Null()
 		}),
 
+		// deleteRR
+		// deletes a single RR
+		// 1 argument: the RR string
+		// returns null or an error string
 		"deleteRR": js.FuncOf(func(this js.Value, args []js.Value) any {
 			rr := args[0].String()
 			err := signer.RemoveParsedRR(rr)
+			if err != nil {
+				return err.Error()
+			}
+			return js.Null()
+		}),
+
+		// deleteRR
+		// deletes a RRset 
+		// 1 argument: the RR string without RRdata
+		// returns null or an error string
+		"deleteRRset": js.FuncOf(func(this js.Value, args []js.Value) any {
+			rr := args[0].String()
+			err := signer.RemoveParsedRRset(rr)
 			if err != nil {
 				return err.Error()
 			}
