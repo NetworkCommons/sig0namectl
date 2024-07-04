@@ -20,10 +20,6 @@ enableInlineShortcodes = true
     unsafe = true
 [menu]
 [[menu.main]]
-identifier = "about"
-name = "about"
-url = "/"
-[[menu.main]]
 identifier = "home"
 name = "home"
 url = "/"
