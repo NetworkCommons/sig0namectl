@@ -7,4 +7,4 @@ description: "'sig zero name control' - to name is to share"
 #  featured_image: '/images/mycosystem.jpg'
 #featured_image: '/images/mycosystem-section-cut.jpg'
 ---
-Empowering community networks to securely publish & share their own local resources
+Empowering communities to securely publish & share their own local resources

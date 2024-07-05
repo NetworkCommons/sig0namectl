@@ -1,27 +1,37 @@
 ---
 title: "About"
-description: "sig0namectl is short for SIG(0) name control. The project allows secure and distributed delegation of DNS updates by directly communicating with the DNS infrastructure."
+description: "sig0namectl is pronounced 'SIG(zero) name control'." 
 # featured_image: '/images/picture.jpg'
 menu:
   main:
     weight: 1
 ---
 
-sig0namectl allows the use of secure DNS updates to provide information and services to local community networks.
+ The sig0namectl project allows secure decentralised delegation of DNS update rights through communicating directly with the DNS infrastructure.
 
-## Browser Apps
-The sig0namectl browser applications provide intuitive, easy to use interfaces to publish and update DNS information on services and resources.
-Features include: 
-- browsing existing published community services and resources
-- publishing and sharing information on new resources and services you provide to your community
-- collaborative geolocational mapping of local community resources and services
+# 🌐 Web Browser Applications
 
-## Dynamic Helper Apps
+sig0namectl browser-based applications provide easy-to-use interfaces not only to browse and access local network services and resources but also to collaborate and contribute towards providing local resources and services for local communities. The applications allow collaborative publishing and updating of DNS information on local services and resources.
 
-The dynamic help applications are utilities that allow networked hosts to automatically update DNS information about themselves as well as the services and resources they contribute to the community. Features include workflows that allow:
-- automated real-time resource and service update scripts to share up-to-date DNS resource and service details that change over time.
-- real-time DNS name updates whenever host IP addresses change to aid accessibility
-- real-time locational DNS updates whenever a host detects that its position has changed
-## command line utilities
-provide:
+Users of the browser applications can:
+- browse & access published community services and resources
+- publish & share new services & resources they wish to provide
+- collaborate in geo mapping of community resources & services
+
+# ⌨️ Command Line Utilities
+
+For advanced users who need the flexibility to customise workflows for once-off manual updates or through scripting specific helper tools.
+Command Line Utilities provide:
 - custom DNS update options for expert users and allows scripted automation  of custom update workflows
+
+# 🧰 Dynamic Helper Tools
+
+Dynamic helper tools allow hosts to automatically update DNS information about themselves as well as the services and resources they contribute to the community. Features include workflows that allow:
+- automated update scripts to share real-time changes in DNS resource and service details
+- real-time updates whenever host IP addresses change to aid accessibility
+- real-time locational updates via a connected gps device
+
+# 📚 Golang SDK
+
+The Golang SDK transpiles to WASM and exports functions available to Javascript in popular web browsers. The set of functions exported defines an API for developers implement custom sig0namectl Javascript web applications.
+
