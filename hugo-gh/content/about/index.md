@@ -7,7 +7,7 @@ menu:
     weight: 1
 ---
 
- The sig0namectl project allows secure decentralised delegation of DNS update rights through communicating directly with the DNS infrastructure.
+ The sig0namectl project allows decentralised delegation of DNS update rights through communicating directly with the DNS infrastructure. Updates are signed and autheticated through standards-based SIG(0) cryptographic key pairs, with public keys embedded within the DNS hierarchy.
 
 # 🌐 Web Browser Applications
 
