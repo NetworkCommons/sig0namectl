@@ -36,7 +36,7 @@ Features include workflows that allow:
 - real-time updates whenever host IP addresses change to aid accessibility during network connectivity changes
 - real-time locational updates sourced via gps devices
 
-# 📚 Golang WASM SDK
+# 📚 sig0namectl Javascript API
 
-The sig0namectl Golang module transpiles to WASM and exports functions available to Javascript in popular web browsers. The set of functions exported defines an API for developers implement custom sig0namectl Javascript web applications.
+The sig0namectl Golang module transpiles to WASM and exports functions available to Javascript in popular web browsers. The set of functions exported defines a Javascript API for developers implement custom sig0namectl web applications.
 
