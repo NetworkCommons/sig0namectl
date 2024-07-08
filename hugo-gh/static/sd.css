@@ -1,0 +1,92 @@
+/* sig0namectl SD-Browser UI CSS */
+
+/* sd structural column layout */
+#sd-structural {
+    display: flex;
+    flex-wrap: nowrap;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+#sd-structural div.column {
+    padding: 0;
+    margin: 0;
+}
+@media only screen and (max-width: 800px) {
+    #sd-structural {
+        flex-direction: column;
+    }
+    #sd-structural div.column {
+        width: 100%;
+        border-bottom: 1px solid #000;    
+    }
+    #sd-structural h2 {
+        display: none;
+    }
+}
+@media only screen and (min-width: 800px) {
+    #sd-sructural {
+        flex-direction: row;
+        overflow-x:auto;
+    }
+    #sd-structural div.column {
+        max-width: 30rem;
+        min-width: 20rem;
+        height: 100vh;
+        border-right: 1px solid #000;    
+    }
+}
+
+/* Elements in all Columns */
+#sd-structural h2 {
+    font-size: 1rem;
+    font-weight: normal;
+    color: #666;
+    border-bottom: 1px solid #666;
+    padding: 0.25rem;
+    margin: 0;
+}
+#sd-structural ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+#sd-structural li {
+    display: block;
+    padding: 0.25rem;
+    border-bottom: 1px solid #ddd;
+}
+#sd-structural li:hover {
+    background-color: #efefef;
+}
+#sd-structural li.active {
+    background-color: #eee;
+}
+#sd-structural div.column div.info h2 {
+    padding-top: 2rem;
+}
+div.column div.info p {
+    margin: 0;
+    padding: 0.5rem 0.3rem;
+    overflow-wrap: break-word;
+    border-bottom: 1px solid #ddd;
+}
+
+div.add {
+    padding: 0.25rem;
+}
+div.add .fqdn {
+    width: 80%;
+}
+
+.loading-spinner {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: #000 #0000;
+    animation: l1 1s infinite;
+    margin: 10vh auto;
+}
+@keyframes l1 {to{transform: rotate(.5turn)}}
