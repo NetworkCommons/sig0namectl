@@ -163,7 +163,7 @@ func newUpdater(_ js.Value, args []js.Value) any {
 			return js.Null()
 		}),
 
-		// deleteRR
+		// deleteRRset
 		// deletes a RRset 
 		// 1 argument: the RR string without RRdata
 		// returns null or an error string
