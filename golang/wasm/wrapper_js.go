@@ -118,7 +118,10 @@ func newKeyRequest(_ js.Value, args []js.Value) any {
 // arg 1: The Zone to update.
 // arg 2: The DOH server to send the update to.
 //
-// returns an object with three functions {addRR, signedUpdate, unsignedUpdate}
+// returns an object with functions {
+// 	addRR, deleteRR, deleteRRset, deleteName
+// 	signedUpdate, unsignedUpdate
+// }
 func newUpdater(_ js.Value, args []js.Value) any {
 	if len(args) != 3 {
 		panic("expected 3 arguments: keyName, zone, dohHostname")
