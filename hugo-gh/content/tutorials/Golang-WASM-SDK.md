@@ -5,6 +5,7 @@ draft = false
 +++
 ## Example new key request
 ```
+// only needed in browser console debugging eg. after page reload 
 const newKeyReq = goFuncs["newKeyRequest"]
 
 // generate new keypair & request a KEY RR for FQDN
@@ -16,6 +17,7 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
 ```
 ## Example list available keypairs
 ```
+
 // arguments: 0
 // returns a list of key pair identifiers as strings
 const list = window.goFuncs.listKeys
@@ -24,6 +26,7 @@ const list = window.goFuncs.listKeys
 
 ## Example signed DNS update request
 ```
+// only needed in browser console debugging eg. after page reload 
 const newUpdater = goFuncs["newUpdater"]
 
 // create a vehicle to publish signed updates
