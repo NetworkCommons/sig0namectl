@@ -151,7 +151,7 @@ func newUpdater(_ js.Value, args []js.Value) any {
 		}),
 
 		// deleteRR
-		// deletes a single RR
+		// deletes a single RR, see RFC 2136 section 2.5.4
 		// 1 argument: the RR string
 		// returns null or an error string
 		"deleteRR": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -164,12 +164,26 @@ func newUpdater(_ js.Value, args []js.Value) any {
 		}),
 
 		// deleteRRset
-		// deletes a RRset 
+		// deletes a RRset see RFC 2136 section 2.5.2.
 		// 1 argument: the RR string without RRdata
 		// returns null or an error string
 		"deleteRRset": js.FuncOf(func(this js.Value, args []js.Value) any {
 			rr := args[0].String()
 			err := signer.RemoveParsedRRset(rr)
+			if err != nil {
+				return err.Error()
+			}
+			return js.Null()
+		}),
+
+		// deleteName
+		// deletes all RRsets for a given name or FQDN, see RFC 2136 section 2.5.2.
+		// *WARNING* - use with care, as this deletes *all* RRsets, including KEYs!
+		// 1 argument: the RR string without RRdata
+		// returns null or an error string
+		"deleteName": js.FuncOf(func(this js.Value, args []js.Value) any {
+			rr := args[0].String()
+			err := signer.RemoveParsedName(rr)
 			if err != nil {
 				return err.Error()
 			}

@@ -126,6 +126,24 @@ func (signer *Signer) RemoveRRset(rr dns.RR) error {
 	return nil
 }
 
+func (signer *Signer) RemoveParsedName(rr string) error {
+	rrRemove, err := dns.NewRR(rr)
+	if err != nil {
+		return fmt.Errorf("sig0: failed to parse RR: %w", err)
+	}
+
+	return signer.RemoveName(rrRemove)
+}
+
+func (signer *Signer) RemoveName(rr dns.RR) error {
+	if signer.update == nil {
+		return fmt.Errorf("no update in progress")
+	}
+
+	signer.update.RemoveName([]dns.RR{rr})
+	return nil
+}
+
 // UpdateA is a convenience function to update an A record.
 // Need to call StartUpdate first, then UpdateA for each record to update, then SignUpdate.
 func (signer *Signer) UpdateA(subZone, zone, addr string) error {
