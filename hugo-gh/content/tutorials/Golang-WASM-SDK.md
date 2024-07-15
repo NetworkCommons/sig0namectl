@@ -5,11 +5,13 @@ draft = false
 +++
 ## Example new key request
 ```
-// only needed in browser console debugging eg. after page reload 
+// note: needed in browser console debugging eg. after page reload 
 const newKeyReq = goFuncs["newKeyRequest"]
 
 // generate new keypair & request a KEY RR for FQDN
-// 2 arguments: the new key name FQDN to be requested, the DoH DNS server for the zone
+// 2 arguments: 
+//  - the new key name FQDN to be requested as a string, 
+//  - the DoH DNS server for the zone as a string
 // returns null or an error string
 newKeyReq(newName, "doh.zenr.io").then(() => {
     console.log("key requested!")
@@ -17,16 +19,22 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
 ```
 ## Example list available keypairs
 ```
-
 // arguments: 0
-// returns a list of key pair identifiers as strings
+// returns a list of key pair identifiers as filename strings
 const list = window.goFuncs.listKeys
+```
+
+## Example list available keypairs as public key DNS KEY resource records
+```
+// arguments: 0
+// returns a list of key pair identifiers as filename strings
+const list = window.goFuncs.listKeysByRR
 ```
 
 
 ## Example signed DNS update request
 ```
-// only needed in browser console debugging eg. after page reload 
+// note: needed in browser console debugging eg. after page reload 
 const newUpdater = goFuncs["newUpdater"]
 
 // create a vehicle to publish signed updates
