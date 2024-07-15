@@ -17,7 +17,7 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
     console.log("key requested!")
 }).catch(err => alert(err.message))
 ```
-## Example list available keypairs
+## Example list available keypairs as nsupdate compatible filename prefix
 ```
 // arguments: 0
 // returns a list of key pair identifiers as filename strings
