@@ -78,7 +78,15 @@ for request_ptr in ${REQUEST_QUEUE}; do
 			else
 				request_key_fqdn_status="KEY '${request_key_fqdn}' IS NOT submitted to ${NSUPDATE_ACTION} under zone '${ZONE}', as DNS resource records for '${request_key_fqdn}' already exist."
 			fi
-			;;
+      # now delete PTR & KEY record
+      # optionally they could be archived somwhere else first ...
+			# NSUPDATE_PRECONDITION_SET="yxdomain"
+			# NSUPDATE_PRECONDITION=""
+      NSUPDATE_ITEM_SIGNAL_PTR="update delete ${SIGNAL_SUBZONE}.${ZONE}. PTR ${request_ptr}"
+      NSUPDATE_ITEM_SIGNAL_KEY="update delete ${request_ptr} ${request_key}"
+			send_nsupdate "${ZONE}" "$(echo ${NSUPDATE_ITEM_SIGNAL_PTR})" "${NSUPDATE_AUTH_SIG0_KEY_FQDN}" 
+			
+      ;;
 		delete)
 			# test for KEY DNS RR to delete (only deletes KEY & no other RR)
 			request_key_fqdn_dig="`dig @${ZONE_SOA_MASTER} +noall +answer +nocrypto +dnssec ${request_key_fqdn} KEY`"
