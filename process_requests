@@ -39,13 +39,6 @@ fi
 NSUPDATE_ACTION=${NSUPDATE_ACTION:-"add"} # ensures default action
 NSUPDATE_TTL=${NSUPDATE_TTL:-"60"} # ensures default TTLs for RRs
 
-echo
-echo "LIST of  KEY REQUESTS"
-echo
-dig @${ZONE_SOA_MASTER} +noall +answer +nottl +noclass +noidnout PTR ${SIGNAL_SUBZONE}.${ZONE}
-echo
-echo "PROCESSING KEY REQUESTS"
-echo
 REQUEST_QUEUE="`dig @${SIGNAL_SOA_MASTER} +short ${SIGNAL_SUBZONE}.${ZONE} PTR`"
 # [[ -n ${TEST_REQUEST} ]] && REQUEST_QUEUE="${REQUEST_QUEUE} testzone._signal.zenr.io _signal._signal.zenr.io below.test._signal.zenr.io"
 # TODO: handle timeout errors from dig (error lines start with ';;')
@@ -114,4 +107,5 @@ for request_ptr in ${REQUEST_QUEUE}; do
 			;;
 	esac
 	echo "${request_key_fqdn_status}"
+	logger "${request_key_fqdn_status}"
 done
