@@ -47,6 +47,8 @@ type storedKeyData struct {
 	Key, Private string
 }
 
+// Lists keys by filename prefix compatible with nsupdate
+// (suffixed by .key & .private for public & private key files)
 func ListKeys(dir string) ([]string, error) {
 	if dir != "." {
 		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
@@ -83,6 +85,49 @@ func ListKeys(dir string) ([]string, error) {
 		}
 
 		keys = append(keys, keyName)
+	}
+
+	return keys, nil
+}
+
+// Lists keys by DNS label
+// (note more than 1 key per keyname is possible!)
+func ListKeysByRR(dir string) ([]string, error) {
+	if dir != "." {
+		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
+	}
+
+	n := js.Global().Get("localStorage").Get("length").Int()
+
+	var keys []string
+	for i := 0; i < n; i++ {
+		key := js.Global().Get("localStorage").Call("key", i)
+		if key.IsNull() {
+			break
+		}
+
+		keyName := key.String()
+		if !strings.HasPrefix(keyName, "K") {
+			continue
+		}
+
+		keyDataJson := js.Global().Get("localStorage").Call("getItem", keyName).String()
+		if keyDataJson == "" {
+			continue
+		}
+
+		var data storedKeyData
+		err := json.Unmarshal([]byte(keyDataJson), &data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
+		}
+
+		_, err = ParseKeyData(data.Key, data.Private)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
+		}
+    // log.Println("data.Key:", data.Key)
+		keys = append(keys, data.Key)
 	}
 
 	return keys, nil
