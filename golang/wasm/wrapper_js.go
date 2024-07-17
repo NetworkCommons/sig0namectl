@@ -22,7 +22,6 @@ func main() {
 	goFuncs.Set("listKeysByRR", js.FuncOf(listKeysByRR))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
-	goFuncs.Set("getSoa", js.FuncOf(getSoa))
 
 	// cant let main return
 	forever := make(chan bool)
@@ -60,57 +59,6 @@ func listKeysByRR(_ js.Value, _ []js.Value) any {
 	spew.Dump(keys)
 	return values
 }
-//
-func getSoa(_ js.Value, args []js.Value) any {
-	if len(args) != 2 {
-		return "expected 2 argument: domainName and dohServer"
-	}
-	domainName := args[0].String()
-	dohServer := args[1].String()
-
-  log.Println("getSoa: Creating SOA query msg structure for ", domainName, "to send to ", dohServer)
-
-	qry, err := sig0.QuerySOA(domainName)
-	if err != nil {
-		return err.Error()
-	}
-  fmt.Println("getSoa: DNS Query:")
-  spew.Dump(qry)
-
-	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		resolve := args[0]
-		reject := args[1]
-
-		go func() {
-      log.Println("getSoa: handler: Requesting SOA via sig0.SendDOHQuery for", domainName, "from", dohServer)
-
-			var answer *dns.Msg
-			answer, err = sig0.SendDOHQuery(dohServer, qry)
-			if err != nil {
-				err = fmt.Errorf("Failed to create SOA query message: %w", err)
-				reject.Invoke(jsErr(err))
-				return
-			}
-			if answer.Rcode != dns.RcodeSuccess {
-				err =fmt.Errorf("unsuccessful SOA query answer\n:%#v", answer)
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-      log.Println("getSoa: handler: Received SOA response via sig0.SendDOHQuery for", domainName, "from", dohServer)
-      fmt.Println("getSoa: handler: DNS Response:")
-      spew.Dump(answer)
-
-      resolve.Invoke(js.Null())
-		}()
-
-      return nil
-	})
-
-  promiseConstructor := js.Global().Get("Promise")
-	return promiseConstructor.New(handler)
-}
-
 // create a keypair and request a key
 // arguments: the name to request
 // returns nill or an error string

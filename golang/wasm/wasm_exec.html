@@ -122,10 +122,10 @@
 
             const ul = document.createElement("ul")
 
-            const list = window.goFuncs.listKeysByRR
+            const list = window.goFuncs.listKeys
             for (const k of list()) {
               const li = document.createElement("li")
-              li.innerHTML = k.split("\t")[0]
+              li.innerHTML = k
               ul.appendChild(li)
             }
             div.appendChild(ul)
@@ -147,11 +147,6 @@
 	  <p>
 		<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
 		<button onclick="requestKey()">Requset new Key</button>
-	  </p>
-      <h3>Get SOA</h3>
-	  <p>
-		<input type="text" id="new-soa" placeholder="zembla.zenr.io">
-		<button onclick="getSoa()">Get SOA of name</button>
 	  </p>
 	</body>
 </html>
