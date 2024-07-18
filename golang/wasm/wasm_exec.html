@@ -184,5 +184,74 @@
 			  <button onclick="getKeysForDomain()">Find key in keystore</button>
 			  <div id="domain-key"></div>
 		</p>
+		<h3>Import Key pair files from filesystem into Browser Keystore</h3>
+		<p>
+			<input type="file" id="input-key" accept=".key"/>
+			<input type="file" id="input-private" accept=".private"/>
+			<div id="imported-key"></div>
+		</p>
+		<script>
+			/// Import Key from file pair
+			///
+			const streamToText = async (blob) => {
+				const readableStream = await blob.getReader();
+				const chunk = await readableStream.read();
+
+				return new TextDecoder('utf-8').decode(chunk.value);
+			};
+
+			const bufferToText = (buffer) => {
+				const bufferByteLength = buffer.byteLength;
+				const bufferUint8Array = new Uint8Array(buffer, 0, bufferByteLength);
+
+				return new TextDecoder().decode(bufferUint8Array);
+			};
+
+			document.getElementById('input-key').addEventListener('change', function(e) {
+				let file = document.getElementById('input-key').files[0];
+
+				(async () => {
+					const fileContent = await file.text();
+
+					console.log('.text()', fileContent);
+
+					const fileContentStream = await file.stream();
+
+					console.log('.stream()', await streamToText(fileContentStream));
+
+					const buffer = await file.arrayBuffer();
+
+					console.log('.buffer()', bufferToText(buffer));
+
+					const fileSliceBlob = file.slice(0, file.length);
+					const fileSliceBlobStream = await fileSliceBlob.stream();
+
+					console.log('.slice() and .stream()', await streamToText(fileSliceBlobStream));
+				})();
+			});
+
+			document.getElementById('input-private').addEventListener('change', function(e) {
+				let file = document.getElementById('input-private').files[0];
+
+				(async () => {
+					const fileContent = await file.text();
+
+					console.log('.text()', fileContent);
+
+					const fileContentStream = await file.stream();
+
+					console.log('.stream()', await streamToText(fileContentStream));
+
+					const buffer = await file.arrayBuffer();
+
+					console.log('.buffer()', bufferToText(buffer));
+
+					const fileSliceBlob = file.slice(0, file.length);
+					const fileSliceBlobStream = await fileSliceBlob.stream();
+
+					console.log('.slice() and .stream()', await streamToText(fileSliceBlobStream));
+				})();
+			});
+		</script>
 	</body>
 </html>
