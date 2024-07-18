@@ -38,7 +38,9 @@ class Dns {
                 let result = [];
 
                 response.answers.forEach(ans => {
-                    result.push(ans.data);
+                        if (ans.type == record_type) {
+                            result.push(ans.data);
+                        }
                 });
                 console.log("--- query(): response");
                 console.log(JSON.stringify(response));
