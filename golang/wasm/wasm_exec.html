@@ -122,7 +122,7 @@
 
 				const ul = document.createElement("ul")
 
-				const list = window.goFuncs.listKeysByRR
+				const list = window.goFuncs.listKeys
 				for (const k of list()) {
 					const li = document.createElement("li")
 					li.innerHTML = k.split("\t")[0]
@@ -132,6 +132,37 @@
 
 				return
 			}
+
+			// getKeysForDomain()
+			//	list keys in the keystore 
+			//	for which a given domain is a subdomain of the key's FQDN
+			//
+			function getKeysForDomain() {
+				var searchDomain = document.getElementById("keys-for-domain").value
+				if (! searchDomain.endsWith('.')) {
+					searchDomain = searchDomain + '.'
+				}
+
+				const div = document.getElementById("domain-key")
+				if (div.children.length > 0) {
+					div.removeChild(div.children[0])
+				}
+
+				const ul = document.createElement("ul")
+
+				const rrlist = window.goFuncs.listKeysByRR
+				for (const k of rrlist()) {
+					if (searchDomain.endsWith(k.split("\t")[0])) {
+						const li = document.createElement("li")
+						li.innerHTML = k
+						ul.appendChild(li)
+					}
+				}
+				div.appendChild(ul)
+
+				return
+			}
+
 
 		</script>
 	</head>
@@ -144,8 +175,14 @@
 
 		<h3>Request</h3>
 	  	<p>
-			<input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
-			<button onclick="requestKey()">Request new Key</button>
+			  <input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
+			  <button onclick="requestKey()">Request new Key</button>
 		</p>	
+		<h3>Search Keystore for Key to update a Subdomain</h3>
+		<p>
+			  <input type="text" id="keys-for-domain" placeholder="mythingymajig.zenr.io">
+			  <button onclick="getKeysForDomain()">Find key in keystore</button>
+			  <div id="domain-key"></div>
+		</p>
 	</body>
 </html>
