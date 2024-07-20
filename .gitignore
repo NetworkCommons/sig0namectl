@@ -1,3 +1,5 @@
+flake.nix
+flake.lock
 # exclude everything
 keystore/*
 zones/*
