@@ -56,7 +56,7 @@ func listKeysFiltered(_ js.Value, args []js.Value) any {
 	check(err)
 	var values = make([]any, len(keys))
 	for i, k := range keys {
-		values[i] = k
+		values[i] = k.AsMap()
 	}
 	spew.Dump(values)
 	return values

@@ -89,20 +89,20 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 }
 
 // Lists keys as JSON
-func ListKeysFiltered(dir, searchDomain string) ([]map[string]any, error) {
+func ListKeysFiltered(dir, searchDomain string) ([]storedKeyData, error) {
 	allKeys, err := ListKeys(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	var keys []map[string]any
+	var keys []storedKeyData
 	for _, k := range allKeys {
 		parsed, err := k.ParseKey()
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse Key: %s: %w", k.Name, err)
 		}
 		if strings.HasSuffix(searchDomain, parsed.Hdr.Name) {
-			keys = append(keys, k.AsMap())
+			keys = append(keys, k)
 		}
 	}
 
