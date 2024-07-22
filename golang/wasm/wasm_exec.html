@@ -122,10 +122,11 @@
 
 				const ul = document.createElement("ul")
 
-				const list = window.goFuncs.listKeys
+				const list = window.goFuncs.listKeysAsJson
 				for (const k of list()) {
 					const li = document.createElement("li")
-					li.innerHTML = k.split("\t")[0]
+					li.innerHTML = JSON.stringify(JSON.parse(k).Name).slice(1,-1)
+
 					ul.appendChild(li)
 				}
 				div.appendChild(ul)
