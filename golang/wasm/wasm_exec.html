@@ -125,7 +125,7 @@
 				const list = window.goFuncs.listKeysAsJson
 				for (const k of list()) {
 					const li = document.createElement("li")
-					li.innerHTML = JSON.stringify(JSON.parse(k).Name).slice(1,-1)
+					li.innerHTML = JSON.stringify(k.Name).slice(1,-1)
 
 					ul.appendChild(li)
 				}

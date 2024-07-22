@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"syscall/js"
+	"log"
 )
 
 func GenerateKeyAndSave(zone string) (*Signer, error) {
@@ -138,14 +139,14 @@ type keyDataJs struct {
 }
 
 // Lists keys as JSON
-func ListKeysAsJson(dir string) ([]string, error) {
+func ListKeysAsJson(dir string) ([]any, error) {
 	if dir != "." {
 		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
 	}
 
 	n := js.Global().Get("localStorage").Get("length").Int()
 
-	var keys []string
+	var keys []any
 	// var listKeysJson []*listKeyData
 	for i := 0; i < n; i++ {
 		key := js.Global().Get("localStorage").Call("key", i)
@@ -175,10 +176,10 @@ func ListKeysAsJson(dir string) ([]string, error) {
 		}
 
 		// log.Println("debug: keyDataJson: ", string(keyDataJson))
-		keyOutData := &keyDataJs{Name: keyName, Key: data.Key}
-		keyOutDataJson, _ := json.Marshal(keyOutData)
-
-		keys = append(keys, string(keyOutDataJson))
+		keyOutDataJson := map[string]any{"Name": keyName, "Key": data.Key}
+		log.Println("#### DEBUG ")
+		log.Println("keyOutDataJson: ", keyOutDataJson)
+		keys = append(keys, keyOutDataJson)
 	}
 
 	return keys, nil
