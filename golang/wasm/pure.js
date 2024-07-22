@@ -120,7 +120,7 @@ function listKeys() {
 
 	const ul = document.createElement("ul")
 
-	const list = window.goFuncs.listKeysAsJson
+	const list = window.goFuncs.listKeys
 	for (const k of list()) {
 		const li = document.createElement("li")
 		li.innerHTML = k.Name

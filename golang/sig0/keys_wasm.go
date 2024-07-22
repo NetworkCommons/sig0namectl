@@ -88,35 +88,6 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 	return keys, nil
 }
 
-func ListKeysByKeyName(dir string) ([]string, error) {
-	allKeys, err := ListKeys(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	var keys []string
-	for _, k := range allKeys {
-		keys = append(keys, k.Key)
-	}
-	return keys, nil
-}
-
-// Lists keys by DNS label
-// (note more than 1 key per keyname is possible!)
-func ListKeysByRR(dir string) ([]string, error) {
-	allKeys, err := ListKeys(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	var keys []string
-	for _, k := range allKeys {
-		keys = append(keys, k.Key)
-	}
-
-	return keys, nil
-}
-
 // Lists keys as JSON
 func ListKeysFiltered(dir, searchDomain string) ([]map[string]any, error) {
 	allKeys, err := ListKeys(dir)

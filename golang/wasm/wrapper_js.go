@@ -19,7 +19,6 @@ func main() {
 	goFuncs := js.Global().Get("window").Get("goFuncs")
 
 	goFuncs.Set("listKeys", js.FuncOf(listKeys))
-	goFuncs.Set("listKeysByRR", js.FuncOf(listKeysByRR))
 	goFuncs.Set("listKeysFiltered", js.FuncOf(listKeysFiltered))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
@@ -41,21 +40,12 @@ func listKeys(_ js.Value, _ []js.Value) any {
 	check(err)
 	var values = make([]any, len(keys))
 	for i, k := range keys {
-		values[i] = k
+		values[i] = k.AsMap()
 	}
 	spew.Dump(keys)
 	return values
 }
-func listKeysByRR(_ js.Value, _ []js.Value) any {
-	keys, err := sig0.ListKeysByRR(".")
-	check(err)
-	var values = make([]any, len(keys))
-	for i, k := range keys {
-		values[i] = k
-	}
-	spew.Dump(keys)
-	return values
-}
+
 func listKeysFiltered(_ js.Value, args []js.Value) any {
 	if len(args) != 1 {
 		return "expected 1 argument: searchDomain"
