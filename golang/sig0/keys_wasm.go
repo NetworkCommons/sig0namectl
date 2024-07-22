@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"syscall/js"
-	"log"
 )
 
 func GenerateKeyAndSave(zone string) (*Signer, error) {
@@ -44,20 +43,16 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 	return ParseKeyData(data.Key, data.Private)
 }
 
-type storedKeyData struct {
-	Key, Private string
-}
-
 // Lists keys by filename prefix compatible with nsupdate
 // (suffixed by .key & .private for public & private key files)
-func ListKeys(dir string) ([]string, error) {
+func ListKeys(dir string) ([]storedKeyData, error) {
 	if dir != "." {
 		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
 	}
 
 	n := js.Global().Get("localStorage").Get("length").Int()
 
-	var keys []string
+	var keys []storedKeyData
 	for i := 0; i < n; i++ {
 		key := js.Global().Get("localStorage").Call("key", i)
 		if key.IsNull() {
@@ -79,107 +74,65 @@ func ListKeys(dir string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
 		}
+		data.Name = keyName
 
+		// validate key data
 		_, err = ParseKeyData(data.Key, data.Private)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
 		}
 
-		keys = append(keys, keyName)
+		keys = append(keys, data)
 	}
 
+	return keys, nil
+}
+
+func ListKeysByKeyName(dir string) ([]string, error) {
+	allKeys, err := ListKeys(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []string
+	for _, k := range allKeys {
+		keys = append(keys, k.Key)
+	}
 	return keys, nil
 }
 
 // Lists keys by DNS label
 // (note more than 1 key per keyname is possible!)
 func ListKeysByRR(dir string) ([]string, error) {
-	if dir != "." {
-		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
+	allKeys, err := ListKeys(dir)
+	if err != nil {
+		return nil, err
 	}
 
-	n := js.Global().Get("localStorage").Get("length").Int()
-
 	var keys []string
-	for i := 0; i < n; i++ {
-		key := js.Global().Get("localStorage").Call("key", i)
-		if key.IsNull() {
-			break
-		}
-
-		keyName := key.String()
-		if !strings.HasPrefix(keyName, "K") {
-			continue
-		}
-
-		keyDataJson := js.Global().Get("localStorage").Call("getItem", keyName).String()
-		if keyDataJson == "" {
-			continue
-		}
-
-		var data storedKeyData
-		err := json.Unmarshal([]byte(keyDataJson), &data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
-		}
-
-		_, err = ParseKeyData(data.Key, data.Private)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
-		}
-		keys = append(keys, data.Key)
+	for _, k := range allKeys {
+		keys = append(keys, k.Key)
 	}
 
 	return keys, nil
 }
 
-type keyDataJs struct {
-	Name string `json:"Name"`
-	Key  string `json:"Key"`
-}
-
 // Lists keys as JSON
-func ListKeysAsJson(dir string) ([]any, error) {
-	if dir != "." {
-		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
+func ListKeysFiltered(dir, searchDomain string) ([]map[string]any, error) {
+	allKeys, err := ListKeys(dir)
+	if err != nil {
+		return nil, err
 	}
 
-	n := js.Global().Get("localStorage").Get("length").Int()
-
-	var keys []any
-	// var listKeysJson []*listKeyData
-	for i := 0; i < n; i++ {
-		key := js.Global().Get("localStorage").Call("key", i)
-		if key.IsNull() {
-			break
-		}
-
-		keyName := key.String()
-		if !strings.HasPrefix(keyName, "K") {
-			continue
-		}
-
-		keyDataJson := js.Global().Get("localStorage").Call("getItem", keyName).String()
-		if keyDataJson == "" {
-			continue
-		}
-
-		var data storedKeyData
-		err := json.Unmarshal([]byte(keyDataJson), &data)
+	var keys []map[string]any
+	for _, k := range allKeys {
+		parsed, err := k.ParseKey()
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
+			return nil, fmt.Errorf("failed to parse Key: %s: %w", k.Name, err)
 		}
-
-		_, err = ParseKeyData(data.Key, data.Private)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
+		if strings.HasSuffix(searchDomain, parsed.Hdr.Name) {
+			keys = append(keys, k.AsMap())
 		}
-
-		// log.Println("debug: keyDataJson: ", string(keyDataJson))
-		keyOutDataJson := map[string]any{"Name": keyName, "Key": data.Key}
-		log.Println("#### DEBUG ")
-		log.Println("keyOutDataJson: ", keyOutDataJson)
-		keys = append(keys, keyOutDataJson)
 	}
 
 	return keys, nil

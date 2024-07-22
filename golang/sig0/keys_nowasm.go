@@ -33,10 +33,9 @@ func GenerateKeyAndSave(zone string) (*Signer, error) {
 	}
 
 	return signer, nil
-
 }
 
-func ListKeys(dir string) ([]string, error) {
+func ListKeys(dir string) ([]storedKeyData, error) {
 	fh, err := os.Open(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %q: %w", dir, err)
