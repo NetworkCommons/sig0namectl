@@ -20,6 +20,7 @@ func main() {
 
 	goFuncs.Set("listKeys", js.FuncOf(listKeys))
 	goFuncs.Set("listKeysByRR", js.FuncOf(listKeysByRR))
+	goFuncs.Set("listKeysAsJson", js.FuncOf(listKeysAsJson))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
 
@@ -59,6 +60,19 @@ func listKeysByRR(_ js.Value, _ []js.Value) any {
 	spew.Dump(keys)
 	return values
 }
+func listKeysAsJson(_ js.Value, _ []js.Value) any {
+	keys, err := sig0.ListKeysAsJson(".")
+	if err != nil {
+		panic(err)
+	}
+	var values = make([]any, len(keys))
+	for i, k := range keys {
+		values[i] = k
+	}
+	spew.Dump(keys)
+	return values
+}
+
 // create a keypair and request a key
 // arguments: the name to request
 // returns nill or an error string

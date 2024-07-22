@@ -126,8 +126,59 @@ func ListKeysByRR(dir string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
 		}
-    // log.Println("data.Key:", data.Key)
 		keys = append(keys, data.Key)
+	}
+
+	return keys, nil
+}
+
+type keyDataJs struct {
+	Name string `json:"Name"`
+	Key  string `json:"Key"`
+}
+
+// Lists keys as JSON
+func ListKeysAsJson(dir string) ([]string, error) {
+	if dir != "." {
+		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
+	}
+
+	n := js.Global().Get("localStorage").Get("length").Int()
+
+	var keys []string
+	// var listKeysJson []*listKeyData
+	for i := 0; i < n; i++ {
+		key := js.Global().Get("localStorage").Call("key", i)
+		if key.IsNull() {
+			break
+		}
+
+		keyName := key.String()
+		if !strings.HasPrefix(keyName, "K") {
+			continue
+		}
+
+		keyDataJson := js.Global().Get("localStorage").Call("getItem", keyName).String()
+		if keyDataJson == "" {
+			continue
+		}
+
+		var data storedKeyData
+		err := json.Unmarshal([]byte(keyDataJson), &data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
+		}
+
+		_, err = ParseKeyData(data.Key, data.Private)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
+		}
+
+		// log.Println("debug: keyDataJson: ", string(keyDataJson))
+		keyOutData := &keyDataJs{Name: keyName, Key: data.Key}
+		keyOutDataJson, _ := json.Marshal(keyOutData)
+
+		keys = append(keys, string(keyOutDataJson))
 	}
 
 	return keys, nil
