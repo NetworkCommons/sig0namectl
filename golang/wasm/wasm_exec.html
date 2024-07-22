@@ -151,11 +151,11 @@
 
 				const ul = document.createElement("ul")
 
-				const rrlist = window.goFuncs.listKeysByRR
-				for (const k of rrlist()) {
-					if (searchDomain.endsWith(k.split("\t")[0])) {
+				const keyList = window.goFuncs.listKeysAsJson
+				for (const k of keyList()) {
+					if (searchDomain.endsWith(k.Key.split("\t")[0])) {
 						const li = document.createElement("li")
-						li.innerHTML = k
+						li.innerHTML = JSON.stringify(k.Name).slice(1,-1)
 						ul.appendChild(li)
 					}
 				}
