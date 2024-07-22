@@ -47,19 +47,23 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 		return nil, fmt.Errorf("failed to read directory %q: %w", dir, err)
 	}
 
-	var keyfiles []string
+	var keyfiles []storedKeyData
 	for _, name := range names {
-		if strings.HasPrefix(name, "K") && strings.HasSuffix(name, ".key") {
-			keyName := strings.TrimSuffix(name, ".key")
-
-			_, err := LoadKeyFile(keyName)
-			if err != nil {
-				log.Printf("DEBUG: trying %s failed: %v", keyName, err)
-				continue
-			}
-
-			keyfiles = append(keyfiles, keyName)
+		if !(strings.HasPrefix(name, "K") && strings.HasSuffix(name, ".key")) {
+			continue
 		}
+		keyName := strings.TrimSuffix(name, ".key")
+
+		sig, err := LoadKeyFile(keyName)
+		if err != nil {
+			log.Printf("DEBUG: trying %s failed: %v", keyName, err)
+			continue
+		}
+
+		keyfiles = append(keyfiles, storedKeyData{
+			Name: name,
+			Key:  sig.Key.PublicKey,
+		})
 	}
 
 	return keyfiles, nil
