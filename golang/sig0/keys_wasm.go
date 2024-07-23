@@ -43,18 +43,16 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 	return ParseKeyData(data.Key, data.Private)
 }
 
-type storedKeyData struct {
-	Key, Private string
-}
-
-func ListKeys(dir string) ([]string, error) {
+// Lists keys by filename prefix compatible with nsupdate
+// (suffixed by .key & .private for public & private key files)
+func ListKeys(dir string) ([]storedKeyData, error) {
 	if dir != "." {
 		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
 	}
 
 	n := js.Global().Get("localStorage").Get("length").Int()
 
-	var keys []string
+	var keys []storedKeyData
 	for i := 0; i < n; i++ {
 		key := js.Global().Get("localStorage").Call("key", i)
 		if key.IsNull() {
@@ -76,13 +74,36 @@ func ListKeys(dir string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal key data for %q: %w", keyName, err)
 		}
+		data.Name = keyName
 
+		// validate key data
 		_, err = ParseKeyData(data.Key, data.Private)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse key data for %q: %w", keyName, err)
 		}
 
-		keys = append(keys, keyName)
+		keys = append(keys, data)
+	}
+
+	return keys, nil
+}
+
+// Lists keys as JSON
+func ListKeysFiltered(dir, searchDomain string) ([]storedKeyData, error) {
+	allKeys, err := ListKeys(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []storedKeyData
+	for _, k := range allKeys {
+		parsed, err := k.ParseKey()
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse Key: %s: %w", k.Name, err)
+		}
+		if strings.HasSuffix(searchDomain, parsed.Hdr.Name) {
+			keys = append(keys, k)
+		}
 	}
 
 	return keys, nil

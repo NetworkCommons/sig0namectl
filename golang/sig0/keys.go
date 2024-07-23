@@ -11,6 +11,34 @@ import (
 
 var DefaultKeyTTL uint32 = 60
 
+type storedKeyData struct {
+	Name    string
+	Key     string
+	Private string
+}
+
+func (data storedKeyData) ParseKey() (*dns.KEY, error) {
+	rr, err := dns.NewRR(data.Key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read RR from key data: %w", err)
+	}
+
+	dnsKey, ok := rr.(*dns.KEY)
+	if !ok {
+		return nil, fmt.Errorf("expected dns.KEY, instead: %T", rr)
+	}
+	return dnsKey, nil
+}
+
+// wasm<>js bridge helper
+func (data storedKeyData) AsMap() map[string]any {
+	return map[string]any{
+		"Key":  data.Key,
+		"Name": data.Name,
+		// TODO: could call ParseKey() and add header fields as needed
+	}
+}
+
 type Signer struct {
 	Key     *dns.KEY
 	private crypto.PrivateKey
@@ -28,14 +56,14 @@ func LoadOrGenerateKey(zone string) (*Signer, error) {
 		zone += "."
 	}
 
-	keyNames, err := ListKeys(".")
+	keys, err := ListKeys(".")
 	if err != nil {
 		return nil, err
 	}
 
-	for _, keyName := range keyNames {
-		if strings.HasPrefix(keyName, "K"+zone) {
-			signer, err := LoadKeyFile(keyName)
+	for _, key := range keys {
+		if strings.HasPrefix(key.Name, "K"+zone) {
+			signer, err := LoadKeyFile(key.Name)
 			if err == nil {
 				return signer, nil
 			}

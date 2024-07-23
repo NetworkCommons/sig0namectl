@@ -19,6 +19,7 @@ func main() {
 	goFuncs := js.Global().Get("window").Get("goFuncs")
 
 	goFuncs.Set("listKeys", js.FuncOf(listKeys))
+	goFuncs.Set("listKeysFiltered", js.FuncOf(listKeysFiltered))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
 
@@ -36,13 +37,28 @@ func main() {
 // Returns a list of strings
 func listKeys(_ js.Value, _ []js.Value) any {
 	keys, err := sig0.ListKeys(".")
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 	var values = make([]any, len(keys))
 	for i, k := range keys {
-		values[i] = k
+		values[i] = k.AsMap()
 	}
+	spew.Dump(keys)
+	return values
+}
+
+func listKeysFiltered(_ js.Value, args []js.Value) any {
+	if len(args) != 1 {
+		return "expected 1 argument: searchDomain"
+	}
+	searchDomain := args[0].String()
+
+	keys, err := sig0.ListKeysFiltered(".", searchDomain)
+	check(err)
+	var values = make([]any, len(keys))
+	for i, k := range keys {
+		values[i] = k.AsMap()
+	}
+	spew.Dump(values)
 	return values
 }
 
@@ -118,10 +134,10 @@ func newKeyRequest(_ js.Value, args []js.Value) any {
 // arg 1: The Zone to update.
 // arg 2: The DOH server to send the update to.
 //
-// returns an object with functions {
-// 	addRR, deleteRR, deleteRRset, deleteName
-// 	signedUpdate, unsignedUpdate
-// }
+//	returns an object with functions {
+//		addRR, deleteRR, deleteRRset, deleteName
+//		signedUpdate, unsignedUpdate
+//	}
 func newUpdater(_ js.Value, args []js.Value) any {
 	if len(args) != 3 {
 		panic("expected 3 arguments: keyName, zone, dohHostname")
