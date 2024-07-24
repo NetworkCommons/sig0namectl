@@ -26,6 +26,9 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
 //   Key: Public Key in DNS Resource Record presentation format
 //   (both key values are in nspdate / dnssec-keygen compatible format)
 // 
+// Example: listKeys()
+//   display a list of the Keyname of every key in the keystore
+//
 function listKeys() {
         const div = document.getElementById("keystore-keynames")
         if (div.children.length > 0) {
@@ -58,9 +61,10 @@ function listKeys() {
 //   Name: Key pair name (as filename prefix)
 //   Key: Public Key in DNS Resource Record presentation format
 //   (both key values are in nspdate / dnssec-keygen compatible format)
-// getKeysForDomain()
-//      list key in the keystore
-//      for which a given domain is equal to or a subdomain of the key's 
+
+// Example: getKeysForDomain()
+//      display a list key in the keystore
+//      for which a given domain is equal to or is a subdomain of the key's 
 //      DNS Resource Record FQDN.
 //
 function getKeysForDomain() {
