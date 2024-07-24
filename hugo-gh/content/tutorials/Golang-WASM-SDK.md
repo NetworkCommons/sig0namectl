@@ -17,18 +17,76 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
     console.log("key requested!")
 }).catch(err => alert(err.message))
 ```
-## Example list available keypairs as nsupdate compatible filename prefixes
+## Example: list all keypairs in keystore
 ```
 // arguments: 0
-// returns a list of key pair identifiers as filename strings
-const list = window.goFuncs.listKeys
+// returns an array of all current keystore keys as JSON objects
+// Each JSON array element contains the following keys:
+//   Name: Key pair name (as filename prefix)
+//   Key: Public Key in DNS Resource Record presentation format
+//   (both key values are in nspdate / dnssec-keygen compatible format)
+// 
+function listKeys() {
+        const div = document.getElementById("keystore-keynames")
+        if (div.children.length > 0) {
+                div.removeChild(div.children[0])
+        }
+
+        const ul = document.createElement("ul")
+
+        const list = window.goFuncs.listKeys
+        for (const k of list()) {
+                const li = document.createElement("li")
+                li.innerHTML = k.Name
+
+                ul.appendChild(li)
+        }
+        div.appendChild(ul)
+
+        return
+}
 ```
 
-## Example list available keypairs as public key DNS KEY resource records
+## Example: list keys in keystore to update a given FQDN
 ```
-// arguments: 0
-// returns a list of key pair identifiers as filename strings
-const list = window.goFuncs.listKeysByRR
+// arguments: 1
+// 1 argument:
+//  - a Fully Qualified Domain Name to filter keys against
+// returns a filtered array of current keystore keys as JSON objects
+// (filtered to return only keys suitable to submit update for given domain) 
+// Each JSON array element contains the following keys:
+//   Name: Key pair name (as filename prefix)
+//   Key: Public Key in DNS Resource Record presentation format
+//   (both key values are in nspdate / dnssec-keygen compatible format)
+// getKeysForDomain()
+//      list key in the keystore
+//      for which a given domain is equal to or a subdomain of the key's 
+//      DNS Resource Record FQDN.
+//
+function getKeysForDomain() {
+        var searchDomain = document.getElementById("search-domain-for-keys").value
+        if (! searchDomain.endsWith('.')) {
+                searchDomain = searchDomain + '.'
+        }
+
+        const div = document.getElementById("keyname-for-domain")
+        if (div.children.length > 0) {
+                div.removeChild(div.children[0])
+        }
+
+        const ul = document.createElement("ul")
+
+        const keyList = window.goFuncs.listKeysFiltered
+        for (const k of keyList(searchDomain)) {
+                const li = document.createElement("li")
+                li.innerHTML = k.Name
+                ul.appendChild(li)
+        }
+        div.appendChild(ul)
+
+        return
+}
+
 ```
 
 
