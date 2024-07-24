@@ -18,6 +18,10 @@ func QueryA(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeA)
 }
 
+func QueryKEY(name string) (*dns.Msg, error) {
+	return QueryWithType(name, dns.TypeKEY)
+}
+
 // uses ANY query type
 func QueryAny(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeANY)

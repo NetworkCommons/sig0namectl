@@ -62,6 +62,46 @@ func listKeysFiltered(_ js.Value, args []js.Value) any {
 	return values
 }
 
+func checkKeyStatus(_ js.Value, args []js.Value) any {
+	if len(args) != 1 {
+                return "expected 2 arguments: keystore key filename prefix and dohServer"
+        }
+	keyName := args[0].String()
+	dohServer := args[1].String()
+
+	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		resolve := args[0]
+		reject := args[1]
+
+		go func() {
+			// query for KEY RRSet at FQDN keyname
+			msg, err := sig0.QueryKEY(keyName)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+			answer, err := sig0.SendDOHQuery(dohServer, msg)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+			if answer.Rcode != dns.RcodeSuccess {
+				err = fmt.Errorf("did not get success answer\n:%#v", answer)
+				reject.Invoke(jsErr(err))
+				return
+			}
+
+			spew.Dump(answer)
+			resolve.Invoke(js.Null())
+		}()
+
+		return nil
+	})
+
+	promiseConstructor := js.Global().Get("Promise")
+	return promiseConstructor.New(handler)
+}
+
 // create a keypair and request a key
 // arguments: the name to request
 // returns nill or an error string
