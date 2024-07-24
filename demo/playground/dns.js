@@ -18,23 +18,23 @@ class Dns {
 
   /// start asynchronous, longer running tasks at initialization
   async init_wasm() {
-    // run both functions in parallel and continue when
-    Promise.all([this.get_zone(this.domain), this.get_keys()]).then(([
-                                                                      zone, keys
-                                                                    ]) => {
-      // set zone
-      this.zone = zone;
+    /*
+      // run both functions in parallel and continue when
+      Promise.all([this.get_zone(this.domain), this.get_keys()]).then(([
+                                                                        zone,
+      keys
+                                                                      ]) => {
+        // set zone
+        this.zone = zone;
 
-      // check if we have a key for the domain
-      console.log(keys)
-    })
-  }
-
-  /// get keys
-  async get_keys() {
-    const keys = goFuncs['listKeys']()
-    console.log('get_keys: ' + keys)
-    return keys
+        // check if we have a key for the domain
+        this.keys = keys
+      })
+    */
+    // TODO: listen for keys_ready event
+    // TODO: listen for Keys_update event
+    // TODO: check zone
+    // TODO: add keys ready flag and check for it
   }
 
   /// read a the record types from dns of a domain

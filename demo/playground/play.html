@@ -6,17 +6,20 @@
 		<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
 		<script src="sig0_wasm.js"></script>
 		<script src="sig0.js"></script>
+		<script src="keys.js"></script>
 		<script src="dns.js"></script>
 		<script>
 			/// Event listener for when WASM is ready
 			window.addEventListener('wasm_ready', function(){
 				console.log('WASM is ready')
 
+				const keys = new Keys()
 				const dns = new Dns('zembla.zenr.io')
 			});
 		</script>
 	</head>
 	<body>
 		<h1>Playground</h1>
+
 	</body>
 </html>
