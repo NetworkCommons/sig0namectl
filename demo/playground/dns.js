@@ -1,11 +1,17 @@
-/// sig0namectl Central DNS object
+/// Central DNS object
 ///
 /// Manages dns queries
 class Dns {
   /// construct the DNS object with the domain to query
-  constructor(domain_name) {
+  /// you can optionally provide a keys
+  constructor(domain_name, key) {
     // domain name
     this.domain = domain_name;
+    // keys related to this domain
+    this.keys = [];
+    if (key) {
+      this.keys.push(key)
+    }
     // create the resolver
     this.resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
     // this.resolver = new doh.DohResolver('https://' +domain_name
