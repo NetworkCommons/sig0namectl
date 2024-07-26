@@ -112,7 +112,7 @@ async function requestKey() {
 	}).catch(err => alert(err.message))
 }
 
-function listKeys() {
+async function listKeys() {
 	const div = document.getElementById("existing-keys")
 	if (div.children.length > 0) {
 		div.removeChild(div.children[0])
@@ -121,9 +121,11 @@ function listKeys() {
 	const ul = document.createElement("ul")
 
 	const list = window.goFuncs.listKeys
+        const stat = window.goFuncs.checkKeyStatus
 	for (const k of list()) {
 		const li = document.createElement("li")
-		li.innerHTML = k.Name
+		// li.innerHTML = k.Name +" | " + await stat(k.Key.split("\t")[0], "zenr.io", "doh.zenr.io")
+		li.innerHTML = k.Name +" | " + await stat(k.Name, "zenr.io", "doh.zenr.io")
 
 		ul.appendChild(li)
 	}
@@ -131,6 +133,8 @@ function listKeys() {
 
 	return
 }
+
+
 
 // getKeysForDomain()
 //	list keys in the keystore
