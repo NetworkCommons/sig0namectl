@@ -22,6 +22,8 @@ func main() {
 	goFuncs.Set("listKeysFiltered", js.FuncOf(listKeysFiltered))
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
+	// still WIP
+	goFuncs.Set("checkKeyStatus", js.FuncOf(checkKeyStatus))
 
 	// cant let main return
 	forever := make(chan bool)
@@ -67,7 +69,8 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
                 return "expected 2 arguments: keystore key filename prefix and dohServer"
         }
 	keyName := args[0].String()
-	dohServer := args[1].String()
+	zone := args[1].String()
+	dohServer := args[2].String()
 
 	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		resolve := args[0]
@@ -80,19 +83,38 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				reject.Invoke(jsErr(err))
 				return
 			}
-			answer, err := sig0.SendDOHQuery(dohServer, msg)
+			answerKeyRR, err := sig0.SendDOHQuery(dohServer, msg)
 			if err != nil {
 				reject.Invoke(jsErr(err))
 				return
 			}
-			if answer.Rcode != dns.RcodeSuccess {
-				err = fmt.Errorf("did not get success answer\n:%#v", answer)
+			if answerKeyRR.Rcode != dns.RcodeSuccess {
+				err = fmt.Errorf("did not get success answer\n:%#v", answerKeyRR)
+				reject.Invoke(jsErr(err))
+				return
+			}
+			spew.Dump(answerKeyRR)
+
+			// query for PTR at _signal.zone and KEY at keyName._signal.zone
+			signalPtrRRsetName := "_signal." + zone
+			msgSigPtr, err := sig0.QueryPTR(signalPtrRRsetName)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+			answerSignalPtr, err := sig0.SendDOHQuery(dohServer, msgSigPtr)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+			if answerSignalPtr.Rcode != dns.RcodeSuccess {
+				err = fmt.Errorf("did not get success answer\n:%#v", answerSignalPtr)
 				reject.Invoke(jsErr(err))
 				return
 			}
 
-			spew.Dump(answer)
-			resolve.Invoke(js.Null())
+			// resolve.Invoke(js.Null())
+			resolve.Invoke(answerKeyRR)
 		}()
 
 		return nil

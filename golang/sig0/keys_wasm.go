@@ -43,8 +43,11 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 	return ParseKeyData(data.Key, data.Private)
 }
 
-// Lists keys by filename prefix compatible with nsupdate
-// (suffixed by .key & .private for public & private key files)
+// Returns all Keystore public keys and names as array of JSON objects
+// where
+//   Name: <filename prefix compatible with nsupdate>
+//   Key:  <public key in DNS RR format compatible with nsupdate>
+//
 func ListKeys(dir string) ([]storedKeyData, error) {
 	if dir != "." {
 		return nil, fmt.Errorf("directories not supported in wasm - use '.'")
@@ -89,6 +92,12 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 }
 
 // Lists keys as JSON
+// Returns a filtered array of Keystore public keys and names as array of JSON objects
+// Keys returned possess a public key DNS RR name where searchDomain is contained.
+// where
+//   Name: <filename prefix compatible with nsupdate>
+//   Key:  <public key in DNS RR format compatible with nsupdate>
+//
 func ListKeysFiltered(dir, searchDomain string) ([]storedKeyData, error) {
 	allKeys, err := ListKeys(dir)
 	if err != nil {
