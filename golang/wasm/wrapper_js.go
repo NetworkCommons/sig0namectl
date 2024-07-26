@@ -13,12 +13,6 @@ import (
 	"github.com/NetworkCommons/sig0namectl/sig0"
 )
 
-var (
-        SignalSubzonePrefix = "_signal"
-        DefaultTTL          = 60
-        DefaultDOHResolver  = "dns.quad9.net"
-)
-
 // Go <-> JS bridging setup
 // ========================
 
@@ -163,8 +157,8 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 			}
 
 			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
-			signalPtrRRName := SignalSubzonePrefix + "." + zone
-			signalKeyRRName := strings.TrimSuffix(keyFqdn, "." + zone) + "." + SignalSubzonePrefix + "." + zone
+			signalPtrRRName := sig0.SignalSubzonePrefix + "." + zone
+			signalKeyRRName := strings.TrimSuffix(keyFqdn, "." + zone) + "." + sig0.SignalSubzonePrefix + "." + zone
 
 			// log.Println("*** keyFqdn: ", keyFqdn)
 			// log.Println("*** zone: ", zone)
