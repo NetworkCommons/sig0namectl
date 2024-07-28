@@ -8,20 +8,18 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRequestKey(t *testing.T) {
 	r := require.New(t)
+	a := assert.New(t)
 
 	// TODO: cleanup test keys
 	buf := make([]byte, 5)
 	_, _ = rand.Read(buf)
 	testName := fmt.Sprintf("sig0namectl-test-%x.zenr.io", buf)
-	t.Cleanup(func() {
-		_ = os.Remove(testName + ".private")
-		_ = os.Remove(testName + ".key")
-	})
 
 	err := RequestKey(testName)
 	r.NoError(err)
@@ -53,6 +51,13 @@ func TestRequestKey(t *testing.T) {
 	signer, err := LoadOrGenerateKey(testName)
 	r.NoError(err)
 
+	t.Cleanup(func() {
+		kn := signer.KeyName()
+		t.Log("deleting key:", kn)
+		_ = os.Remove(kn + ".private")
+		_ = os.Remove(kn + ".key")
+	})
+
 	err = signer.StartUpdate("zenr.io")
 	r.NoError(err)
 
@@ -64,6 +69,7 @@ func TestRequestKey(t *testing.T) {
 
 	answer, err := SendDOHQuery("doh.zenr.io", updateMsg)
 	r.NoError(err)
-	t.Log(answer)
-	r.True(answer.Rcode == dns.RcodeSuccess)
+	if !a.True(answer.Rcode == dns.RcodeSuccess, "answer not successful") {
+		t.Log(answer)
+	}
 }
