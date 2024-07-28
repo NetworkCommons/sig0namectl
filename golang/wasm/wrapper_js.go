@@ -110,8 +110,6 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 			// construct query for KEY RRSet at FQDN keyname
 			// TODO BUG cannot yet pass RData via QueryKEY() for exact RR
 			// as SendDOHQuery errors with dns: bad rdata
-			// var keyRRStatus string
-			// var signalPTRStatus string
 			var signalPTRExists bool
 			var keyRRExists bool
 			msgKey, err := sig0.QueryKEY(keyFqdn)
