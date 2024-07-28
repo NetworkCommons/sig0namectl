@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 	"strconv"
+	"strings"
 	"syscall/js"
 
 	"github.com/davecgh/go-spew/spew"
@@ -28,9 +28,7 @@ func main() {
 
 	// cant let main return
 	forever := make(chan bool)
-	select {
-	case <-forever:
-	}
+	<-forever
 }
 
 // Key Managment
@@ -39,11 +37,11 @@ func main() {
 // listKeys()
 // arguments: 0
 // Returns an array of JSON objects of all Keystore keys
-//   {
-//     Name: <filename prefix of key pair in nsupdate format>
-//     Key:  <public key of key pair in DNS RR format>
-//   }
 //
+//	{
+//	  Name: <filename prefix of key pair in nsupdate format>
+//	  Key:  <public key of key pair in DNS RR format>
+//	}
 func listKeys(_ js.Value, _ []js.Value) any {
 	keys, err := sig0.ListKeys(".")
 	check(err)
@@ -57,14 +55,16 @@ func listKeys(_ js.Value, _ []js.Value) any {
 
 // listKeysFiltered()
 // arguments: 1
-//   takes an FQDN to search the Keystore
-// Returns an array of JSON objects of Keystore keys
-// that have their DNS public key as suffix of given FQDN 
-//   {
-//     Name: <filename prefix of key pair in nsupdate format>
-//     Key:  <public key of key pair in DNS RR format>
-//   }
 //
+//	takes an FQDN to search the Keystore
+//
+// Returns an array of JSON objects of Keystore keys
+// that have their DNS public key as suffix of given FQDN
+//
+//	{
+//	  Name: <filename prefix of key pair in nsupdate format>
+//	  Key:  <public key of key pair in DNS RR format>
+//	}
 func listKeysFiltered(_ js.Value, args []js.Value) any {
 	if len(args) != 1 {
 		return "expected 1 argument: searchDomain"
@@ -83,21 +83,21 @@ func listKeysFiltered(_ js.Value, args []js.Value) any {
 
 func checkKeyStatus(_ js.Value, args []js.Value) any {
 	if len(args) != 3 {
-                return "expected 3 arguments: keystore key filename prefix, zone and dohServer"
-        }
+		return "expected 3 arguments: keystore key filename prefix, zone and dohServer"
+	}
 
 	// load key from keystore, return nil if does not exist
 	keyFilename := args[0].String()
 	key, err := sig0.LoadKeyFile(keyFilename)
 	if err != nil {
-                return nil
-        }
+		log.Println("Failed to load key:", err.Error())
+		return nil
+	}
 
-	keyFqdn := strings.Split(key.Key.String(), "\t")[0]  // key DNS name (FQDN with trailing dot)
-	keyRData := strings.Split(key.Key.String(), "\t")[4] // key RData (RR portion after type KEY)
+	keyFqdn := key.Key.Hdr.Name // key DNS name (FQDN with trailing dot)
 
 	zone := args[1].String()
-	if !strings.HasSuffix(zone,".") {
+	if !strings.HasSuffix(zone, ".") {
 		zone += "."
 	}
 	dohServer := args[2].String()
@@ -126,36 +126,36 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 			}
 
 			switch answerKeyRR.Rcode {
-				case dns.RcodeSuccess: 
-					keyRRExists = false
-					for _, rrTxt := range answerKeyRR.Answer {
-						rr, err := dns.NewRR(rrTxt.String())
-						if err != nil {
-							reject.Invoke(jsErr(err))
-						}
-						rrRData := strconv.Itoa(int(rr.(*dns.KEY).Flags)) + " " +
-							strconv.Itoa(int(rr.(*dns.KEY).Protocol)) + " "  +
-							strconv.Itoa(int(rr.(*dns.KEY).Algorithm)) + " "  +
-							rr.(*dns.KEY).PublicKey
-
-						if rrRData ==  keyRData {
-							keyRRExists = true
-							break
-						}
+			case dns.RcodeSuccess:
+				keyRRExists = false
+				for _, rr := range answerKeyRR.Answer {
+					answerKey, ok := rr.(*dns.KEY)
+					if !ok {
+						err = fmt.Errorf("answer is not a KEY type: %T", rr)
+						reject.Invoke(jsErr(err))
+						return
 					}
 
-				case dns.RcodeNameError:
-					keyRRExists = false
+					if answerKey.Flags == key.Key.Flags &&
+						answerKey.Protocol == key.Key.Protocol &&
+						answerKey.Algorithm == key.Key.Algorithm &&
+						answerKey.PublicKey == key.Key.PublicKey {
+						keyRRExists = true
+						break
+					}
+				}
 
-				default:
-					err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
-					reject.Invoke(jsErr(err))
+			case dns.RcodeNameError:
+				keyRRExists = false
+
+			default:
+				err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
+				reject.Invoke(jsErr(err))
 			}
 
 			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
 			signalPtrRRName := sig0.SignalSubzonePrefix + "." + zone
-			signalKeyRRName := strings.TrimSuffix(keyFqdn, "." + zone) + "."
-				sig0.SignalSubzonePrefix + "." + zone
+			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "."
 
 			// construct query for _signal.zone PTR RRset
 			msgSigPtr, err := sig0.QueryPTR(signalPtrRRName)
@@ -166,33 +166,41 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 			// send & search query results for Queued PTR RRs under _signal
 			answerSignalPtr, err := sig0.SendDOHQuery(dohServer, msgSigPtr)
-			switch answerSignalPtr.Rcode {
-				case dns.RcodeSuccess:
-					signalPTRExists = false
-					for _, rrTxt := range answerSignalPtr.Answer {
-						rr, err := dns.NewRR(rrTxt.String())
-						if err != nil {
-							reject.Invoke(jsErr(err))
-						}
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
 
-						if rr.(*dns.PTR).Ptr ==  signalKeyRRName {
-							signalPTRExists = true
-							break
-						}
+			switch answerSignalPtr.Rcode {
+			case dns.RcodeSuccess:
+				signalPTRExists = false
+				for _, rr := range answerSignalPtr.Answer {
+					ptrRR, ok := rr.(*dns.PTR)
+					if !ok {
+						err = fmt.Errorf("answer is not a PTR type: %T", rr)
+						reject.Invoke(jsErr(err))
+						return
 					}
 
-				case dns.RcodeNameError:
-					signalPTRExists = false
+					if ptrRR.Ptr == signalKeyRRName {
+						signalPTRExists = true
+						break
+					}
+				}
 
-				default:
-					err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerKeyRR)
-					reject.Invoke(jsErr(err))
+			case dns.RcodeNameError:
+				signalPTRExists = false
+
+			default:
+				err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerKeyRR)
+				reject.Invoke(jsErr(err))
+				return
 			}
 
 			resolve.Invoke(map[string]any{
-                                "QueuePTRExists": strconv.FormatBool(signalPTRExists),
-                                "KeyRRExists": strconv.FormatBool(keyRRExists),
-                        })
+				"QueuePTRExists": strconv.FormatBool(signalPTRExists),
+				"KeyRRExists":    strconv.FormatBool(keyRRExists),
+			})
 		}()
 
 		return nil
