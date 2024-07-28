@@ -112,7 +112,28 @@ async function requestKey() {
 	}).catch(err => alert(err.message))
 }
 
-async function listKeys() {
+function listKeys() {
+	const div = document.getElementById("existing-keys")
+	if (div.children.length > 0) {
+		div.removeChild(div.children[0])
+	}
+
+	const ul = document.createElement("ul")
+
+	const list = window.goFuncs.listKeys
+
+	for (const k of list()) {
+		const li = document.createElement("li")
+		li.innerHTML = k.Name
+
+		ul.appendChild(li)
+	}
+	div.appendChild(ul)
+
+	return
+}
+
+async function listKeysWithStatus() {
 	const div = document.getElementById("existing-keys")
 	if (div.children.length > 0) {
 		div.removeChild(div.children[0])
@@ -124,8 +145,8 @@ async function listKeys() {
         const stat = window.goFuncs.checkKeyStatus
 	for (const k of list()) {
 		const li = document.createElement("li")
-		// li.innerHTML = k.Name +" | " + await stat(k.Key.split("\t")[0], "zenr.io", "doh.zenr.io")
-		li.innerHTML = k.Name +" | " + await stat(k.Name, "zenr.io", "doh.zenr.io")
+		const s = await stat(k.Name, "zenr.io", "doh.zenr.io")
+		li.innerHTML = k.Name +" | Key Exists in DNS: " + s.KeyRRExists +" | Key Request Queued: " + s.QueuePTRExists
 
 		ul.appendChild(li)
 	}
