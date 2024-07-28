@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -16,10 +17,11 @@ var (
 )
 
 type KeyRequest struct {
-	newName    string
-	soaForZone *dns.SOA
-	signalZone string
-	subDomain  string
+	newName     string
+	soaForZone  *dns.SOA
+	signalZone  string
+	dohEndpoint *url.URL
+	subDomain   string
 
 	err   error
 	steps []dnsProcess
@@ -122,9 +124,10 @@ func (kr *KeyRequest) compareSignalSOA(answer *dns.Msg) *dns.Msg {
 		return nil
 	}
 
-	if signalZoneSoa.Ns != "ns1.free2air.org." {
-		zoneOfName := kr.soaForZone.Hdr.Name
-		kr.err = fmt.Errorf("Unexpected SOA: %s - TODO: Query SVCB to get the zone master's DOH endpoint", zoneOfName)
+	// get DoH endpoint for signal zone via SVCB
+	kr.dohEndpoint, err = FindDOHEndpoint(kr.signalZone)
+	if err != nil {
+		kr.err = fmt.Errorf("Unable to lookup DOH endoint for signal zone: %w", err)
 		return nil
 	}
 
