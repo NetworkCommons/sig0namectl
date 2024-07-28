@@ -107,6 +107,8 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 		reject := args[1]
 
 		go func() {
+			// TODO: move this to function in sig0
+
 			// construct query for KEY RRSet at FQDN keyname
 			// TODO BUG cannot yet pass RData via QueryKEY() for exact RR
 			// as SendDOHQuery errors with dns: bad rdata
@@ -216,11 +218,6 @@ func newKeyRequest(_ js.Value, args []js.Value) any {
 	domainName := args[0].String()
 	dohServer := args[1].String()
 
-	keyReq, err := sig0.NewKeyRequest(domainName)
-	if err != nil {
-		return err.Error()
-	}
-
 	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		resolve := args[0]
 		reject := args[1]
@@ -228,38 +225,14 @@ func newKeyRequest(_ js.Value, args []js.Value) any {
 		go func() {
 			log.Println("Requesting key for", domainName, "from", dohServer)
 
-			var answer *dns.Msg
-			var i = 0
-			for keyReq.Next() {
-				qry := keyReq.Do(answer)
-				if qry == nil {
-					break
-				}
-				spew.Dump(qry)
-
-				answer, err = sig0.SendDOHQuery(dohServer, qry)
-				if err != nil {
-					err = fmt.Errorf("Failed to create request key message: %w", err)
-					reject.Invoke(jsErr(err))
-					return
-				}
-
-				spew.Dump(answer)
-				i++
-			}
-
-			err = keyReq.Err()
+			err := sig0.RequestKey(domainName)
 			if err != nil {
 				err = fmt.Errorf("request loop failed: %w", err)
 				reject.Invoke(jsErr(err))
 				return
 			}
 
-			if answer.Rcode != dns.RcodeSuccess {
-				err = fmt.Errorf("Update failed: %v", answer)
-				reject.Invoke(jsErr(err))
-				return
-			}
+			// TODO: checkKey()
 
 			resolve.Invoke(js.Null())
 		}()
