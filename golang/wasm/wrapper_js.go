@@ -127,7 +127,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 			switch answerKeyRR.Rcode {
 			case dns.RcodeSuccess:
-				keyRRExists = false
+				// keyRRExists = false
 				for _, rr := range answerKeyRR.Answer {
 					answerKey, ok := rr.(*dns.KEY)
 					if !ok {
@@ -146,7 +146,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				}
 
 			case dns.RcodeNameError:
-				keyRRExists = false
+				// keyRRExists = false
 
 			default:
 				err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
@@ -174,7 +174,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 			switch answerSignalPtr.Rcode {
 			case dns.RcodeSuccess:
-				signalPTRExists = false
+				// signalPTRExists = false
 				for _, rr := range answerSignalPtr.Answer {
 					ptrRR, ok := rr.(*dns.PTR)
 					if !ok {
@@ -190,7 +190,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				}
 
 			case dns.RcodeNameError:
-				signalPTRExists = false
+				// signalPTRExists = false
 
 			default:
 				err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerKeyRR)
