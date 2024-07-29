@@ -12,7 +12,7 @@ import (
 var (
 	SignalSubzonePrefix = "_signal"
 	DefaultTTL          = 300
-	DefaultDOHResolver  = "dns.quad9.net"
+	DefaultDOHResolver  = "1.1.1.1"
 )
 
 func RequestKey(newName string) error {
