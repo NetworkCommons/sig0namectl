@@ -155,7 +155,8 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
 			signalPtrRRName := sig0.SignalSubzonePrefix + "." + zone
-			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "."
+			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "." + 
+				sig0.SignalSubzonePrefix + "." + zone
 
 			// construct query for _signal.zone PTR RRset
 			msgSigPtr, err := sig0.QueryPTR(signalPtrRRName)
