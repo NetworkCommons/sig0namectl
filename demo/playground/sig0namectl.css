@@ -1,4 +1,4 @@
-/* sig0namectl base CSS styles */
+/* sig0namectl WASM admin CSS */
 
 body {
     background-color: #ffffff;
@@ -29,7 +29,7 @@ h5 {
 }
 
 h6 {
-    font-size: 1.3rem;
+    font-size: 1rem;
 }
 
 body,
@@ -41,5 +41,3 @@ div {
 a {
     color: #000000;
 }
-
-@media only screen and (max-width: 800px) {}

@@ -7,15 +7,16 @@ class Dns {
   constructor(domain_name, key) {
     // domain name
     this.domain = domain_name;
+    this.doh_url = 'https://1.1.1.1/dns-query';
+    this.doh_method = 'POST';
+    this.dnssec_enabled = 'true';
     // keys related to this domain
     this.keys = [];
     if (key) {
       this.keys.push(key)
     }
     // create the resolver
-    this.resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
-    // this.resolver = new doh.DohResolver('https://' +domain_name
-    // +'/dns-query')
+    this.resolver = new doh.DohResolver(this.doh_url);
 
     // initialize WASM editing
     this.wasm = false;
@@ -24,37 +25,43 @@ class Dns {
 
   /// start asynchronous, longer running tasks at initialization
   async init_wasm() {
-    /*
-      // run both functions in parallel and continue when
-      Promise.all([this.get_zone(this.domain), this.get_keys()]).then(([
-                                                                        zone,
-      keys
-                                                                      ]) => {
-        // set zone
-        this.zone = zone;
+    this.zone = await this.get_zone(this.domain, 'SOA')
 
-        // check if we have a key for the domain
-        this.keys = keys
-      })
-    */
     // TODO: listen for keys_ready event
     // TODO: listen for Keys_update event
     // TODO: check zone
     // TODO: add keys ready flag and check for it
   }
 
-  /// read a the record types from dns of a domain
+  /// read the record types from dns of a domain
   /// and return an object
   query(query_domain, record_type, callback, referrer) {
+    console.log('--- query(): create and populate query structure')
+    const query = doh.makeQuery(query_domain, record_type);
+    if (this.dnssec_enabled) {
+      query.additionals = [{
+        type: 'OPT',
+        name: '.',
+        udpPayloadSize: 4096,
+        flags: doh.dnsPacket.DNSSEC_OK,
+        options: []
+      }]
+    }
+    console.log(JSON.stringify(query));
+    console.log();
+    console.log(query.flags & doh.dnsPacket.AUTHENTIC_DATA);
+
     let query_result =
-        this.resolver.query(query_domain, record_type).then(response => {
+        doh.sendDohMsg(query, this.doh_url, this.doh_method).then(response => {
           let result = [];
 
           response.answers.forEach(ans => {
-            result.push(ans.data);
+            if (ans.type == record_type) {
+              result.push(ans.data);
+            }
           });
-
-          console.log(result)
+          console.log('--- query(): response');
+          console.log(JSON.stringify(response));
           // return object
           callback(result, referrer);
         });
