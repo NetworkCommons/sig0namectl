@@ -26,7 +26,7 @@ class Keys {
     })
 
     for (let i = 0; i < keys.length; i++) {
-      const filename = keys[i];
+      const filename = keys[i].Name;
       const domain = this.domain_from_filename(filename);
       const key = new Key(domain, filename);
       this.keys.push(key)
@@ -47,7 +47,7 @@ class Keys {
       // TODO: check & update status of new keys
       for (let i = 0; i < keys.length; i++) {
         if (!this.key_exists(keys[i])) {
-          const filename = keys[i];
+          const filename = keys[i].Name;
           const domain = this.domain_from_filename(filename);
           const key = new Key(domain, filename);
           this.keys.push(key)

@@ -58,6 +58,20 @@ class Domains {
     // TODO: auto remove keys
   }
 
+  /// add domain only if it does not yet exist
+  ///
+  /// returns true if it was added, false otherwise
+  add_domain_if_inexistent(domain_name, key) {
+    // check if domain exists
+    let domain = this.get_domain(domain_name)
+    if (domain) {
+      return false
+    }
+    // add the domain
+    this.add_domain(domain_name, key)
+    return true
+  }
+
   /// add domain
   add_domain(domain_name, key) {
     let dns_item = new Dns(domain_name, key);

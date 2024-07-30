@@ -8,19 +8,77 @@
     <link rel="stylesheet" href="sig0namectl.css"/>
     <link rel="stylesheet" href="sd.css"/>
 	<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+    <script src="sig0_wasm.js"></script>
+    <script src="sig0.js"></script>
+    <script src="keys.js"></script>
     <script src="dns.js"></script>
+    <script src="domains.js"></script>
     <script src="sd_inspector.js"></script>
     <script>
+        /// Event listener for when WASM is ready
+        var keys = null
+        var domains = new Domains(['zembla.zenr.io','dns-sd.org'])
+
+        // start initialization when WASM is ready
+        window.addEventListener('wasm_ready', function(){
+            console.log('WASM is ready')
+
+            keys = new Keys()
+        });
+
+        // update domains on key change
+        window.addEventListener('keys_ready', function(){
+            domains.keys_updated(keys.keys)
+        })
+        window.addEventListener('keys_updated', function(){
+            domains.keys_updated(keys.keys)
+        })
+
+        /// Add event listeners for domains object
+        window.addEventListener('domains_ready', function(){
+            // create new domains for each domain
+            for (let i=0; i<domains.domains.length; i++) {
+                add_new_domain(domains.domains[i].domain, domains.domains[i])
+            }
+        })
+        window.addEventListener('domains_updated', function(){
+            // create inexistent domains
+            update_ui_domains()
+        })
+
+        /// update domains
+        function update_ui_domains() {
+            for (let i=0; i<domains.domains.length; i++) {
+                // check if this domain exists in the UI
+                const domain = get_ui_domain(domains.domains[i].domain)
+                // create if it does not exist
+                if (!domain) {
+                    add_new_domain(domains.domains[i].domain, domains.domains[i])
+                }
+            }
+        }
+
+        /// get domain from UI
+        function get_ui_domain(domain_name) {
+            const ul = document.getElementById("domains").getElementsByTagName("ul")[0];
+            for (const child of ul.children) {
+                if(child.dns.domain === domain_name) {
+                    return child
+                }
+            }
+            return null
+        }
+
         /// add a new domain name
-        function add_new_domain(domain_name) {
-            let ul = document.getElementById("domains").getElementsByTagName("ul")[0];
-            let li = new UiDomain(domain_name)
+        function add_new_domain(domain_name, dns) {
+            const ul = document.getElementById("domains").getElementsByTagName("ul")[0];
+            const li = new UiDomain(domain_name, dns)
             ul.appendChild(li);
         }
 
         /// submit a domain name for addition
         function submit_domain(event, form) {
-            add_new_domain(form.domain_name.value);
+            domains.add_domain_if_inexistent(form.domain_name.value);
             event.preventDefault();
             form.domain_name.value = null;
         }
@@ -76,8 +134,5 @@
         <li class="entry"></li>
     </ul>
 </section>
-<script>
-    add_new_domain("zembla.zenr.io");
-</script>
 </body>
 </html>
