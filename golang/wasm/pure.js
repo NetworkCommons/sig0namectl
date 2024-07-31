@@ -186,8 +186,8 @@ function getKeysForDomain() {
 }
 
 // findDOHEndpoint()
-// for a given domain, find DOH Endpoint URL for update returned as string
-//
+// for a given domain (usually a zone), find DOH Endpoint URL for update returned as string
+// (note sig0namectl presently implements this only at zones)
 async function findDOHEndpoint() {
 	var dohDomain = document.getElementById("doh-for-domain").value
 	if (! dohDomain.endsWith('.')) {
