@@ -24,6 +24,12 @@
 			  <button onclick="getKeysForDomain()">Find key in keystore</button>
 			  <div id="domain-key"></div>
 		</p>
+		<h3>Find DOH Endpoint for a given Subdomain</h3>
+		<p>
+			  <input type="text" id="doh-for-domain" placeholder="mythingymajig.zenr.io">
+			  <button onclick="findDOHEndpoint()">Find DOH endpoint</button>
+			  <div id="domain-doh-endpoint"></div>
+		</p>
 		<h3>Import Key pair files from filesystem into Browser Keystore</h3>
 		<p>
 			<input type="file" id="input-key" accept=".key"/>
