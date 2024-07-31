@@ -184,3 +184,30 @@ function getKeysForDomain() {
 
 	return
 }
+
+// findDOHEndpoint()
+// for a given domain, find DOH Endpoint URL for update returned as string
+//
+async function findDOHEndpoint() {
+	var dohDomain = document.getElementById("doh-for-domain").value
+	if (! dohDomain.endsWith('.')) {
+		dohDomain = dohDomain + '.'
+	}
+
+	const div = document.getElementById("domain-doh-endpoint")
+	if (div.children.length > 0) {
+		div.removeChild(div.children[0])
+	}
+
+	const ul = document.createElement("ul")
+
+	const dohEndpoint = window.goFuncs.findDOHEndpoint
+	k = await dohEndpoint(dohDomain)
+	const li = document.createElement("li")
+	li.innerHTML = k
+	ul.appendChild(li)
+
+	div.appendChild(ul)
+
+        return
+}

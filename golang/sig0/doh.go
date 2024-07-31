@@ -64,6 +64,7 @@ func FindDOHEndpoint(name string) (*url.URL, error) {
 		return nil, fmt.Errorf("findDOHEndpoint: no answer section for %s", lookup)
 	}
 
+	// TODO deal with more than one SVCB "_dns." + name in RRSet
 	first := answer.Answer[0]
 	svcb, ok := first.(*dns.SVCB)
 	if !ok {

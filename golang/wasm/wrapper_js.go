@@ -25,6 +25,7 @@ func main() {
 	goFuncs.Set("newKeyRequest", js.FuncOf(newKeyRequest))
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
 	goFuncs.Set("checkKeyStatus", js.FuncOf(checkKeyStatus))
+	goFuncs.Set("findDOHEndpoint", js.FuncOf(findDOHEndpoint))
 
 	// cant let main return
 	forever := make(chan bool)
@@ -206,6 +207,34 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 	promiseConstructor := js.Global().Get("Promise")
 	return promiseConstructor.New(handler)
+}
+
+func findDOHEndpoint(_ js.Value, args []js.Value) any {
+	if len(args) != 1 {
+		return "expected 1 argument: domainName"
+	}
+	dohDomain := args[0].String()
+
+	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		resolve := args[0]
+		reject := args[1]
+
+		go func() {
+			// Note sig0.FindDOHEnpoint returns single cooked value from first SVCB RR resolved
+			dohUrl, err := sig0.FindDOHEndpoint(dohDomain)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+			resolve.Invoke(dohUrl.String())
+		}()
+
+		return nil
+	})
+
+	promiseConstructor := js.Global().Get("Promise")
+	return promiseConstructor.New(handler)
+
 }
 
 // create a keypair and request a key
