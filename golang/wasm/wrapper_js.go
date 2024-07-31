@@ -211,6 +211,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 func findDOHEndpoint(_ js.Value, args []js.Value) any {
 	if len(args) != 1 {
+        // TODO: return rejected promise
 		return "expected 1 argument: domainName"
 	}
 	dohDomain := args[0].String()
