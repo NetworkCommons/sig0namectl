@@ -1,0 +1,48 @@
+h1 {
+    margin-left: 3rem
+}
+
+#domain-list-section,
+#domain-overview {
+    margin: 3rem;
+}
+
+/* domain list */
+ul#domain-list {
+    list-style-type: none;
+    margin: 0;
+    margin-bottom: 2.5rem;
+    padding: 0;
+    width: 100%;
+
+}
+
+#domain-list li {
+    display: flex;
+    padding: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+#domain-list li div {
+    padding: 0.2rem;
+}
+
+#domain-list li .domain {
+    min-width: 15rem;
+}
+
+#domain-list li .domain:hover {
+    text-decoration: underline;
+}
+
+#domain-list li .status {
+    font-size: smaller;
+    color: grey;
+}
+
+/* domain playground */
+textarea {
+    width: 50rem;
+    max-width: 100%;
+    height: 8rem;
+}

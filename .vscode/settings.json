@@ -1,0 +1,19 @@
+{
+    "cSpell.words": [
+        "sig0namectl",
+        "wireformat",
+        "keypair"
+    ],
+
+    "javascript.format.enable": false,
+    "javascript.validate.enable": false,
+    "standard.enable": true,
+    "standard.autoFixOnSave": true,
+    "[javascript]": {
+        "editor.formatOnSave": true,
+    },
+    
+    "[css]": {
+        "editor.formatOnSave": true
+    }
+}

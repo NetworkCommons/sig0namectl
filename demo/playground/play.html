@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>sig0namectl Playground</title>
+		<link rel="stylesheet" href="sig0namectl.css"  type="text/css">
+		<link rel="stylesheet" href="play.css"  type="text/css">
+		<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+		<script src="sig0_wasm.js"></script>
+		<script src="sig0.js"></script>
+		<script src="keys.js"></script>
+		<script src="dns.js"></script>
+		<script src="domains.js"></script>
+		<script>
+			/// Event listener for when WASM is ready
+			var keys = null
+			var domains = new Domains()
+
+			// start initialization when WASM is ready
+			window.addEventListener('wasm_ready', function(){
+				console.log('WASM is ready')
+
+				keys = new Keys()
+			});
+
+			// update domains on key change
+			window.addEventListener('keys_ready', function(){
+				domains.keys_updated(keys.keys)
+			})
+			window.addEventListener('keys_updated', function(){
+				domains.keys_updated(keys.keys)
+			})
+
+			/// sig0namectl Playground Domain Management UI
+			class PlaygroundDomainListManagementUi {
+				constructor() {
+					// register listening on events
+					window.addEventListener('domains_ready', function(){
+						console.log('domains_ready')
+						domain_list_management_ui.update_domains()
+					})
+					window.addEventListener('domains_updated', function(){
+						console.log('domains_updated')
+						domain_list_management_ui.update_domains()
+					})
+				}
+
+				/// update Domain Listing
+				update_domains() {
+					const domain_list = document.getElementById('domain-list')
+
+					// copy keys into our array
+					for (let i=0; i < domains.domains.length; i++) {
+						const domain_item = this.domain_exists(domains.domains[i].domain)
+						if (domain_item) {
+							// update entry if it exists
+							this.update_domain_entry(domains.domains[i], domain_item)
+						} else {
+							// create a new one if it does not exist
+							this.create_domain_entry(domains.domains[i])
+						}
+					}
+				}
+
+				/// check if domain exists
+				domain_exists(domain_name) {
+					const domain_list = document.getElementById('domain-list')
+					for (let i=0; i < domain_list.children.length; i++) {
+						const item = domain_list.children[i]
+						const item_name_element = item.getElementsByClassName('domain')[0]
+						const item_name = item_name_element.innerHTML
+						if (item_name === domain_name) {
+							return item
+						}
+					}
+					return null
+				}
+
+				/// create a new domain entry
+				create_domain_entry (dns_item) {
+					const domain_list = document.getElementById('domain-list')
+					// get entry template
+					const element = document.getElementById('domain-template').getElementsByClassName('entry')[0].cloneNode(true);
+					// fill values
+					const element_domain = element.getElementsByClassName('domain')[0];
+					element_domain.appendChild(document.createTextNode(dns_item.domain));
+					element.getElementsByClassName('status')[0].appendChild(document.createTextNode('TODO: status'));
+
+					element_domain.onclick = function(event, item) {
+						manage_domain(dns_item)
+					}
+
+					// add element to list
+					domain_list.appendChild(element)
+				}
+
+				/// update entry
+				update_domain_entry (dns_item, domain_entry) {
+					const element_domain = domain_entry.getElementsByClassName('domain')[0]
+					element_domain.replaceChildren()
+					element_domain.appendChild(document.createTextNode(dns_item.domain));
+
+					const element_status = domain_entry.getElementsByClassName('status')[0]
+					element_status.replaceChildren()
+					element_status.appendChild(document.createTextNode('TODO: status'));					
+				}
+
+				/// request a domain with a newly created key
+				claim_domain(event, form) {
+					const domain = form.domain.value;
+					console.log('domain: ' +domain)
+					const subdomain = form.subdomain.value + '.' + domain;
+					console.log('claim domain: ' + subdomain +' doh_server: doh.zenr.io')
+					// request DoH server for domain
+					keys.request_key(subdomain, 'doh.zenr.io');
+					event.preventDefault();
+					form.subdomain.value = null;
+				}
+			}
+
+			/// sig0namectl Playground Overview UI 
+			class PlaygroundDomainOverviewUi {
+				constructor (domain_item) {
+					// set properties
+					this.domain_item = domain_item
+					this.section = document.getElementById('domain-overview')
+
+					// prepare and show template
+					this.clean()
+					this.set_title()
+					this.show()
+
+					// search for ANY dns entries
+					this.query_any()
+				}
+
+				show() {
+					this.section.style.display = 'block'
+				}
+
+				hide() {
+					this.section.style.display = 'none'
+				}
+
+				clean() {
+					const element = this.section.getElementsByClassName('playground-info')[0]
+					element.innerHtml = ''
+				}
+				
+				set_title() {
+					const element = this.section.getElementsByClassName('playground-title')[0]
+					element.innerHtml = ''
+					element.appendChild(document.createTextNode(this.domain_item.domain))
+				}
+
+				set_info(txt) {
+					const element = this.section.getElementsByClassName('playground-info')[0]
+					element.innerHtml = ''
+					element.appendChild(document.createTextNode(txt))
+				}
+
+				/// search for ANY dns entries
+				query_any() {
+					this.domain_item.query(this.domain_item.domain, 'ANY', this.query_any_result)
+				}
+
+				/// query Result
+				query_any_result = function(result) {
+					console.log(result)
+				}
+			}
+
+			/// manage a domain entry
+			function manage_domain(domain_item) {
+				console.log('manage_domain()')
+				console.log(domain_item)
+
+				domain_management_ui = new PlaygroundDomainOverviewUi(domain_item)
+			}
+
+			/// Add a list of records
+			/// TODO: write this function
+			/// TODO: integrate helper function into DNS object
+			function add_record_list(event, form) {
+				// TODO
+			}
+
+			/// Delete a list of records
+			/// TODO: write this function
+			/// TODO: integrate helper function into DNS object
+			function delete_record_list() {
+				// TODO
+			}
+
+			const domain_list_management_ui = new PlaygroundDomainListManagementUi()
+			var domain_management_ui = null
+		</script>
+	</head>
+	<body>
+		<h1>Playground</h1>
+		<section id="domain-list-section">
+			<div id="domain-list-container">
+				<h2>Your Domain Spaces</h2>
+				<ul id="domain-list"></ul>
+			</div>
+			<div id="domain-request">
+				<p>Claim a new domain space:</p>
+				<form onsubmit="domain_list_management_ui.claim_domain(event, this);">
+					<input type="text" 
+						class="key_subdomain"
+						placeholder="your-new-subdomain"
+						name="subdomain"
+						required
+						minlength="4"
+						maxlength="64"
+						pattern="[a-z0-9\._\-]{4,64}"
+						/>
+					<select name="domain" class="key_domain">
+						<option value="zenr.io" selected>.zenr.io</option>
+						<option value="beta.freifunk.net">.beta.freifunk.net</option>
+					</select>
+					<input type="submit" value="claim" class="submit"/>
+				</form>
+			</div>
+		</section>
+		<section id="domain-overview" style="display: none;">
+			<hr/>
+			<h2 class="playground-title"></h2>
+			<pre class="playground-info"></pre>
+			<form onsubmit="">
+				<textarea name="playgroundRR"></textarea><br/>
+				<input type="submit" value="update" class="submit"/>
+				<input type="submit" value="delete" class="submit"/>
+			</form>
+		</section>
+		<!-- Templates -->
+		<section style="display:none;">
+			<ul id="domain-template">
+				<li class="entry">
+					<div class="domain"></div>
+					<div class="status"></div>
+				</li>
+			</ul>
+		</section>
+	</body>
+</html>
