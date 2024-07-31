@@ -23,12 +23,15 @@
         window.addEventListener('wasm_ready', function(){
             console.log('WASM is ready')
 
+            // load keys from WASM
             keys = new Keys()
         });
 
         // update domains on key change
         window.addEventListener('keys_ready', function(){
             domains.keys_updated(keys.keys)
+            // set interval for key reload
+            setInterval(update_keys, 5000)
         })
         window.addEventListener('keys_updated', function(){
             domains.keys_updated(keys.keys)
@@ -45,6 +48,11 @@
             // create inexistent domains
             update_ui_domains()
         })
+
+        /// update keys from local storage
+        function update_keys() {
+            keys.update_keys()
+        }
 
         /// update domains
         function update_ui_domains() {
