@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -26,6 +27,8 @@ func main() {
 	goFuncs.Set("newUpdater", js.FuncOf(newUpdater))
 	goFuncs.Set("checkKeyStatus", js.FuncOf(checkKeyStatus))
 	goFuncs.Set("findDOHEndpoint", js.FuncOf(findDOHEndpoint))
+	goFuncs.Set("query", js.FuncOf(query))
+	goFuncs.Set("setDefaultDOHResolver", js.FuncOf(setDefaultDOHResolver))
 
 	// cant let main return
 	forever := make(chan bool)
@@ -127,35 +130,32 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			switch answerKeyRR.Rcode {
-			case dns.RcodeSuccess:
-				for _, rr := range answerKeyRR.Answer {
-					answerKey, ok := rr.(*dns.KEY)
-					if !ok {
-						err = fmt.Errorf("answer is not a KEY type: %T", rr)
-						reject.Invoke(jsErr(err))
-						return
-					}
-
-					if answerKey.Flags == key.Key.Flags &&
-						answerKey.Protocol == key.Key.Protocol &&
-						answerKey.Algorithm == key.Key.Algorithm &&
-						answerKey.PublicKey == key.Key.PublicKey {
-						keyRRExists = true
-						break
-					}
-				}
-
-			case dns.RcodeNameError:
-
-			default:
+			if answerKeyRR.Rcode != dns.RcodeSuccess {
 				err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
 				reject.Invoke(jsErr(err))
+				return
+			}
+
+			for _, rr := range answerKeyRR.Answer {
+				answerKey, ok := rr.(*dns.KEY)
+				if !ok {
+					err = fmt.Errorf("answer is not a KEY type: %T", rr)
+					reject.Invoke(jsErr(err))
+					return
+				}
+
+				if answerKey.Flags == key.Key.Flags &&
+					answerKey.Protocol == key.Key.Protocol &&
+					answerKey.Algorithm == key.Key.Algorithm &&
+					answerKey.PublicKey == key.Key.PublicKey {
+					keyRRExists = true
+					break
+				}
 			}
 
 			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
 			signalPtrRRName := sig0.SignalSubzonePrefix + "." + zone
-			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "." + 
+			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "." +
 				sig0.SignalSubzonePrefix + "." + zone
 
 			// construct query for _signal.zone PTR RRset
@@ -172,28 +172,24 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			switch answerSignalPtr.Rcode {
-			case dns.RcodeSuccess:
-				for _, rr := range answerSignalPtr.Answer {
-					ptrRR, ok := rr.(*dns.PTR)
-					if !ok {
-						err = fmt.Errorf("answer is not a PTR type: %T", rr)
-						reject.Invoke(jsErr(err))
-						return
-					}
-
-					if ptrRR.Ptr == signalKeyRRName {
-						signalPTRExists = true
-						break
-					}
-				}
-
-			case dns.RcodeNameError:
-
-			default:
+			if answerSignalPtr.Rcode != dns.RcodeSuccess {
 				err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerKeyRR)
 				reject.Invoke(jsErr(err))
 				return
+			}
+
+			for _, rr := range answerSignalPtr.Answer {
+				ptrRR, ok := rr.(*dns.PTR)
+				if !ok {
+					err = fmt.Errorf("answer is not a PTR type: %T", rr)
+					reject.Invoke(jsErr(err))
+					return
+				}
+
+				if ptrRR.Ptr == signalKeyRRName {
+					signalPTRExists = true
+					break
+				}
 			}
 
 			resolve.Invoke(map[string]any{
@@ -210,15 +206,16 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 }
 
 func findDOHEndpoint(_ js.Value, args []js.Value) any {
-	if len(args) != 1 {
-        // TODO: return rejected promise
-		return "expected 1 argument: domainName"
-	}
-	dohDomain := args[0].String()
+	handler := js.FuncOf(func(this js.Value, promises []js.Value) interface{} {
+		resolve := promises[0]
+		reject := promises[1]
 
-	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		resolve := args[0]
-		reject := args[1]
+		if len(args) != 1 {
+			err := fmt.Errorf("expected 1 argument: domainName")
+			reject.Invoke(jsErr(err))
+			return nil
+		}
+		dohDomain := args[0].String()
 
 		go func() {
 			// Note sig0.FindDOHEnpoint returns single cooked value from first SVCB RR resolved
@@ -242,15 +239,17 @@ func findDOHEndpoint(_ js.Value, args []js.Value) any {
 // arguments: the name to request
 // returns nill or an error string
 func newKeyRequest(_ js.Value, args []js.Value) any {
-	if len(args) != 2 {
-		return "expected 2 arguments: domainName and dohServer"
-	}
-	domainName := args[0].String()
-	dohServer := args[1].String()
+	handler := js.FuncOf(func(this js.Value, promises []js.Value) interface{} {
+		resolve := promises[0]
+		reject := promises[1]
 
-	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		resolve := args[0]
-		reject := args[1]
+		if len(args) != 2 {
+			err := fmt.Errorf("expected 2 arguments: domainName and dohServer")
+			reject.Invoke(jsErr(err))
+			return nil
+		}
+		domainName := args[0].String()
+		dohServer := args[1].String()
 
 		go func() {
 			log.Println("Requesting key for", domainName, "from", dohServer)
@@ -428,6 +427,76 @@ func newUpdater(_ js.Value, args []js.Value) any {
 			return promiseConstructor.New(handler)
 		}),
 	}
+}
+
+/*
+	Returns a Promise which executes a DOH query using sig0.DefaultDOHResolver
+
+arguments:
+- 0: (required) name to query
+- 1: (optional) dns RRtype, defaults to A
+*/
+func query(_ js.Value, args []js.Value) any {
+	handler := js.FuncOf(func(this js.Value, promises []js.Value) interface{} {
+		resolve := promises[0]
+		reject := promises[1]
+
+		var rrType uint16 = dns.TypeA
+		if len(args) < 1 {
+			err := fmt.Errorf("expected 1 argument: domainName")
+			reject.Invoke(jsErr(err))
+			return nil
+		}
+		domainName := args[0].String()
+		if len(args) == 2 {
+			var err error
+			rrType, err = sig0.QueryTypeFromString(args[1].String())
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return nil
+			}
+		}
+
+		go func() {
+			log.Printf("[Querying] %s with type %d", domainName, rrType)
+
+			qry, err := sig0.QueryWithType(domainName, rrType)
+			if err != nil {
+				reject.Invoke(jsErr(err))
+				return
+			}
+
+			answer, err := sig0.SendDOHQuery(sig0.DefaultDOHResolver, qry)
+			if err != nil {
+				err = fmt.Errorf("request loop failed: %w", err)
+				reject.Invoke(jsErr(err))
+				return
+			}
+
+			jsonAnswer, err := json.Marshal(answer)
+			if err != nil {
+				err = fmt.Errorf("request loop failed: %w", err)
+				reject.Invoke(jsErr(err))
+				return
+			}
+
+			resolve.Invoke(string(jsonAnswer))
+		}()
+
+		return nil
+	})
+
+	promiseConstructor := js.Global().Get("Promise")
+	return promiseConstructor.New(handler)
+}
+
+func setDefaultDOHResolver(_ js.Value, args []js.Value) any {
+	if len(args) != 1 {
+		return "expected 1 argument: dohResolverHostname"
+	}
+	host := args[0].String()
+	sig0.DefaultDOHResolver = host
+	return nil
 }
 
 // Utilities
