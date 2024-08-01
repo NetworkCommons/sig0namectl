@@ -1,9 +1,10 @@
 package sig0
 
 import (
-	"os"
-
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
@@ -49,4 +50,43 @@ func QueryWithType(name string, qtype uint16) (*dns.Msg, error) {
 	}
 
 	return m, nil
+}
+
+func QueryWithStringType(name, qtype string) (*dns.Msg, error) {
+	t, err := QueryTypeFromString(qtype)
+	if err != nil {
+		return nil, err
+	}
+	return QueryWithType(name, t)
+}
+
+func QueryTypeFromString(value string) (uint16, error) {
+	var t uint16
+	switch strings.ToLower(value) {
+	case "a":
+		t = dns.TypeA
+	case "aaaa":
+		t = dns.TypeAAAA
+	case "any":
+		t = dns.TypeANY
+	case "key":
+		t = dns.TypeKEY
+	case "ptr":
+		t = dns.TypePTR
+	case "loc":
+		t = dns.TypeLOC
+	case "txt":
+		t = dns.TypeTXT
+	case "svcb":
+		t = dns.TypeSVCB
+	case "srv":
+		t = dns.TypeSRV
+	default:
+		asNum, err := strconv.ParseUint(value, 10, 16)
+		if err != nil {
+			return 0, fmt.Errorf("unhandled dns type: %q: %w", value, err)
+		}
+		t = uint16(asNum)
+	}
+	return t, nil
 }
