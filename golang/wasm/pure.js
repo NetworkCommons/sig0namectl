@@ -211,3 +211,438 @@ async function findDOHEndpoint() {
 
         return
 }
+const DNS_RCODE = [
+	"NoErr",	// 0
+	"FormErr",	// 1
+	"ServFail",	// 2
+	"NXDomain",
+	"NotImp",
+	"Refused",
+	"YXDomain",
+	"YXRRSet",
+	"NXRRSet",
+	"NotAuth",
+	"NotZone",
+	"DSOTYPENI",
+	"Unassigned",	// 12
+	"Unassigned",
+	"Unassigned",
+	"Unassigned",
+	"BADVERS",
+	"BADSIG",
+	"BADKEY",
+	"BADTIME",
+	"BADMODE",
+	"BADALG",
+	"BADTRUNK",
+	"BADCOOKIE",	// 23
+]
+
+const DNS_RRTYPE = [
+	"Reserved",	// 0
+	"A",		// 1
+	"NS",		// 2
+	"MD",
+	"MF",
+	"CNAME",
+	"SOA",		// 6
+	"MB",
+	"MG",
+	"MR",
+	"NULL",
+	"WKS",
+	"PTR",		// 12
+	"HINFO",
+	"MINFO",
+	"MX",
+	"TXT",
+	"RP",
+	"AFSDB",
+	"X25",
+	"ISDN",
+	"RT",
+	"NSAP",
+	"NSAP-PTR",
+	"SIG",		// 24
+	"KEY",		// 25
+	"PX",
+	"GPOS",
+	"AAAA",		// 28
+	"LOC",		// 29
+	"NXT",
+	"EID",
+	"NIMLOC",
+	"SRV",		// 33
+	"ATMA",
+	"NAPTR",
+	"KX",
+	"CERT",
+	"A6",
+	"DNAME",
+	"SINK",
+	"OPT",
+	"APL",
+	"DS",
+	"SSHFP",	// 44
+	"IPSECKEY",
+	"RRSIG",	// 46
+	"NSEC",		// 47
+	"DNSKEY",	// 48
+	"DHCID",
+	"NSEC3",	// 50
+	"NSEC3PARAM",
+	"TLSA",		// 52
+	"SMIMEA",
+	"Unassigned",
+	"HIP",
+	"NINFO",
+	"RKEY",
+	"TALINK",
+	"CDS",		// 59
+	"CDNSKEY",	// 60
+	"OPENPGPKEY",	// 61
+	"CSYNC",	// 62
+	"ZONEMD",	// 63
+	"SVCB",		// 64
+	"HTTPS",	// 65
+	"Unassigned",	// 66
+	"Unassigned",	// 67
+	"Unassigned",	// 68
+	"Unassigned",	// 69
+	"Unassigned",	// 70
+	"Unassigned",	// 71
+	"Unassigned",	// 72
+	"Unassigned",	// 73
+	"Unassigned",	// 74
+	"Unassigned",	// 75
+	"Unassigned",	// 76
+	"Unassigned",	// 77
+	"Unassigned",	// 78
+	"Unassigned",	// 79
+	"Unassigned",	// 80
+	"Unassigned",	// 81
+	"Unassigned",	// 82
+	"Unassigned",	// 83
+	"Unassigned",	// 84
+	"Unassigned",	// 85
+	"Unassigned",	// 86
+	"Unassigned",	// 87
+	"Unassigned",	// 88
+	"Unassigned",	// 89
+	"Unassigned",	// 90
+	"Unassigned",	// 91
+	"Unassigned",	// 92
+	"Unassigned",	// 93
+	"Unassigned",	// 94
+	"Unassigned",	// 95
+	"Unassigned",	// 96
+	"Unassigned",	// 97
+	"Unassigned",	// 98
+	"SPF",
+	"UINFO",
+	"UID",
+	"GID",
+	"UNSPEC",
+	"NID",
+	"L32",
+	"L64",
+	"LP",
+	"EUI48",
+	"EUI64",	// 109
+	"Unassigned",	// 110
+	"Unassigned",	// 111
+	"Unassigned",	// 112
+	"Unassigned",	// 113
+	"Unassigned",	// 114
+	"Unassigned",	// 115
+	"Unassigned",	// 116
+	"Unassigned",	// 117
+	"Unassigned",	// 118
+	"Unassigned",	// 119
+	"Unassigned",	// 120
+	"Unassigned",	// 121
+	"Unassigned",	// 122
+	"Unassigned",	// 123
+	"Unassigned",	// 124
+	"Unassigned",	// 125
+	"Unassigned",	// 126
+	"Unassigned",	// 127
+	"NXNAME",	// 128
+	"Unassigned",	// 129
+	"Unassigned",	// 130
+	"Unassigned",	// 131
+	"Unassigned",	// 132
+	"Unassigned",	// 133
+	"Unassigned",	// 134
+	"Unassigned",	// 135
+	"Unassigned",	// 136
+	"Unassigned",	// 137
+	"Unassigned",	// 138
+	"Unassigned",	// 139
+	"Unassigned",	// 140
+	"Unassigned",	// 141
+	"Unassigned",	// 142
+	"Unassigned",	// 143
+	"Unassigned",	// 144
+	"Unassigned",	// 145
+	"Unassigned",	// 146
+	"Unassigned",	// 147
+	"Unassigned",	// 148
+	"Unassigned",	// 149
+	"Unassigned",	// 150
+	"Unassigned",	// 151
+	"Unassigned",	// 152
+	"Unassigned",	// 153
+	"Unassigned",	// 154
+	"Unassigned",	// 155
+	"Unassigned",	// 156
+	"Unassigned",	// 157
+	"Unassigned",	// 158
+	"Unassigned",	// 159
+	"Unassigned",	// 160
+	"Unassigned",	// 161
+	"Unassigned",	// 162
+	"Unassigned",	// 163
+	"Unassigned",	// 164
+	"Unassigned",	// 165
+	"Unassigned",	// 166
+	"Unassigned",	// 167
+	"Unassigned",	// 168
+	"Unassigned",	// 169
+	"Unassigned",	// 170
+	"Unassigned",	// 171
+	"Unassigned",	// 172
+	"Unassigned",	// 173
+	"Unassigned",	// 174
+	"Unassigned",	// 175
+	"Unassigned",	// 176
+	"Unassigned",	// 177
+	"Unassigned",	// 178
+	"Unassigned",	// 179
+	"Unassigned",	// 180
+	"Unassigned",	// 181
+	"Unassigned",	// 182
+	"Unassigned",	// 183
+	"Unassigned",	// 184
+	"Unassigned",	// 185
+	"Unassigned",	// 186
+	"Unassigned",	// 187
+	"Unassigned",	// 188
+	"Unassigned",	// 189
+	"Unassigned",	// 190
+	"Unassigned",	// 191
+	"Unassigned",	// 192
+	"Unassigned",	// 193
+	"Unassigned",	// 194
+	"Unassigned",	// 195
+	"Unassigned",	// 196
+	"Unassigned",	// 197
+	"Unassigned",	// 198
+	"Unassigned",	// 199
+	"Unassigned",	// 200
+	"Unassigned",	// 201
+	"Unassigned",	// 202
+	"Unassigned",	// 203
+	"Unassigned",	// 204
+	"Unassigned",	// 205
+	"Unassigned",	// 206
+	"Unassigned",	// 207
+	"Unassigned",	// 208
+	"Unassigned",	// 209
+	"Unassigned",	// 210
+	"Unassigned",	// 211
+	"Unassigned",	// 212
+	"Unassigned",	// 213
+	"Unassigned",	// 214
+	"Unassigned",	// 215
+	"Unassigned",	// 216
+	"Unassigned",	// 217
+	"Unassigned",	// 218
+	"Unassigned",	// 219
+	"Unassigned",	// 220
+	"Unassigned",	// 221
+	"Unassigned",	// 222
+	"Unassigned",	// 223
+	"Unassigned",	// 224
+	"Unassigned",	// 225
+	"Unassigned",	// 226
+	"Unassigned",	// 227
+	"Unassigned",	// 228
+	"Unassigned",	// 229
+	"Unassigned",	// 230
+	"Unassigned",	// 231
+	"Unassigned",	// 232
+	"Unassigned",	// 233
+	"Unassigned",	// 234
+	"Unassigned",	// 235
+	"Unassigned",	// 236
+	"Unassigned",	// 237
+	"Unassigned",	// 238
+	"Unassigned",	// 239
+	"Unassigned",	// 240
+	"Unassigned",	// 241
+	"Unassigned",	// 242
+	"Unassigned",	// 243
+	"Unassigned",	// 244
+	"Unassigned",	// 245
+	"Unassigned",	// 246
+	"Unassigned",	// 247
+	"Unassigned",	// 248
+	"TKEY",		// 249
+	"TSIG",		// 250
+	"IXFR",
+	"AXFR",
+	"MAILA",
+	"MAILB",
+	"ANY",		// 255
+	"URI",		// 256
+	"CAA",		// 257
+	"AVC",		// 258
+	"DOA",		// 259
+	"AMRELAY",	// 260
+	"RESINFO",	// 261
+	"WALLET",	// 262
+	"CLA",		// 263
+	"IPN",		// 264
+]
+
+const DNS_CLASS = [
+	"Reserved",	// 0
+	"IN",		// 1
+	"Unassigned",	// 2
+	"Chaos",	// 3
+	"Hesiod",	// 4
+//	NOT CURRENTLY SUPPORTED
+//	"QCLASS NONE",	  // 254
+//	"QCLASS * (ANY)", // 255
+]
+
+
+// query()
+// for a given name and RR type, return dns response
+async function queryRaw() {
+	// set query question name
+	var dohQName = document.getElementById("query-name").value
+
+	// DEBUG
+	if (dohQName == "") {
+		dohQName = "zenr.io"
+	}
+
+	if (! dohQName.endsWith('.')) {
+		dohQName = dohQName + '.'
+	}
+
+	// set query question RR type
+	var dohQType = document.getElementById("query-type").value
+	if (dohQType == "") {
+		dohQType = 'A'
+	}
+
+	const pre = document.getElementById("query-result")
+	if (pre.children.length > 0) {
+		pre.removeChild(pre.children[0])
+	}
+
+	const ul = document.createElement("ul")
+
+	const dohQuery = window.goFuncs.query
+	result = await dohQuery(dohQName, dohQType)
+
+	const resultJson = JSON.parse(result)
+
+	// map rcode integer to standard text
+	rcodeObj = resultJson.Rcode
+	if (typeof rcodeObj == "number") {
+		if (rcodeObj < DNS_RCODE.length) {
+			rcodeObj = DNS_RCODE[rcodeObj]
+		} else {
+			rcodeObj = "Unassigned"
+		}
+	}
+	resultJson.Rcode = rcodeObj
+
+	resultJson.Question.forEach(question => {
+		if (typeof question.Qtype == "number") {
+			if (question.Qtype < DNS_RRTYPE.length) {
+				question.Qtype = DNS_RRTYPE[question.Qtype]
+			} else {
+				question.Qtype = "Unassigned"
+			}
+		}
+
+		if (typeof question.Qclass == "number") {
+			if (question.Qclass < DNS_CLASS.length) {
+				question.Qclass = DNS_CLASS[question.Qclass]
+			} else {
+				question.Qclass = "Unassigned"
+			}
+		}
+
+	})
+
+	if (resultJson.Answer != null) {
+		console.log("This response has Answer array length of ", resultJson.Answer.length)
+
+		resultJson.Answer.forEach(answer => {
+			console.log("Answer:", answer)
+
+			if (typeof answer.Hdr.Rrtype == "number") {
+				if (answer.Hdr.Rrtype < DNS_RRTYPE.length) {
+					answer.Hdr.Rrtype = DNS_RRTYPE[answer.Hdr.Rrtype]
+				} else {
+					answer.Hdr.Rrtype = "Unassigned"
+				}
+			}
+
+			if (typeof answer.Hdr.Class == "number") {
+				if (answer.Hdr.Class < DNS_CLASS.length) {
+					answer.Hdr.Class = DNS_CLASS[answer.Hdr.Class]
+				} else {
+					answer.Hdr.Class = "Unassigned"
+				}
+			}
+
+
+		})
+	} else {
+		console.log("This response has null as Answer property")
+	}
+
+	const raw = document.createElement("li")
+	raw.innerHTML = JSON.stringify(resultJson, null, 4)
+	ul.appendChild(raw)
+
+
+	// const qname = document.createElement("li")
+	// qname.innerHTML = `Question RR Name: ${resultJson.Question[0].Name}`
+	// ul.appendChild(qname)
+
+	// const qtype = document.createElement("li")
+	// qtype.innerHTML = `Question RR Type: ${resultJson.Question[0].Qtype}`
+	// ul.appendChild(qtype)
+
+	// const qclass = document.createElement("li")
+	// qclass.innerHTML = `Question RR Class: ${resultJson.Question[0].Qclass}`
+	// ul.appendChild(qclass)
+
+	// if (!(resultJson.Answer == null)) {
+	// 	resultJson.Answer.forEach(answer => {
+	// 		const an = document.createElement('li')
+	// 		an.innerHTML = `Answer RR Name: ${answer.Hdr.Name}`
+	// 		ul.appendChild(an)
+
+	// 		const at = document.createElement('li')
+	// 		at.innerHTML = `Answer RR Type: ${answer.Hdr.Rrtype}`
+	// 		ul.appendChild(at)
+
+	// 		const ac = document.createElement('li')
+	// 		ac.innerHTML = `Answer RR Class: ${answer.Hdr.Class}`
+	// 		ul.appendChild(ac)
+	// 	})
+	// }
+
+	pre.appendChild(ul)
+
+        return
+}

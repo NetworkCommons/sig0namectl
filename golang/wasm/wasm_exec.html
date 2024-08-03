@@ -6,6 +6,15 @@
 		<script type="application/javascript" src="pure.js"></script>
 	</head>
 	<body>
+		<h2>DNS</h2>
+      		<h3>DOH Resolver</h3>
+	  	<p>
+			  <input type="text" id="query-name" placeholder="mythingymajig.zenr.io">
+			  <input type="text" id="query-type" placeholder="A">
+			  <button onclick="queryRaw()">Resolve</button>
+			  <pre id="query-result"></pre>
+		</p>
+
 		<h2>DNS Keys</h2>
       		<h3>List Keystore</h3>
      		<button onclick="listKeys()">Update</button>
@@ -17,7 +26,7 @@
 	  	<p>
 			  <input type="text" id="new-name" placeholder="mythingymajig.zenr.io">
 			  <button onclick="requestKey()">Request new Key</button>
-		</p>	
+		</p>
 		<h3>Search Keystore for Key to sign update for a given Subdomain</h3>
 		<p>
 			  <input type="text" id="keys-for-domain" placeholder="mythingymajig.zenr.io">
