@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
+	// "strconv"
+	// "strings"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
 	"github.com/davecgh/go-spew/spew"
