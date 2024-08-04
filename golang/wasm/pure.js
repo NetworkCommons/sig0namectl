@@ -338,16 +338,16 @@ const DNS_RRTYPE = [
 	"Unassigned",	// 96
 	"Unassigned",	// 97
 	"Unassigned",	// 98
-	"SPF",
-	"UINFO",
-	"UID",
-	"GID",
-	"UNSPEC",
-	"NID",
-	"L32",
-	"L64",
-	"LP",
-	"EUI48",
+	"SPF",		// 99
+	"UINFO",	// 100
+	"UID",		// 101
+	"GID",		// 102
+	"UNSPEC",	// 103
+	"NID",		// 104
+	"L32",		// 105
+	"L64",		// 106
+	"LP",		// 107
+	"EUI48",	// 108
 	"EUI64",	// 109
 	"Unassigned",	// 110
 	"Unassigned",	// 111
@@ -490,10 +490,10 @@ const DNS_RRTYPE = [
 	"Unassigned",	// 248
 	"TKEY",		// 249
 	"TSIG",		// 250
-	"IXFR",
-	"AXFR",
-	"MAILA",
-	"MAILB",
+	"IXFR",		// 251
+	"AXFR",		// 252
+	"MAILA",	// 253
+	"MAILB",	// 254
 	"ANY",		// 255
 	"URI",		// 256
 	"CAA",		// 257
@@ -520,7 +520,7 @@ const DNS_CLASS = [
 
 // query()
 // for a given name and RR type, return dns response
-async function queryRaw() {
+async function query() {
 	// set query question name
 	var dohQName = document.getElementById("query-name").value
 
@@ -585,7 +585,6 @@ async function queryRaw() {
 		console.log("This response has Answer array length of ", resultJson.Answer.length)
 
 		resultJson.Answer.forEach(answer => {
-			console.log("Answer:", answer)
 
 			if (typeof answer.Hdr.Rrtype == "number") {
 				if (answer.Hdr.Rrtype < DNS_RRTYPE.length) {
@@ -602,7 +601,30 @@ async function queryRaw() {
 					answer.Hdr.Class = "Unassigned"
 				}
 			}
+			// RRSIG TypeCovered
+			if (answer.Hdr.Rrtype == "RRSIG") {
+				if (typeof answer.TypeCovered == "number") {
+					if (answer.TypeCovered < DNS_RRTYPE.length) {
+						answer.TypeCovered = DNS_RRTYPE[answer.TypeCovered]
+					}
+				}
+			}
 
+			// NSEC TypeBitMap is an array of numeric RR Types
+			// added new NSEC array element 'TypeRR' giving RRTypes in text mnemonic form
+			if (answer.Hdr.Rrtype == "NSEC") {
+					answer.TypeBitMap.forEach(type => {
+					if (typeof type == "number") {
+						if (type < DNS_RRTYPE.length) {
+							if (answer.TypeRR) {
+								answer.TypeRR.push( DNS_RRTYPE[type] )
+							} else {
+								answer.TypeRR = [ DNS_RRTYPE[type] ]
+							}
+						}
+					}
+				})
+			}
 
 		})
 	} else {
