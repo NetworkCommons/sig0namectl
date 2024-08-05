@@ -81,6 +81,8 @@ func QueryTypeFromString(value string) (uint16, error) {
 		t = dns.TypeSVCB
 	case "srv":
 		t = dns.TypeSRV
+	case "soa":
+		t = dns.TypeSOA
 	default:
 		asNum, err := strconv.ParseUint(value, 10, 16)
 		if err != nil {
