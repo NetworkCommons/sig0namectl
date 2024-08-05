@@ -631,6 +631,32 @@ async function query() {
 		console.log("This response has null as Answer property")
 	}
 
+	if (resultJson.Ns != null) {
+		console.log("This response has Ns array length of ", resultJson.Ns.length)
+
+		resultJson.Ns.forEach(answer => {
+
+			if (typeof answer.Hdr.Rrtype == "number") {
+				if (answer.Hdr.Rrtype < DNS_RRTYPE.length) {
+					answer.Hdr.Rrtype = DNS_RRTYPE[answer.Hdr.Rrtype]
+				} else {
+					answer.Hdr.Rrtype = "Unassigned"
+				}
+			}
+
+			if (typeof answer.Hdr.Class == "number") {
+				if (answer.Hdr.Class < DNS_CLASS.length) {
+					answer.Hdr.Class = DNS_CLASS[answer.Hdr.Class]
+				} else {
+					answer.Hdr.Class = "Unassigned"
+				}
+			}
+
+		})
+	} else {
+		console.log("This response has null as Ns property")
+	}
+
 	const getDohServer = window.goFuncs.getDefaultDOHResolver
 	dohServer = document.createElement("li")
 	dohServer.innerHTML = "Querying DOH host: " + getDohServer()
