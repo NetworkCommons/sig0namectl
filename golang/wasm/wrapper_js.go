@@ -29,6 +29,7 @@ func main() {
 	goFuncs.Set("findDOHEndpoint", js.FuncOf(findDOHEndpoint))
 	goFuncs.Set("query", js.FuncOf(query))
 	goFuncs.Set("setDefaultDOHResolver", js.FuncOf(setDefaultDOHResolver))
+	goFuncs.Set("getDefaultDOHResolver", js.FuncOf(getDefaultDOHResolver))
 
 	// cant let main return
 	forever := make(chan bool)
@@ -497,6 +498,10 @@ func setDefaultDOHResolver(_ js.Value, args []js.Value) any {
 	host := args[0].String()
 	sig0.DefaultDOHResolver = host
 	return nil
+}
+
+func getDefaultDOHResolver(_ js.Value, args []js.Value) any {
+	return sig0.DefaultDOHResolver
 }
 
 // Utilities
