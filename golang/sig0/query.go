@@ -32,9 +32,12 @@ func QueryAny(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeANY)
 }
 
-// uses ANY query type
 func QueryNSEC(name string) (*dns.Msg, error) {
 	return QueryWithType(name, dns.TypeNSEC)
+}
+
+func QueryRRSIG(name string) (*dns.Msg, error) {
+	return QueryWithType(name, dns.TypeRRSIG)
 }
 
 func QueryWithType(name string, qtype uint16) (*dns.Msg, error) {
@@ -90,6 +93,8 @@ func QueryTypeFromString(value string) (uint16, error) {
 		t = dns.TypeSOA
 	case "nsec":
 		t = dns.TypeNSEC
+	case "rrsig":
+		t = dns.TypeRRSIG
 	default:
 		asNum, err := strconv.ParseUint(value, 10, 16)
 		if err != nil {
