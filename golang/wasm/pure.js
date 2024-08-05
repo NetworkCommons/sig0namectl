@@ -652,6 +652,31 @@ async function query() {
 				}
 			}
 
+			// RRSIG TypeCovered
+			if (answer.Hdr.Rrtype == "RRSIG") {
+				if (typeof answer.TypeCovered == "number") {
+					if (answer.TypeCovered < DNS_RRTYPE.length) {
+						answer.TypeCovered = DNS_RRTYPE[answer.TypeCovered]
+					}
+				}
+			}
+
+			// NSEC TypeBitMap is an array of numeric RR Types
+			// added new NSEC array element 'TypeBitMapRR' giving RRTypes in text mnemonic form
+			if (answer.Hdr.Rrtype == "NSEC") {
+					answer.TypeBitMap.forEach(type => {
+					if (typeof type == "number") {
+						if (type < DNS_RRTYPE.length) {
+							if (answer.TypeBitMapRR) {
+								answer.TypeBitMapRR.push( DNS_RRTYPE[type] )
+							} else {
+								answer.TypeBitMapRR = [ DNS_RRTYPE[type] ]
+							}
+						}
+					}
+				})
+			}
+
 		})
 	} else {
 		console.log("This response has null as Ns property")
