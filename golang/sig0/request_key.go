@@ -12,7 +12,11 @@ import (
 var (
 	SignalSubzonePrefix = "_signal"
 	DefaultTTL          = 300
-	DefaultDOHResolver  = "quad9.zenr.io"
+	//DefaultDOHResolver  = "8.8.8.8"
+	// DefaultDOHResolver  = "1.1.1.1"
+	// DefaultDOHResolver  = "quad9.zenr.io"
+	DefaultDOHResolver  = "google.zenr.io"
+	// DefaultDOHResolver  = "doh.zenr.io"
 )
 
 func RequestKey(newName string) error {
