@@ -631,38 +631,14 @@ async function query() {
 		console.log("This response has null as Answer property")
 	}
 
+	const getDohServer = window.goFuncs.getDefaultDOHResolver
+	dohServer = document.createElement("li")
+	dohServer.innerHTML = "Querying DOH host: " + getDohServer()
+	ul.appendChild(dohServer)
+
 	const raw = document.createElement("li")
 	raw.innerHTML = JSON.stringify(resultJson, null, 4)
 	ul.appendChild(raw)
-
-
-	// const qname = document.createElement("li")
-	// qname.innerHTML = `Question RR Name: ${resultJson.Question[0].Name}`
-	// ul.appendChild(qname)
-
-	// const qtype = document.createElement("li")
-	// qtype.innerHTML = `Question RR Type: ${resultJson.Question[0].Qtype}`
-	// ul.appendChild(qtype)
-
-	// const qclass = document.createElement("li")
-	// qclass.innerHTML = `Question RR Class: ${resultJson.Question[0].Qclass}`
-	// ul.appendChild(qclass)
-
-	// if (!(resultJson.Answer == null)) {
-	// 	resultJson.Answer.forEach(answer => {
-	// 		const an = document.createElement('li')
-	// 		an.innerHTML = `Answer RR Name: ${answer.Hdr.Name}`
-	// 		ul.appendChild(an)
-
-	// 		const at = document.createElement('li')
-	// 		at.innerHTML = `Answer RR Type: ${answer.Hdr.Rrtype}`
-	// 		ul.appendChild(at)
-
-	// 		const ac = document.createElement('li')
-	// 		ac.innerHTML = `Answer RR Class: ${answer.Hdr.Class}`
-	// 		ul.appendChild(ac)
-	// 	})
-	// }
 
 	pre.appendChild(ul)
 
