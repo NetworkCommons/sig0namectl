@@ -51,6 +51,7 @@ func QueryWithType(name string, qtype uint16) (*dns.Msg, error) {
 		MsgHdr:   dns.MsgHdr{Id: dns.Id(), Opcode: dns.OpcodeQuery, RecursionDesired: true, AuthenticatedData: true},
 		Question: []dns.Question{q},
 	}
+	m.SetEdns0(4096, true)
 
 	if os.Getenv("DEBUG") != "" {
 		fmt.Println("DNS Query:")
