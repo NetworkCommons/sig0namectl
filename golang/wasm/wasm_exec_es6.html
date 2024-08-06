@@ -51,17 +51,14 @@
   </p>
 
   <script>
-    document.getElementById('directoryPicker').addEventListener('change', function(event) {
-      const files = event.target.files;
+    document.getElementById('directoryPicker').addEventListener('change', async (event) => {
+      const files = Array.from(event.target.files);
       const fileList = document.getElementById('fileList');
       fileList.innerHTML = ''; // Clear any existing list items
 
-      // Object to store pairs of .key and .private files
       const filePairs = {};
 
-      // Filter and organize files by their name (without extension)
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      files.forEach(file => {
         const fileName = file.name;
         const fileExt = fileName.split('.').pop().toLowerCase();
         const baseName = fileName.slice(0, fileName.lastIndexOf('.'));
@@ -76,39 +73,24 @@
             filePairs[baseName].privateFile = file;
           }
         }
-      }
+      });
 
-      // Process each pair and save to localStorage
-      for (const baseName in filePairs) {
-        const pair = filePairs[baseName];
+      for (const [baseName, pair] of Object.entries(filePairs)) {
         if (pair.keyFile && pair.privateFile) {
-          // Check if the pair is already in localStorage
           if (localStorage.getItem(baseName)) {
             const li = document.createElement('li');
             li.textContent = `${baseName}: Already registered`;
             fileList.appendChild(li);
           } else {
-            // Read the files asynchronously
-            const keyReader = new FileReader();
-            const privateReader = new FileReader();
+            const keyContent = await pair.keyFile.text();
+            const privateContent = await pair.privateFile.text();
+            const jsonString = JSON.stringify({ key: keyContent, private: privateContent });
 
-            keyReader.onload = function(e) {
-              const keyContent = e.target.result;
-              privateReader.onload = function(e) {
-                const privateContent = e.target.result;
-                const jsonString = JSON.stringify({ key: keyContent, private: privateContent });
+            localStorage.setItem(baseName, jsonString);
 
-                // Save to localStorage
-                localStorage.setItem(baseName, jsonString);
-
-                // Update the UI
-                const li = document.createElement('li');
-                li.textContent = `${baseName}: Saved to localStorage`;
-                fileList.appendChild(li);
-              };
-              privateReader.readAsText(pair.privateFile);
-            };
-            keyReader.readAsText(pair.keyFile);
+            const li = document.createElement('li');
+            li.textContent = `${baseName}: Saved to localStorage`;
+            fileList.appendChild(li);
           }
         }
       }
