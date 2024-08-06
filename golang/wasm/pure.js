@@ -517,26 +517,17 @@ const DNS_CLASS = [
 //	"QCLASS * (ANY)", // 255
 ]
 
+// renderQuery
+async function renderQuery() {
 
-// query()
-// for a given name and RR type, return dns response
-async function query() {
-	// set query question name
-	var dohQName = document.getElementById("query-name").value
-
-	// DEBUG
-	if (dohQName == "") {
-		dohQName = "zenr.io"
+	var domain = document.getElementById("query-name").value
+	if (domain == "") {
+		domain = "zenr.io"
 	}
 
-	if (! dohQName.endsWith('.')) {
-		dohQName = dohQName + '.'
-	}
-
-	// set query question RR type
-	var dohQType = document.getElementById("query-type").value
-	if (dohQType == "") {
-		dohQType = 'A'
+	var rrType = document.getElementById("query-type").value
+	if (rrType == "") {
+		rrType = 'A'
 	}
 
 	const pre = document.getElementById("query-result")
@@ -545,6 +536,46 @@ async function query() {
 	}
 
 	const ul = document.createElement("ul")
+
+	responseJson = await query(domain, rrType)
+
+	const getDohServer = window.goFuncs.getDefaultDOHResolver
+	dohServer = document.createElement("li")
+	dohServer.innerHTML = "Query DOH responder: " + getDohServer()
+	ul.appendChild(dohServer)
+
+	const dohQName = document.createElement("li")
+	dohQName.innerHTML = "Query Name: " + domain
+        ul.appendChild(dohQName)
+
+	const dohQType = document.createElement("li")
+	dohQType.innerHTML = "Query RRType: " + rrType
+        ul.appendChild(dohQType)
+
+
+	const raw = document.createElement("li")
+	raw.innerHTML = JSON.stringify(responseJson, null, 4)
+	ul.appendChild(raw)
+
+	pre.appendChild(ul)
+
+}
+
+// query()
+// for a given name and RR type, return dns response
+async function query(dohQName, dohQType) {
+	// set query question name
+	// var dohQName = document.getElementById("query-name").value
+
+	// append .
+	if (! dohQName.endsWith('.')) {
+		dohQName = dohQName + '.'
+	}
+
+	// set default query question RR type
+	if (dohQType == "") {
+		dohQType = 'A'
+	}
 
 	const dohQuery = window.goFuncs.query
 	result = await dohQuery(dohQName, dohQType)
@@ -582,7 +613,7 @@ async function query() {
 	})
 
 	if (resultJson.Answer != null) {
-		console.log("This response has Answer array length of ", resultJson.Answer.length)
+		console.log("DOH response has Answer array length of ", resultJson.Answer.length)
 
 		resultJson.Answer.forEach(answer => {
 
@@ -628,11 +659,11 @@ async function query() {
 
 		})
 	} else {
-		console.log("This response has null as Answer property")
+		console.log("DOH response has null as Answer property")
 	}
 
 	if (resultJson.Ns != null) {
-		console.log("This response has Ns array length of ", resultJson.Ns.length)
+		console.log("DOH response has Ns array length of ", resultJson.Ns.length)
 
 		resultJson.Ns.forEach(answer => {
 
@@ -679,19 +710,8 @@ async function query() {
 
 		})
 	} else {
-		console.log("This response has null as Ns property")
+		console.log("DOH response has null as Ns property")
 	}
 
-	const getDohServer = window.goFuncs.getDefaultDOHResolver
-	dohServer = document.createElement("li")
-	dohServer.innerHTML = "Querying DOH host: " + getDohServer()
-	ul.appendChild(dohServer)
-
-	const raw = document.createElement("li")
-	raw.innerHTML = JSON.stringify(resultJson, null, 4)
-	ul.appendChild(raw)
-
-	pre.appendChild(ul)
-
-        return
+        return resultJson
 }
