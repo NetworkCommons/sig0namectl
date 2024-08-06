@@ -131,7 +131,7 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			if answerKeyRR.Rcode != dns.RcodeSuccess {
+			if answerKeyRR.Rcode != dns.RcodeSuccess && answerKeyRR.Rcode != dns.RcodeNameError {
 				err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
 				reject.Invoke(jsErr(err))
 				return
