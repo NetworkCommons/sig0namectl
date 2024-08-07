@@ -211,6 +211,7 @@ async function findDOHEndpoint() {
 
         return
 }
+
 const DNS_RCODE = [
 	"NoErr",	// 0
 	"FormErr",	// 1
@@ -715,3 +716,49 @@ async function query(dohQName, dohQType) {
 
         return resultJson
 }
+
+async function handleFileSelection(event) {
+  const files = Array.from(event.target.files);
+  const fileList = document.getElementById('fileList');
+  fileList.innerHTML = ''; // Clear any existing list items
+
+  const filePairs = {};
+
+  files.forEach(file => {
+    const fileName = file.name;
+    const fileExt = fileName.split('.').pop().toLowerCase();
+    const baseName = fileName.slice(0, fileName.lastIndexOf('.'));
+
+    if (fileExt === 'key' || fileExt === 'private') {
+      if (!filePairs[baseName]) {
+        filePairs[baseName] = {};
+      }
+      if (fileExt === 'key') {
+        filePairs[baseName].keyFile = file;
+      } else if (fileExt === 'private') {
+        filePairs[baseName].privateFile = file;
+      }
+    }
+  });
+
+  for (const [baseName, pair] of Object.entries(filePairs)) {
+    if (pair.keyFile && pair.privateFile) {
+      if (localStorage.getItem(baseName)) {
+        const li = document.createElement('li');
+        li.textContent = `${baseName}: Already registered`;
+        fileList.appendChild(li);
+      } else {
+        const keyContent = await pair.keyFile.text();
+        const privateContent = await pair.privateFile.text();
+        const jsonString = JSON.stringify({ key: keyContent, private: privateContent });
+
+        localStorage.setItem(baseName, jsonString);
+
+        const li = document.createElement('li');
+        li.textContent = `${baseName}: Saved to localStorage`;
+        fileList.appendChild(li);
+      }
+    }
+  }
+}
+
