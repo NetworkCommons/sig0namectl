@@ -137,21 +137,22 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			for _, rr := range answerKeyRR.Answer {
-				answerKey, ok := rr.(*dns.KEY)
-				if !ok {
-					err = fmt.Errorf("answer is not a KEY type: %T", rr)
-					reject.Invoke(jsErr(err))
-					return
-				}
-
-				if answerKey.Flags == key.Key.Flags &&
-					answerKey.Protocol == key.Key.Protocol &&
-					answerKey.Algorithm == key.Key.Algorithm &&
-					answerKey.PublicKey == key.Key.PublicKey {
-					keyRRExists = true
+			var answerKey *dns.KEY
+			for i, rr := range answerKeyRR.Answer {
+				var ok bool
+				answerKey, ok = rr.(*dns.KEY)
+				if ok {
 					break
 				}
+				log.Printf("[DEBUG] answer[%d] is not a KEY type: %T", i, rr)
+			}
+
+			if answerKey != nil &&
+				answerKey.Flags == key.Key.Flags &&
+				answerKey.Protocol == key.Key.Protocol &&
+				answerKey.Algorithm == key.Key.Algorithm &&
+				answerKey.PublicKey == key.Key.PublicKey {
+				keyRRExists = true
 			}
 
 			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
@@ -179,18 +180,19 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			for _, rr := range answerSignalPtr.Answer {
-				ptrRR, ok := rr.(*dns.PTR)
-				if !ok {
-					err = fmt.Errorf("answer is not a PTR type: %T", rr)
-					reject.Invoke(jsErr(err))
-					return
-				}
-
-				if ptrRR.Ptr == signalKeyRRName {
-					signalPTRExists = true
+			var ptrRR *dns.PTR
+			for i, rr := range answerSignalPtr.Answer {
+				var ok bool
+				ptrRR, ok = rr.(*dns.PTR)
+				if ok {
 					break
 				}
+				log.Printf("[DEBUG] answer[%d] is not a PTR type: %T", i, rr)
+			}
+
+			if ptrRR != nil &&
+				ptrRR.Ptr == signalKeyRRName {
+				signalPTRExists = true
 			}
 
 			resolve.Invoke(map[string]any{
