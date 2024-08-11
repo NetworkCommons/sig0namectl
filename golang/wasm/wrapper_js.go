@@ -12,6 +12,7 @@ import (
 	"github.com/miekg/dns"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
+	"net/url"
 )
 
 // Go <-> JS bridging setup
@@ -436,32 +437,81 @@ func newUpdater(_ js.Value, args []js.Value) any {
 	Returns a Promise which executes a DOH query using sig0.DefaultDOHResolver
 
 arguments:
-- 0: (required) name to query
-- 1: (optional) dns RRtype, defaults to A
+  - 0: (required) - either:
+  - string: domain name to query
+  - object: {domain, type, dohurl}
+  - 1: (optional) - either
+  - string: dns RRtype, defaults to A
+  - object: {type, dohurl}
 */
 func query(_ js.Value, args []js.Value) any {
 	handler := js.FuncOf(func(this js.Value, promises []js.Value) interface{} {
 		resolve := promises[0]
 		reject := promises[1]
 
-		var rrType uint16 = dns.TypeA
+		var (
+			domainName  string
+			rrType      uint16 = dns.TypeA
+			err         error
+			dohResolver = sig0.DefaultDOHResolver
+		)
+
+		decodeOpts := func(opt js.Value) error {
+			if dn := opt.Get("domain").String(); dn != "" {
+				domainName = dn
+			}
+			if optType := opt.Get("type"); optType.Type() == js.TypeString {
+				if rrString := optType.String(); rrString != "" {
+					rrType, err = sig0.QueryTypeFromString(rrString)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			if du := opt.Get("dohurl"); du.Type() == js.TypeString {
+				duStr := du.String()
+				duUrl, err := url.Parse(duStr)
+				if err == nil {
+					dohResolver = duUrl.Host
+				} else {
+					dohResolver = duStr
+				}
+			}
+			return nil
+		}
+
 		if len(args) < 1 {
-			err := fmt.Errorf("expected 1 argument: domainName")
+			err := fmt.Errorf("expected 1 argument: (domain,{domain,type,dohurl})")
 			reject.Invoke(jsErr(err))
 			return nil
 		}
-		domainName := args[0].String()
-		if len(args) == 2 {
-			var err error
-			rrType, err = sig0.QueryTypeFromString(args[1].String())
-			if err != nil {
-				reject.Invoke(jsErr(err))
-				return nil
+
+		switch len(args) {
+		case 1:
+			opt := args[0]
+			switch opt.Type() {
+			case js.TypeString:
+				domainName = opt.String()
+			case js.TypeObject:
+				err = decodeOpts(opt)
+			}
+
+		case 2:
+			opt := args[1]
+			switch opt.Type() {
+			case js.TypeString:
+				rrType, err = sig0.QueryTypeFromString(opt.String())
+			case js.TypeObject:
+				err = decodeOpts(opt)
+			default:
 			}
 		}
-
+		if err != nil {
+			reject.Invoke(jsErr(err))
+			return nil
+		}
 		go func() {
-			log.Printf("[Querying] %s with type %d", domainName, rrType)
+			log.Printf("[Querying(%q)] %s with type %d", dohResolver, domainName, rrType)
 
 			qry, err := sig0.QueryWithType(domainName, rrType)
 			if err != nil {
@@ -469,7 +519,7 @@ func query(_ js.Value, args []js.Value) any {
 				return
 			}
 
-			answer, err := sig0.SendDOHQuery(sig0.DefaultDOHResolver, qry)
+			answer, err := sig0.SendDOHQuery(dohResolver, qry)
 			if err != nil {
 				err = fmt.Errorf("request loop failed: %w", err)
 				reject.Invoke(jsErr(err))
