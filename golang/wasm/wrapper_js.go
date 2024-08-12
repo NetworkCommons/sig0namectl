@@ -86,6 +86,19 @@ func listKeysFiltered(_ js.Value, args []js.Value) any {
 	return values
 }
 
+// checkKeyStatus()
+// arguments: 3
+//
+//	arg 1: keystore key filename prefix
+//	arg 2: key zone
+//      arg 3: DoH server
+//
+// Returns an array of JSON object of keystore status bool values
+//
+//	{
+//		"QueuePTRExists": true|false,
+//		"KeyRRExists":    true|false
+//	}
 func checkKeyStatus(_ js.Value, args []js.Value) any {
 	if len(args) != 3 {
 		return "expected 3 arguments: keystore key filename prefix, zone and dohServer"
