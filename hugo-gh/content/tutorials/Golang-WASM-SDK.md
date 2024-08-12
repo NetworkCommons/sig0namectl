@@ -3,7 +3,7 @@ title = 'sig0namectl Javascript API Examples'
 date = 2024-06-29T14:17:22+02:00
 draft = false
 +++
-## Example new key request
+## Example: new subdomain key request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newKeyReq = goFuncs["newKeyRequest"]
@@ -17,6 +17,7 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
     console.log("key requested!")
 }).catch(err => alert(err.message))
 ```
+
 ## Example: list all keypairs in keystore
 ```
 // arguments: 0
@@ -93,8 +94,33 @@ function getKeysForDomain() {
 
 ```
 
+## Example: check DNS status of keypairs in keystore
 
-## Example signed DNS update request
+```
+async function listKeysWithStatus() {
+        const div = document.getElementById("existing-keys")
+        if (div.children.length > 0) {
+                div.removeChild(div.children[0])
+        }
+
+        const ul = document.createElement("ul")
+
+        const list = window.goFuncs.listKeys
+        const stat = window.goFuncs.checkKeyStatus
+        for (const k of list()) {
+                const li = document.createElement("li")
+                const s = await stat(k.Name, "zenr.io", "doh.zenr.io")
+                li.innerHTML = k.Name +" | Key Exists in DNS: " + s.KeyRRExists +" | Key Request Queued: " + s.QueuePTRExists
+
+                ul.appendChild(li)
+        }
+        div.appendChild(ul)
+
+        return
+}
+```
+
+## Example: submit DNS update request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newUpdater = goFuncs["newUpdater"]
