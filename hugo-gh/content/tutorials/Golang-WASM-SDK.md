@@ -119,6 +119,22 @@ async function listKeysWithStatus() {
         return
 }
 ```
+## Example: submit DNS query 
+
+```
+// arguments: 1 to 3 (2 optional)
+//  - the domain name to query
+//  - (optional) the DNS resource record type (QNAME)
+//  - (optional) the DoH server to query
+
+// returns complete DNSSEC server response in JSON
+
+const q = window.goFuncs.query
+q("beta.freifunk.net", "A")
+q("beta.freifunk.net", {type: "A"})
+q("zenr.io", {type: "AAAA", dohurl: "doh.zenr.io"})
+q({domain: "zenr.io", type: "AAAA", dohurl: "doh.zenr.io"})
+```
 
 ## Example: submit DNS update request
 ```
