@@ -762,3 +762,22 @@ async function handleFileSelection(event) {
   }
 }
 
+ const downloadKeys = () => {
+    const zip = new JSZip();
+    
+    Object.keys(localStorage).forEach(keyName => {
+        const item = JSON.parse(localStorage.getItem(keyName));
+        
+        if (item?.key && item?.private) {
+            zip.file(`${keyName}.key`, item.key);
+            zip.file(`${keyName}.private`, item.private);
+        }
+    });
+
+    zip.generateAsync({ type: "blob" }).then(content => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(content);
+        a.download = "keys.zip";
+        a.click();
+    });
+}

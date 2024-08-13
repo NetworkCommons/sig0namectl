@@ -6,6 +6,7 @@
   <title>Go<>JS Demo</title>
   <script type="application/javascript" src="wasm_exec.js"></script>
   <script type="application/javascript" src="pure.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 </head>
 <body>
   <h2>DNS</h2>
@@ -21,6 +22,7 @@
   <h3>List Keystore</h3>
   <button onclick="listKeys()">Update</button>
   <button onclick="listKeysWithStatus()">Update with DNS Status</button>
+  <button id="downloadButton" onClick="downloadKeys()">Download</button>
   <div id="existing-keys"></div>
 
   <h3>Request</h3>
@@ -43,76 +45,12 @@
     <div id="domain-doh-endpoint"></div>
   </p>
 
-  <h3>Import Key pair files from filesystem into Browser Keystore</h3>
+   <h3>Import Key pair files from filesystem into Browser Keystore</h3>
   <p>
-    <input type="file" id="directoryPicker" webkitdirectory multiple>
+    <input type="file" id="directoryPicker" webkitdirectory multiple onchange="handleFileSelection(event)">
     <ul id="fileList"></ul>
     <div id="imported-key"></div>
   </p>
 
-  <script>
-    document.getElementById('directoryPicker').addEventListener('change', function(event) {
-      const files = event.target.files;
-      const fileList = document.getElementById('fileList');
-      fileList.innerHTML = ''; // Clear any existing list items
-
-      // Object to store pairs of .key and .private files
-      const filePairs = {};
-
-      // Filter and organize files by their name (without extension)
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileName = file.name;
-        const fileExt = fileName.split('.').pop().toLowerCase();
-        const baseName = fileName.slice(0, fileName.lastIndexOf('.'));
-
-        if (fileExt === 'key' || fileExt === 'private') {
-          if (!filePairs[baseName]) {
-            filePairs[baseName] = {};
-          }
-          if (fileExt === 'key') {
-            filePairs[baseName].keyFile = file;
-          } else if (fileExt === 'private') {
-            filePairs[baseName].privateFile = file;
-          }
-        }
-      }
-
-      // Process each pair and save to localStorage
-      for (const baseName in filePairs) {
-        const pair = filePairs[baseName];
-        if (pair.keyFile && pair.privateFile) {
-          // Check if the pair is already in localStorage
-          if (localStorage.getItem(baseName)) {
-            const li = document.createElement('li');
-            li.textContent = `${baseName}: Already registered`;
-            fileList.appendChild(li);
-          } else {
-            // Read the files asynchronously
-            const keyReader = new FileReader();
-            const privateReader = new FileReader();
-
-            keyReader.onload = function(e) {
-              const keyContent = e.target.result;
-              privateReader.onload = function(e) {
-                const privateContent = e.target.result;
-                const jsonString = JSON.stringify({ key: keyContent, private: privateContent });
-
-                // Save to localStorage
-                localStorage.setItem(baseName, jsonString);
-
-                // Update the UI
-                const li = document.createElement('li');
-                li.textContent = `${baseName}: Saved to localStorage`;
-                fileList.appendChild(li);
-              };
-              privateReader.readAsText(pair.privateFile);
-            };
-            keyReader.readAsText(pair.keyFile);
-          }
-        }
-      }
-    });
-  </script>
 </body>
 </html>
