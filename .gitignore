@@ -2,7 +2,6 @@ flake.nix
 flake.lock
 # exclude everything
 keystore/*
-zones/*
 # terraform
 bind9/terraform/cloud_init.cfg
 bind9/terraform/terraform.tfstate*
