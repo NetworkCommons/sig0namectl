@@ -170,7 +170,7 @@ Designed, written and maintained by Adam Burns.
 ***
 ## 💼 License
     sig0namectl - 
-    Copyleft (ɔ) 2023 Adam Burns, free2air limited & Dyne.org foundation, Amsterdam
+    Copyright (c) 2023 Adam Burns, free2air limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
