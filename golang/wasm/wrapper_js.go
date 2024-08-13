@@ -12,7 +12,6 @@ import (
 	"github.com/miekg/dns"
 
 	"github.com/NetworkCommons/sig0namectl/sig0"
-	"net/url"
 )
 
 // Go <-> JS bridging setup
@@ -90,9 +89,9 @@ func listKeysFiltered(_ js.Value, args []js.Value) any {
 // checkKeyStatus()
 // arguments: 3
 //
-//	arg 1: keystore key filename prefix
-//	arg 2: key zone
-//      arg 3: DoH server
+//		arg 1: keystore key filename prefix
+//		arg 2: key zone
+//	     arg 3: DoH server
 //
 // Returns an array of JSON object of keystore status bool values
 //
@@ -482,13 +481,7 @@ func query(_ js.Value, args []js.Value) any {
 				}
 			}
 			if du := opt.Get("dohurl"); du.Type() == js.TypeString {
-				duStr := du.String()
-				duUrl, err := url.Parse(duStr)
-				if err == nil {
-					dohResolver = duUrl.Host
-				} else {
-					dohResolver = duStr
-				}
+				dohResolver = du.String()
 			}
 			return nil
 		}

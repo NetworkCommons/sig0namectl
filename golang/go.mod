@@ -7,7 +7,7 @@ toolchain go1.21.7
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/miekg/dns v1.1.58
-	github.com/shynome/doh-client v1.1.0
+	github.com/shynome/doh-client v1.2.0
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.1
 )

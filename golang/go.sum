@@ -10,6 +10,8 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/shynome/doh-client v1.1.0 h1:g42zg3cJjMEG7hZpoV0r8caxCB63hps+YhpN5mykxtU=
 github.com/shynome/doh-client v1.1.0/go.mod h1:fSKGg5Q8Mo2oYF2KsLxPkE8Hf0xbyw2PJXtYl5QAz1Y=
+github.com/shynome/doh-client v1.2.0 h1:ZtW0ztE0lPytvq6WdIIB2JdNkTlS4W7jTRzpc4qfC4I=
+github.com/shynome/doh-client v1.2.0/go.mod h1:fSKGg5Q8Mo2oYF2KsLxPkE8Hf0xbyw2PJXtYl5QAz1Y=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/urfave/cli/v2 v2.27.1 h1:8xSQ6szndafKVRmfyeUMxkNUJQMjL1F2zmsZ+qHpfho=
