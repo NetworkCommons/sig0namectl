@@ -61,7 +61,8 @@ cd golang
 make sig0namectl
 ```
 
-Each browser GUI application can be locally tested by executing make start in their respective directories under demo/
+Each browser GUI application can be locally run by executing `make start` in their respective directories under the repo directory demo/
+Each browser GUI application can also be served by any web server simply by copying across the application directory files to the desired location served by the web server.
 
 
 ## 💾 Install
