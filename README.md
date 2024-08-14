@@ -43,19 +43,31 @@ sig0namectl is a proof of concept set of tools that enable a secure, direct & sc
 
 Install dependencies.
 
-To keep extra dependencies to a minimum and to allow use in constrained environments, these tools are implemented in Bash and use a subset of BIND9 DNS tools.
-
 For Debian and derivatives:
 
-`apt install bind9-dnsutils`
+`apt install bind9-dnsutils python golang`
 
 For Fedora and related distributions and derivates
 
-`dnf install bind-utils`
+`dnf install bind-utils python golang`
+
+
+## ⛭ Build
+
+To build the golang executable utility `sig0namectl`, 
+
+```
+cd golang
+make sig0namectl
+```
+
+Each browser GUI application can be locally tested by executing make start in their respective directories under demo/
+
 
 ## 💾 Install
 
-No system install yet. Clone this git repository and use from working directory. Note: Currently tools must be used from working directory.
+No system install yet. scripts use environment variables to define paths and essential defaults.
+Global defaults are set in file 'env' in current directory, tool specific defaults in env.<toolname>
 
 ## 🎮 Quick start
 
