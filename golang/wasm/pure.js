@@ -545,6 +545,11 @@ async function renderQuery() {
 	dohServer.innerHTML = "Query DOH responder: " + getDohServer()
 	ul.appendChild(dohServer)
 
+	const getDohEndpoint = window.goFuncs.findDOHEndpoint
+	dohEndpoint = document.createElement("li")
+	dohEndpoint.innerHTML = "Query DOH Endpoint: " + await getDohEndpoint("zenr.io")
+	ul.appendChild(dohEndpoint)
+
 	const dohQName = document.createElement("li")
 	dohQName.innerHTML = "Query Name: " + domain
         ul.appendChild(dohQName)
@@ -577,9 +582,8 @@ async function query(dohQName, dohQType) {
 	if (dohQType == "") {
 		dohQType = 'A'
 	}
-
 	const dohQuery = window.goFuncs.query
-	result = await dohQuery(dohQName, dohQType)
+	result = await dohQuery( { domain: dohQName, type: dohQType } )
 
 	const resultJson = JSON.parse(result)
 
