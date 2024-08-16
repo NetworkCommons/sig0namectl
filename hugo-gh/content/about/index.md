@@ -1,44 +1,65 @@
 ---
 title: "About"
-description: "sig0namectl is pronounced 'SIG(zero) name control'." 
-# featured_image: '/images/picture.jpg'
+description: "sig0namectl is pronounced 'SIG zero name control'." 
+featured_image: '/images/picture.jpg'
 menu:
   main:
     weight: 1
 ---
 
- The sig0namectl project allows decentralised delegation of DNS update rights through communicating directly with the DNS infrastructure. Updates are signed and authenticated through standards-based SIG(0) cryptographic key pairs, with public keys embedded within the DNS hierarchy.
+The sig0namectl project allows decentralised DNS updates by communicating directly with the DNS infrastructure itself. 
 
-The project consists of a number of different component types.
+
+sig0namectl allows open requests to claim update rights of an unused DNS subdomain on a "first come, first served" basis.
+
+Once a subdomain is successfully claimed, a claimant can add, update or delete any DNS records <b>at</b> or <b>below</b> the claimed subdomain.
+
+
+A claimant can choose to share this update capability fully with any other key holders or choose to share update rights only to just a portion of names (a <i>sub</i>-subdomain) below their claimed subdomain.
+
+## Technical Details
+
+To achieve this, sig0namectl uses DNS SIG(0) cryptographic key pairs, with private keys generated and kept with the claimant together with public keys that are published at the fully qualified domain name of the claimed or shared subdomains.
+
+To submit DNS updates, sig0namectl cryptograhically signs DNS update requests using the private key generated locally by the claimant or locally by the possessor of private keys the claimant has shared access with.
+
+The project consists of a number of different component types:
 
 # 🌐 Web Browser Applications
 
-The sig0namectl browser-based applications provide easy-to-use interfaces not only to browse and access local network services and resources but also to collaborate and publish further local resources and services for local communities.
+sig0namectl web browser applications provide easy-to-use way to discover, browse and access local network services and resources. 
 
-Users of the browser applications can:
-- browse & access published community services and resources;
-- publish, update & share their own new services & resources; and,
-- collaborate in geo mapping of community services & resources.
+Browser applications can also assist in claiming a new subdomain key which unlocks the ability to add and publish a set of new local resources and services to contribute to local communities.
 
-# ⌨️ Command Line Utilities
+Web browser applications offer the ability to:
+- browse & access up-to-date local community services and resources;
+- claim a new key to create, update & share your own new services & resources; and,
+- optionally render location mapping of local community services & resources in real time.
 
-For advanced users who need the flexibility to customise workflows for once-off manual updates or through scripting specific helper tools.
+# 🧰 Command Line Tools
 
-Command Line Utilities provide:
-- custom DNS update options for expert users;
-- a set of BASH tools designed specifically for resource constrained devices such as Freifunk Berlin WiFi access routers single board computers (such as Raspberry Pis) and embedded IoT devices; and,
-- a golang sig0namectl command line utility that integrates perhaps the most complete, standards compliant [DNS module](https://github.com/miekg/dns) available for any development environment
+## ⌨️ Command Line Utilities
+Command Line Utilities offer intermediate users more flexible options than the browser applications may offer. They provide more complex options for once-off DNS updates or for combining to form custom workflow automation tools.
 
-# 🧰 Dynamic Helper Tools
+Command Line Utilities provide custom DNS update options for intermediate and expert users:
 
-Dynamic helper tools allow hosts to automatically update DNS information about themselves as well as the services and resources they contribute to the community. 
+  - a golang sig0namectl command line utility that uses the sig0namectl DNS library module available for development of custom workflows ; and,
+  - a set of tools designed for resource-constrained devices such as WiFi routers or single board computers or IoT devices.
 
-Features include workflows that allow:
-- automated update scripts to share real-time changes in secure DNS-SD resource and service details;
-- real-time updates whenever host IP addresses change to aid accessibility during network connectivity changes; and,
-- real-time locational updates sourced via gps devices
+## 🤖 Workflow Automation Tools
 
-# 📚 Javascript API
+Workflow Automation Tools are scripts that allow continuous automated DNS updates based on changes of a host's configuration or other detected changes in its environment. 
 
-The sig0namectl Golang module transpiles to WASM and exports functions available to Javascript in popular web browsers. The set of functions exported defines a Javascript API to ease development of custom DNS web applications.
+Existing Workflow Automation Tools allow automatic:
+- new key claim request processing
+- DNS updates to reflect any network IP address changes; and,
+- geolocation updates from connected GPS devices.
+
+# ⚙ Javascript API
+
+The sig0namectl Javascript API provides a standard interface to the sig0namectl DNS Library. Golang module transpiles to WASM and exports functions available to Javascript in popular web browsers. The set of functions exported defines a Javascript API to ease development of custom DNS web applications.
+
+# 📚 sig0namectl library
+
+The sig0namectl Library provides developers a standard library in the form of a golang module to develop further custom tools that can be compiled for a variety of target host platforms or to produce wasm binaries to be executed in web browser environments.
 
