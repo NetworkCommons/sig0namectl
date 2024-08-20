@@ -5,9 +5,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DNS Service-Discovery Inspector</title>
-    <link rel="stylesheet" href="sig0namectl.css"/>
+    <link rel="stylesheet" href="sig0.css"/>
     <link rel="stylesheet" href="sd.css"/>
-	<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+    <link href="fontawesome/css/fontawesome.min.css" rel="stylesheet" />
+    <link href="fontawesome/css/solid.min.css" rel="stylesheet" />
+    <link href="fontawesome/css/regular.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
     <script src="sig0_wasm.js"></script>
     <script src="sig0.js"></script>
     <script src="keys.js"></script>
@@ -17,6 +20,7 @@
     <script>
         /// Event listener for when WASM is ready
         var keys = null
+        var blacklist = []
         var domains = new Domains(['zembla.zenr.io','dns-sd.org'])
 
         // start initialization when WASM is ready
@@ -93,6 +97,16 @@
     </script>
 </head>
 <body>
+    <section>    </section>
+    <style>
+
+/** Mozilla Firefox */
+@-moz-document url-prefix() {
+    button.icon {
+        padding-top: -0.2em;
+    }
+}        
+    </style>
 <section id="sd-structural">
 <div id="domains" class="column">
     <h2>Domains</h2>
@@ -101,7 +115,7 @@
     <div class="add">
         <form onsubmit="submit_domain(event, this);">
             <input type="text" 
-                placeholder="add domain"
+                placeholder="add domain for inspection"
                 name="domain_name"
                 class="fqdn"
                 required
@@ -109,7 +123,7 @@
                 maxlength="253"
                 pattern="[a-z0-9._\-]{4,253}"
                 />
-            <input type="submit" value="+" class="submit"/>
+            <button type="submit" title="add domain for inspection" class="submit icon"><span class="fa-solid fa-plus"></span></button>
         </form>
     </div>
 </div>
@@ -129,7 +143,18 @@
         </div>
     </div>
     <ul id="entry-template">
-        <li class="entry"></li>
+        <li class="entry">
+            <div class="name" onclick="this.parentNode.name_clicked(event)"></div>
+            <div class="buttons"></div>
+        </li>
+    </ul>
+    <ul id="domain-entry-template">
+        <li class="entry">
+            <div class="name" onclick="this.parentNode.name_clicked(event)"></div>
+            <div class="buttons">
+                <button title="remove domain from inspector" class="remove icon" onclick="this.parentNode.parentNode.delete()"><span class="fa-solid fa-minus"></span></button>
+            </div>
+        </li>
     </ul>
     <div id="TXT-template">
         <div class="txt">

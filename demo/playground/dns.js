@@ -4,33 +4,45 @@
 class Dns {
   /// construct the DNS object with the domain to query
   /// you can optionally provide a keys
-  constructor(domain_name, key) {
+  constructor(domain_name, key, on_initialized) {
     // domain name
     this.domain = domain_name;
     this.doh_url = 'https://1.1.1.1/dns-query';
     this.doh_method = 'POST';
-    this.dnssec_enabled = 'true';
     // keys related to this domain
     this.keys = [];
     if (key) {
       this.keys.push(key)
     }
+
+    // set initalization flags
+    this.dnssec_enabled = false;
+    this.wasm = false;
+    this.initialized = false;
+    this.initialized_callbacks = [];
+
+
     // create the resolver
     this.resolver = new doh.DohResolver(this.doh_url);
 
-    // initialize WASM editing
-    this.wasm = false;
-    this.init_wasm();
+    // initialize longer tasks
+    this.init_wasm(on_initialized);
   }
 
   /// start asynchronous, longer running tasks at initialization
-  async init_wasm() {
-    this.zone = await this.get_zone(this.domain, 'SOA')
+  async init_wasm(callback) {
+    // get zone
+    this.zone = await this.get_zone(this.domain, 'SOA');
 
-    // TODO: listen for keys_ready event
-    // TODO: listen for Keys_update event
-    // TODO: check zone
-    // TODO: add keys ready flag and check for it
+    // check if RRSIG record is available
+    this.dnssec_enabled = await this.check_rrsig(this.domain, 'RRSIG');
+
+    // set initialized flag
+    this.initialized = true;
+    console.log('initialization finished ' + this.domain);
+    if (typeof on_initialized === 'function') {
+      on_initialized()
+    }
   }
 
   /// read the record types from dns of a domain
@@ -38,7 +50,10 @@ class Dns {
   query(query_domain, record_type, callback, referrer) {
     console.log('--- query(): create and populate query structure')
     const query = doh.makeQuery(query_domain, record_type);
-    if (this.dnssec_enabled) {
+    // we always want to query with DNSSEC enabled
+    // TODO: Could this create a problem in the future, if a Nameserver is not
+    // DNSSEC aware?
+    if (true) {
       query.additionals = [{
         type: 'OPT',
         name: '.',
@@ -94,8 +109,20 @@ class Dns {
 
     return Promise.reject('no Zone found for ' + query_domain);
   }
-}
 
+  /// check if an RRSIG record is present for a specific domain
+  async check_rrsig(query_domain) {
+    const query_result = await this.resolver.query(query_domain, 'RRSIG');
+
+    if (query_result.answers.length > 0) {
+      return true
+    } else {
+      return false
+    }
+
+    return Promise.reject('something went wrong');
+  }
+}
 
 
 /// Return Service from a domain

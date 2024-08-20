@@ -30,7 +30,7 @@
 }
 
 @media only screen and (min-width: 800px) {
-    #sd-sructural {
+    #sd-structural {
         flex-direction: row;
         overflow-x: auto;
     }
@@ -60,10 +60,24 @@
     width: 100%;
 }
 
-#sd-structural li {
-    display: block;
+#sd-structural li.entry {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #ccc;
+    padding: 0;
+}
+
+#sd-structural li.entry div {
     padding: 0.25rem;
-    border-bottom: 1px solid #ddd;
+}
+
+#sd-structural li.entry div.name {
+    flex: 5 auto;
+}
+
+#sd-structural li.entry div.buttons {
+    flex: 1 auto;
+    text-align: right;
 }
 
 #sd-structural li:hover {
@@ -93,6 +107,14 @@ div.add .fqdn {
     width: 80%;
 }
 
+/* domain styles */
+#domains li.entry div.name.dnssec::before {
+    font: var(--fa-font-solid);
+    content: '\f3ed ';
+    padding-right: 0.25rem;
+}
+
+/* loading animation */
 .loading-spinner {
     width: 50px;
     aspect-ratio: 1;
