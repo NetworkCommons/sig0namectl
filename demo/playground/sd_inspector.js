@@ -6,7 +6,7 @@ class UiContainer {
     this.dom = document.getElementById(id);
     this.dom.style.display = 'initial';
     this.entries_clear();
-    this.loader_add();
+    // this.loader_add();
   }
 
   entries_clear() {
@@ -19,23 +19,30 @@ class UiContainer {
 
 /// DNS UI Entry Object
 class UiEntry {
-  constructor(dns, domain_name) {
+  constructor(dns, domain_name, template_name) {
     // get entry template
-    let node = document.getElementById('entry-template')
+    let template = template_name
+    if (!template) {
+      template = 'entry-template'
+    }
+    let node = document.getElementById(template)
                    .getElementsByClassName('entry')[0]
-                   .cloneNode();
-    node.appendChild(document.createTextNode(domain_name));
+                   .cloneNode(true);
+    let name = node.getElementsByClassName('name')[0]
+    // set domain name
+    name.appendChild(document.createTextNode(domain_name));
 
     // customize the element
     node.dns = dns;
-    node.onclick = this.onclick;
-    node.clicked = this.clicked;
+    node.name_clicked = this.name_clicked;
     node.add_container = this.add_container;
     node.get_template = this.get_template;
     node.query = this.query;
     node.update_entries = this.update_entries;
     node.append_entry = this.append_entry;
     node.deactivate_active_siblings = this.deactivate_active_siblings;
+    node.remove_columns = this.remove_columns;
+    node.dns_initialized = this.dns_initialized;
 
     // next query
     node.query_info = {
@@ -48,15 +55,10 @@ class UiEntry {
     return node;
   }
 
-  // on click
-  onclick =
-      function(event) {
-    this.clicked();
-  }
-
   // clicked function
-  clicked =
+  name_clicked =
       function() {
+    console.log('name_clicked');
     this.add_container();
     this.query();
   }
@@ -93,6 +95,11 @@ class UiEntry {
       sibling = sibling.nextElementSibling;
     }
 
+    this.remove_columns();
+  }
+
+  remove_columns =
+      function() {
     // remove columns
     let column = this.parentNode;
     while (column.classList.contains('column') == false) {
@@ -105,17 +112,8 @@ class UiEntry {
 
   get_template =
       function(template_id) {
-    let clone_recursively =
-        function(node) {
-      let clone = node.cloneNode();
-      for (let i = 0; i < node.childNodes.length; i++) {
-        clone.appendChild(clone_recursively(node.childNodes[i]));
-      }
-      return clone;
-    }
-
     let container = document.getElementById(template_id).firstElementChild;
-    let template = clone_recursively(container);
+    let template = container.cloneNode(true);
     return template;
   }
 
@@ -137,7 +135,20 @@ class UiEntry {
         referrer.append_entry(list[i], referrer);
       }
       // remove loader
-      referrer.container.getElementsByClassName('loading-spinner')[0].remove();
+      const spinner =
+          referrer.container.getElementsByClassName('loading-spinner')
+      while (0 < spinner.length) {
+        spinner[0].remove()
+      }
+    }
+  }
+
+  /// callback function which is called when the DNS object finished
+  /// initialization
+  dns_initialized =
+      function() {
+    if (this.dns.dnssec_enabled === true) {
+      this.getElementsByClassName('name')[0].classList.add('dnssec')
     }
   }
 
@@ -148,11 +159,14 @@ class UiEntry {
 
   loader_add() {
     let loader = document.getElementById('loading-template')
-                     .firstElementChild.cloneNode();
+                     .firstElementChild.cloneNode(true);
     this.dom.appendChild(loader);
   }
   loader_remove() {
-    this.dom.getElementsByClassName('loading-spinner').remove();
+    const spinner = this.dom.getElementsByClassName('loading-spinner')
+    while (0 < spinner.length) {
+      spinner[0].remove()
+    }
   }
 }
 
@@ -160,18 +174,55 @@ class UiEntry {
 class UiDomain extends UiEntry {
   constructor(domain_name, dns) {
     // let dns = new Dns(domain_name);
-    super(dns, domain_name);
+    super(dns, domain_name, 'domain-entry-template');
 
     this.query_info.title = 'Browse Domains (PTR Entries)';
     this.query_info.type = 'PTR';
     this.query_info.domain = 'b._dns-sd._udp.' + domain_name;
+
+    // check DNS initialization
+    this.wait_dns_initialization()
   }
 
-  append_entry = function(item, referrer) {
+  append_entry =
+      function(item, referrer) {
     let ul = referrer.container.getElementsByClassName('entries')[0];
     let li = new UiBrowseDomain(referrer.dns, item);
     ul.appendChild(li);
   }
+
+  delete =
+      function() {
+    // add domain to blacklist
+    blacklist.push(this.dns.domain);
+    // check if currently active
+    if (this.classList.contains('active')) {
+      this.remove_columns()
+    }
+    // delete entry
+    this.remove()
+    return false
+  }
+
+  wait_dns_initialization = async function() {
+    console.log('wait_dns_initialization ' + this.dns.domain)
+    if (this.dns.initialized) {
+      this.dns_initialized();
+    }
+    else {
+      setTimeout(() => {this.wait_dns_initialization()}, 1000);
+    }
+  }
+
+  /*
+  function resolveAfter2Seconds() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('resolved');
+      }, 2000);
+    });
+  }
+  */
 }
 
 /// Browse Domain UI Object

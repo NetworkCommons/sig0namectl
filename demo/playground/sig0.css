@@ -41,3 +41,28 @@ div {
 a {
     color: #000000;
 }
+
+/* form fields & buttons */
+button {
+    border-radius: 0.9em;
+    border: solid 0.1rem #000;
+    background-color: inherit;
+}
+
+button.icon {
+    height: 1.8em;
+    width: 1.8em;
+    padding: 0;
+}
+
+/** Chrominum */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+    button.icon {
+        padding-top: 0.15em;
+    }
+}
+
+
+button:hover {
+    background-color: #ccc;
+}

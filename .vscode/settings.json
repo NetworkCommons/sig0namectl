@@ -1,8 +1,9 @@
 {
     "cSpell.words": [
+        "keypair",
+        "rrsig",
         "sig0namectl",
-        "wireformat",
-        "keypair"
+        "wireformat"
     ],
 
     "javascript.format.enable": false,
