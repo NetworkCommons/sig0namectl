@@ -39,7 +39,6 @@ class Dns {
 
     // set initialized flag
     this.initialized = true;
-    console.log('initialization finished ' + this.domain);
     if (typeof on_initialized === 'function') {
       on_initialized()
     }

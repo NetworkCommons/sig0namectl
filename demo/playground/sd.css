@@ -140,6 +140,10 @@ div.add .buttons {
     padding: 0.25rem;
 }
 
+#sd-structural li.entry.srv-entry:hover {
+    background-color: initial;
+}
+
 #sd-structural li.entry.srv-entry .hidden {
     display: none;
 }
@@ -147,6 +151,10 @@ div.add .buttons {
 #sd-structural li.entry.srv-entry div {
     padding: 0;
     margin: 0;
+}
+
+#sd-structural li.entry.srv-entry div.service-link {
+    padding-bottom: 0.5rem;
 }
 
 #sd-structural li.entry.srv-entry .srv-domain {

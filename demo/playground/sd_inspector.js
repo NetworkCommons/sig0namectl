@@ -204,11 +204,9 @@ class UiDomain extends UiEntry {
   }
 
   wait_dns_initialization = async function() {
-    console.log('wait_dns_initialization ' + this.dns.domain)
     if (this.dns.initialized) {
       this.dns_initialized();
-    }
-    else {
+    } else {
       setTimeout(() => {this.wait_dns_initialization()}, 1000);
     }
   }
@@ -260,12 +258,14 @@ class UiServiceInstance extends UiEntry {
     this.query_info.domain = domain_name;
     this.query_info.service = service;
     this.query_info.query_template = 'SRV-container-template';
+
+    this.txt = null
   }
 
   query =
-      function() {
+      async function() {
     // query for SRV records
-    this.dns.query(
+    await this.dns.query(
         this.query_info.domain, this.query_info.type, this.update_entries,
         this);
     // query for TXT records
@@ -305,12 +305,19 @@ class UiServiceInstance extends UiEntry {
         content.appendChild(p);
       }
     }
+
+    // loop through service list entries and update their link
+    // if needed
+    let entries = referrer.container.getElementsByClassName('srv-entry');
+    for (let i = 0; i < entries.length; i++) {
+      entries[i].create_service_link(list)
+    }
   }
 }
 
 /// Service Info UI Object
 class UiServiceInfo extends UiEntry {
-  constructor(dns, srv_item, service) {
+  constructor(dns, srv_item, service, txt) {
     super(dns, srv_item.target, 'SRV-entry-template');
 
     this.query_info.title = 'Service Info';
@@ -326,32 +333,37 @@ class UiServiceInfo extends UiEntry {
         document.createTextNode(this.query_info.srv_item.weight));
     this.getElementsByClassName('priority')[0].appendChild(
         document.createTextNode(this.query_info.srv_item.priority));
+
+    // create service link
+    this.service_link_set = false;
+    this.create_service_link(txt);
   }
 
-  clicked =
-      function() {
-    if (this.query_info.service.service == '_http') {
-      let url = 'http://';
-      let port = '';
+  /// create a clickable service link for the SRV entry
+  create_service_link = function(txt) {
+    const service_info = new SdServiceInfo();
+    const link = service_info.create_link(
+        this.query_info.service.service, this.query_info.domain,
+        this.query_info.srv_item.port, txt);
 
-      if (this.query_info.srv_item.port == 443) {
-        url = 'https://';
-      } else if (this.query_info.srv_item.port != 80) {
-        port = ':' + this.query_info.srv_item.port;
-      }
-
-      url += this.query_info.srv_item.target;
-      url += port;
-
-      window.open(url, '_blank').focus();
-    } else if (this.query_info.service.service == '_loc') {
-      this.show_loc();
-    } else {
-      // do nothing
+    // check if link was constructed
+    if (link === null) {
+      console.log('link not yet constructable');
+      return
     }
-  }
 
-  show_loc = function() {
-    // query and show location
+    // create and add link to template
+    const link_node = this.getElementsByClassName('service-link')[0];
+    link_node.getElementsByTagName('a')[0].href = link;
+    link_node.getElementsByClassName('link')[0].appendChild(
+        document.createTextNode(link));
+
+    // set the icon
+    const icon =
+        'fa-' + service_info.service_list[this.query_info.service.service].icon;
+    link_node.getElementsByClassName('icon')[0].classList.add(icon)
+
+    // unhide the link
+    link_node.classList.remove('hidden')
   }
 }
