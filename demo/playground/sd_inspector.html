@@ -112,9 +112,10 @@
     <h2>Domains</h2>
     <ul>
     </ul>
-    <div class="add">
-        <form onsubmit="submit_domain(event, this);">
-            <input type="text" 
+    <form onsubmit="submit_domain(event, this);">
+        <div class="add entry">
+            <div class="domain">
+                <input type="text" 
                 placeholder="add domain for inspection"
                 name="domain_name"
                 class="fqdn"
@@ -123,9 +124,12 @@
                 maxlength="253"
                 pattern="[a-z0-9._\-]{4,253}"
                 />
-            <button type="submit" title="add domain for inspection" class="submit icon"><span class="fa-solid fa-plus"></span></button>
-        </form>
-    </div>
+            </div>
+            <div class="buttons">
+                <button type="submit" title="add domain for inspection" class="submit icon"><span class="fa-solid fa-plus"></span></button>
+            </div>
+        </div>
+    </form>
 </div>
 </section>
 <!-- Templates -->
@@ -135,6 +139,15 @@
     </div>
     <div id="container-template">
         <div class="column">
+            <h2 class="title"></h2>
+            <ul class="entries">
+            </ul>
+            <div class="info"></div>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+    <div id="SRV-container-template">
+        <div class="column srv">
             <h2 class="title"></h2>
             <ul class="entries">
             </ul>
@@ -156,6 +169,32 @@
             </div>
         </li>
     </ul>
+    <ul id="SRV-entry-template">
+        <li class="entry srv-entry">
+            <div class="service-link hidden">
+                <a href="" target="_blank">
+                    <span class="icon fa-solid"></span>
+                    <span class="link"></span>
+                </a>
+            </div>
+            <div class="srv-domain">
+                <div class="field">Target</div>
+                <div class="name"></div>
+            </div>
+            <div class="srv-domain">
+                <div class="field">Port</div>
+                <div class="port"></div>
+            </div>
+            <div class="srv-domain">
+                <div class="field">Weight</div>
+                <div class="weight"></div>
+            </div>
+            <div class="srv-domain">
+                <div class="field">Priority</div>
+                <div class="priority"></div>
+            </div>
+       </li>
+    </ul>
     <div id="TXT-template">
         <div class="txt">
             <h2 class="title">TXT Entry</h2>
@@ -163,9 +202,6 @@
             </div>
         </div>
     </div>
-    <ul id="LOC-entry-template">
-        <li class="entry"></li>
-    </ul>
 </section>
 </body>
 </html>
