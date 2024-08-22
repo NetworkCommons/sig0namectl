@@ -6,7 +6,6 @@ class UiContainer {
     this.dom = document.getElementById(id);
     this.dom.style.display = 'initial';
     this.entries_clear();
-    // this.loader_add();
   }
 
   entries_clear() {
@@ -67,7 +66,7 @@ class UiEntry {
       function() {
     this.deactivate_active_siblings();
 
-    let container = this.get_template('container-template');
+    let container = this.get_template(this.query_info.query_template);
 
     let title = container.getElementsByClassName('title');
     if (title.length > 0) {
@@ -213,16 +212,6 @@ class UiDomain extends UiEntry {
       setTimeout(() => {this.wait_dns_initialization()}, 1000);
     }
   }
-
-  /*
-  function resolveAfter2Seconds() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve('resolved');
-      }, 2000);
-    });
-  }
-  */
 }
 
 /// Browse Domain UI Object
@@ -270,6 +259,7 @@ class UiServiceInstance extends UiEntry {
     this.query_info.type = 'SRV';
     this.query_info.domain = domain_name;
     this.query_info.service = service;
+    this.query_info.query_template = 'SRV-container-template';
   }
 
   query =
@@ -321,7 +311,7 @@ class UiServiceInstance extends UiEntry {
 /// Service Info UI Object
 class UiServiceInfo extends UiEntry {
   constructor(dns, srv_item, service) {
-    super(dns, srv_item.target + ',');
+    super(dns, srv_item.target, 'SRV-entry-template');
 
     this.query_info.title = 'Service Info';
     this.query_info.type = 'TXT';
@@ -330,15 +320,12 @@ class UiServiceInfo extends UiEntry {
     this.query_info.service = service;
 
     // create SRV entry
-    this.appendChild(document.createElement('br'));
-    this.appendChild(document.createTextNode(
-        'port: ' + this.query_info.srv_item.port + ','));
-    this.appendChild(document.createElement('br'));
-    this.appendChild(document.createTextNode(
-        'weight: ' + this.query_info.srv_item.weight + ','));
-    this.appendChild(document.createElement('br'));
-    this.appendChild(document.createTextNode(
-        'priority: ' + this.query_info.srv_item.priority + ''));
+    this.getElementsByClassName('port')[0].appendChild(
+        document.createTextNode(this.query_info.srv_item.port));
+    this.getElementsByClassName('weight')[0].appendChild(
+        document.createTextNode(this.query_info.srv_item.weight));
+    this.getElementsByClassName('priority')[0].appendChild(
+        document.createTextNode(this.query_info.srv_item.priority));
   }
 
   clicked =

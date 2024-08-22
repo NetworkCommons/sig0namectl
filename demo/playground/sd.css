@@ -17,15 +17,16 @@
 @media only screen and (max-width: 800px) {
     #sd-structural {
         flex-direction: column;
+        margin-bottom: 2rem;
     }
 
     #sd-structural div.column {
         width: 100%;
-        border-bottom: 1px solid #000;
+        margin-bottom: 2rem;
     }
 
     #sd-structural h2 {
-        display: none;
+        border-top: 1px solid #000;
     }
 }
 
@@ -89,7 +90,7 @@
 }
 
 #sd-structural div.column div.info h2 {
-    padding-top: 2rem;
+    padding-top: 1rem;
 }
 
 div.column div.info p {
@@ -100,11 +101,29 @@ div.column div.info p {
 }
 
 div.add {
-    padding: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #ccc;
+    padding: 0;
 }
 
-div.add .fqdn {
-    width: 80%;
+div.add div.domain {
+    flex: 5 auto;
+}
+
+div.add div {
+    padding: 0.25em;
+}
+
+div.add div.domain input {
+    width: 100%;
+    margin-top: 0.1em;
+}
+
+div.add .buttons {
+    flex: 1 auto;
+    text-align: right;
+
 }
 
 /* domain styles */
@@ -112,6 +131,39 @@ div.add .fqdn {
     font: var(--fa-font-solid);
     content: '\f3ed ';
     padding-right: 0.25rem;
+}
+
+/* SRV styles */
+#sd-structural li.entry.srv-entry {
+    flex-direction: column;
+    margin: 0;
+    padding: 0.25rem;
+}
+
+#sd-structural li.entry.srv-entry .hidden {
+    display: none;
+}
+
+#sd-structural li.entry.srv-entry div {
+    padding: 0;
+    margin: 0;
+}
+
+#sd-structural li.entry.srv-entry .srv-domain {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.srv-entry .srv-domain div {
+    padding: 0;
+}
+
+.srv-entry .srv-domain .field {
+    width: 4em;
+    color: #666;
 }
 
 /* loading animation */
