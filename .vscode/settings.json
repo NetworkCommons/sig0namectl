@@ -2,6 +2,7 @@
     "cSpell.words": [
         "dnssec",
         "keypair",
+        "Nameserver",
         "rrsig",
         "sig0namectl",
         "wireformat"
