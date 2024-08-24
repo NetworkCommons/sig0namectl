@@ -25,12 +25,13 @@ class Keys {
       return Promise.reject(error)
     })
 
-    for (let i = 0; i < keys.length; i++) {
-      const filename = keys[i].Name;
-      const domain = this.domain_from_filename(filename);
-      const key = new Key(domain, filename);
-      this.keys.push(key)
+    let promises = [];
+    for (const key of keys) {
+      promises.push(this.update_key(key));
     }
+
+    // wait for all promises to resolve
+    await Promise.all(promises)
 
     // send keystore ready event
     const event = new CustomEvent('keys_ready')
@@ -42,27 +43,59 @@ class Keys {
     const keys = await this.get_keys().catch(error => {
       console.error(error)
       return Promise.reject(error)
-    })
+    });
 
-      // TODO: check & update status of new keys
-      for (let i = 0; i < keys.length; i++) {
-        if (!this.key_exists(keys[i])) {
-          const filename = keys[i].Name;
-          const domain = this.domain_from_filename(filename);
-          const key = new Key(domain, filename);
-          this.keys.push(key)
-        }
+
+      let promises = [];
+      for (const key of keys) {
+        promises.push(this.update_key(key));
       }
 
-      // send keystore ready event
-      const event = new CustomEvent('keys_updated')
-      window.dispatchEvent(event)
+      // wait for all promises to resolve
+      await Promise.all(promises).then((values) => {
+        let key_updated = false;
+        for (const value of values) {
+          if (value === true) {
+            key_updated = true
+          }
+
+          // send keystore ready event
+          if (key_updated === true) {
+            const event = new CustomEvent('keys_updated')
+            window.dispatchEvent(event)
+          }
+        }
+      })
+  }
+
+  /// Update a Single Key
+  ///
+  /// This method takes a keystore key object as input.
+  ///
+  /// - check status of the key
+  /// - create a key object
+  /// - fill in the key object into the keys object
+  async update_key(key) {
+    // check if key exists
+    if (this.key_exists(key.Name) === false) {
+      // create new key object
+      const filename = key.Name;
+      const domain = this.domain_from_filename(filename);
+      const my_key = new Key(domain, filename);
+
+      // push key to keys
+      this.keys.push(my_key)
+
+      return true;
+    }
+
+    return false;
   }
 
   /// check if key already exists
   key_exists(filename) {
-    for (let i = 0; i < this.keys.length; i++) {
-      if (this.keys[i] === filename) {
+    for (const key of this.keys) {
+      if (key.filename === filename) {
         return true
       }
     }
@@ -117,12 +150,38 @@ class Key {
   /// construct the key
   ///
   /// providing it a domain name and optionally a key filename
-  constructor(domain, filename) {
-    this.domain = domain
-    if (filename) {
-      this.filename = filename;
+  constructor(domain, filename, public_key) {
+    this.domain = domain;
+    this.filename = filename;
+    this.public_key = public_key;
+    this.active = null;
+    this.waiting = null;
+  }
+
+  /// TODO: check status of key
+  ///
+  /// this function requires the zone domain and the domain of the DoH (DNS over
+  /// Https)
+  async check_status(zone, doh_domain) {
+    // check status of key
+    console.log(
+        'key.check_status ' + this.domain + ' ' + zone + ' ' + doh_domain)
+    let status =
+        await window.goFuncs.checkKeyStatus(this.filename, zone, doh_domain);
+
+    if (status.KeyRRExists === 'true') {
+      this.active = true;
+    } else {
+      this.active = false;
+    }
+    if (status.QueuePTRExists === 'true') {
+      this.waiting = true;
+    } else {
+      this.waiting = false;
     }
 
-    // TODO: check status of key
+    console.log(
+        'status received: ' + this.domain + ' active: ' + this.active +
+        ' waiting: ' + this.waiting)
   }
 }

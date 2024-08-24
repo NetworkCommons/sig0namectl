@@ -25,11 +25,11 @@ class Domains {
     }
     this.domains = [];
     this.initialized = false;
+    this.recheck_status = false;
 
     // add domains
     if (Array.isArray(domain_array)) {
-      for (let i = 0; i < domain_array.length; i++) {
-        const domain_name = domain_array[i];
+      for (const domain_name of domain_array) {
         this.add_domain(domain_name)
       }
     }
@@ -44,13 +44,28 @@ class Domains {
   keys_updated(keys_array) {
     // auto add keys
     if (this.options.key_auto_add) {
-      for (let i = 0; i < keys_array.length; i++) {
-        const key = keys_array[i];
+      for (const key of keys_array) {
         const domain_item = this.get_domain(key.domain)
 
         // add domain if it does not exist
         if (!domain_item) {
           this.add_domain(key.domain, key)
+        }
+        else {
+          // check if key exists in already existing domain
+          let key_exists = false;
+          for (const domain_key of domain_item.keys) {
+            if (domain_key.filename === key.filename) {
+              key_exists = true;
+              break
+            }
+          }
+          // add key if it doesn't exist
+          if (key_exists === false) {
+            domain_item.keys.push(key);
+            domain_item.check_key_status();
+            this.recheck_status = true;
+          }
         }
       }
     }
@@ -89,8 +104,7 @@ class Domains {
   /// and returns the Dns object if found.
   /// The function returns `null` if no domain was found.
   get_domain(domain_name) {
-    for (let i = 0; i < this.domains.length; i++) {
-      const dns = this.domains[i];
+    for (const dns of this.domains) {
       if (domain_name === dns.domain) {
         return dns
       }
