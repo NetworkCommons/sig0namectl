@@ -202,5 +202,27 @@ async function findDOHEndpoint() {
 
 ```
 
-## Example: setDefaultDOHResolver(): submit DNS query
 ## Example: getDefaultDOHResolver(): submit DNS query
+```
+// getDefaultDOHResolver()
+// gets current default DOH resolver for WASM API
+// arguments: 0
+//
+    const getDefaultDOHResolver = window.goFuncs.getDefaultDOHResolver
+    console.log("Current default DOH resolver is: ", getDefaultDOHResolver())
+
+```
+## Example: setDefaultDOHResolver(): submit DNS query
+```
+// setDefaultDOHResolver()
+// sets default DOH resolver for WASM API
+// arguments: 1
+//  - the domain of the default doh server
+//
+    const setDefaultDOHResolver = window.goFuncs.setDefaultDOHResolver
+    setDefaultDOHResolver("doh.zenr.io")
+    console.log("New default DOH resolver is: ", getDefaultDOHResolver())
+
+```
+
+
