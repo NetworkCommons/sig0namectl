@@ -6,7 +6,7 @@ draft = false
 
 This section documents the sig0namectl API functions exposed to Javascript via WebAssembly (WASM).
 
-## Example: newKeyRequest(): new subdomain key request
+## Example: newKeyRequest(): new domain key request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newKeyReq = goFuncs["newKeyRequest"]
@@ -68,8 +68,8 @@ function listKeys() {
 
 // Example: getKeysForDomain()
 //      display a list key in the keystore
-//      for which a given domain is equal to or is a subdomain of the key's 
-//      DNS Resource Record FQDN.
+//      for which a given domain is equal to or is below the domain of the key's 
+//      DNS Resource Record.
 //
 function getKeysForDomain() {
         var searchDomain = document.getElementById("search-domain-for-keys").value
