@@ -3,6 +3,9 @@ title = 'sig0namectl Javascript API Examples'
 date = 2024-06-29T14:17:22+02:00
 draft = false
 +++
+
+This section documents the sig0namectl API functions exposed to Javascript via WebAssembly (WASM).
+
 ## Example: newKeyRequest(): new subdomain key request
 ```
 // note: needed in browser console debugging eg. after page reload 
