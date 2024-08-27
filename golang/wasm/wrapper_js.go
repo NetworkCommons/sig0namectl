@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 	"syscall/js"
 
@@ -106,14 +105,6 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 
 	// load key from keystore, return nil if does not exist
 	keyFilename := args[0].String()
-	key, err := sig0.LoadKeyFile(keyFilename)
-	if err != nil {
-		log.Println("Failed to load key:", err.Error())
-		return nil
-	}
-
-	keyFqdn := key.Key.Hdr.Name // key DNS name (FQDN with trailing dot)
-
 	zone := args[1].String()
 	if !strings.HasSuffix(zone, ".") {
 		zone += "."
@@ -125,92 +116,15 @@ func checkKeyStatus(_ js.Value, args []js.Value) any {
 		reject := args[1]
 
 		go func() {
-			// TODO: move this to function in sig0
-
-			// construct query for KEY RRSet at FQDN keyname
-			// TODO BUG cannot yet pass RData via QueryKEY() for exact RR
-			// as SendDOHQuery errors with dns: bad rdata
-			var signalPTRExists bool
-			var keyRRExists bool
-			msgKey, err := sig0.QueryKEY(keyFqdn)
+			stat, err := sig0.CheckKeyStatus(keyFilename, zone, dohServer)
 			if err != nil {
 				reject.Invoke(jsErr(err))
 				return
-			}
-
-			answerKeyRR, err := sig0.SendDOHQuery(dohServer, msgKey)
-			if err != nil {
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-			if answerKeyRR.Rcode != dns.RcodeSuccess && answerKeyRR.Rcode != dns.RcodeNameError {
-				err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-			var answerKey *dns.KEY
-			for i, rr := range answerKeyRR.Answer {
-				var ok bool
-				answerKey, ok = rr.(*dns.KEY)
-				if ok {
-					break
-				}
-				log.Printf("[DEBUG] answer[%d] is not a KEY type: %T", i, rr)
-			}
-
-			if answerKey != nil &&
-				answerKey.Flags == key.Key.Flags &&
-				answerKey.Protocol == key.Key.Protocol &&
-				answerKey.Algorithm == key.Key.Algorithm &&
-				answerKey.PublicKey == key.Key.PublicKey {
-				keyRRExists = true
-			}
-
-			// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
-			signalPtrRRName := sig0.SignalSubzonePrefix + "." + zone
-			signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "." +
-				sig0.SignalSubzonePrefix + "." + zone
-
-			// construct query for _signal.zone PTR RRset
-			msgSigPtr, err := sig0.QueryPTR(signalPtrRRName)
-			if err != nil {
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-			// send & search query results for Queued PTR RRs under _signal
-			answerSignalPtr, err := sig0.SendDOHQuery(dohServer, msgSigPtr)
-			if err != nil {
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-			if answerSignalPtr.Rcode != dns.RcodeSuccess {
-				err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerKeyRR)
-				reject.Invoke(jsErr(err))
-				return
-			}
-
-			var ptrRR *dns.PTR
-			for i, rr := range answerSignalPtr.Answer {
-				var ok bool
-				ptrRR, ok = rr.(*dns.PTR)
-				if ok {
-					break
-				}
-				log.Printf("[DEBUG] answer[%d] is not a PTR type: %T", i, rr)
-			}
-
-			if ptrRR != nil &&
-				ptrRR.Ptr == signalKeyRRName {
-				signalPTRExists = true
 			}
 
 			resolve.Invoke(map[string]any{
-				"QueuePTRExists": strconv.FormatBool(signalPTRExists),
-				"KeyRRExists":    strconv.FormatBool(keyRRExists),
+				"QueuePTRExists": stat.QueuePTRExists,
+				"KeyRRExists":    stat.KeyRRExists,
 			})
 		}()
 

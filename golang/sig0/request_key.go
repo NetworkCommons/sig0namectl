@@ -15,7 +15,7 @@ var (
 	//DefaultDOHResolver  = "8.8.8.8"
 	// DefaultDOHResolver  = "1.1.1.1"
 	// DefaultDOHResolver  = "quad9.zenr.io"
-	DefaultDOHResolver  = "google.zenr.io"
+	DefaultDOHResolver = "google.zenr.io"
 	// DefaultDOHResolver  = "doh.zenr.io"
 )
 
@@ -176,4 +176,94 @@ func RequestKey(newName string) error {
 	}
 
 	return nil
+}
+
+type KeyStatus struct {
+	QueuePTRExists, KeyRRExists bool
+}
+
+func CheckKeyStatus(keyName, zone, dohServer string) (*KeyStatus, error) {
+	if !strings.HasSuffix(zone, ".") {
+		zone += "."
+	}
+	key, err := LoadKeyFile(keyName)
+	if err != nil {
+		return nil, fmt.Errorf("load KeyFile failed: %w", err)
+	}
+	keyFqdn := key.Key.Hdr.Name // key DNS name (FQDN with trailing dot)
+
+	var ks KeyStatus
+
+	// construct query for KEY RRSet at FQDN keyname
+	// TODO BUG cannot yet pass RData via QueryKEY() for exact RR
+	// as SendDOHQuery errors with dns: bad rdata
+	msgKey, err := QueryKEY(keyFqdn)
+	if err != nil {
+		return nil, err
+	}
+
+	answerKeyRR, err := SendDOHQuery(dohServer, msgKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if answerKeyRR.Rcode != dns.RcodeSuccess && answerKeyRR.Rcode != dns.RcodeNameError {
+		err = fmt.Errorf("did not get KEY RR success answer\n:%#v", answerKeyRR)
+		return nil, err
+	}
+
+	var answerKey *dns.KEY
+	for i, rr := range answerKeyRR.Answer {
+		var ok bool
+		answerKey, ok = rr.(*dns.KEY)
+		if ok {
+			break
+		}
+		log.Printf("[DEBUG] answer[%d] is not a KEY type: %T", i, rr)
+	}
+
+	if answerKey != nil &&
+		answerKey.Flags == key.Key.Flags &&
+		answerKey.Protocol == key.Key.Protocol &&
+		answerKey.Algorithm == key.Key.Algorithm &&
+		answerKey.PublicKey == key.Key.PublicKey {
+		ks.KeyRRExists = true
+	}
+	// query for submission queue PTR at _signal.zone and submission queue KEY under ._signal.zone
+	signalPtrRRName := SignalSubzonePrefix + "." + zone
+	signalKeyRRName := strings.TrimSuffix(keyFqdn, "."+zone) + "." +
+		SignalSubzonePrefix + "." + zone
+
+	// construct query for _signal.zone PTR RRset
+	msgSigPtr, err := QueryPTR(signalPtrRRName)
+	if err != nil {
+		return nil, err
+	}
+
+	// send & search query results for Queued PTR RRs under _signal
+	answerSignalPtr, err := SendDOHQuery(dohServer, msgSigPtr)
+	if err != nil {
+		return nil, err
+	}
+
+	if answerSignalPtr.Rcode != dns.RcodeSuccess {
+		err = fmt.Errorf("did not get PTR RR success answer\n:%#v", answerSignalPtr)
+		return nil, err
+	}
+
+	var ptrRR *dns.PTR
+	for i, rr := range answerSignalPtr.Answer {
+		var ok bool
+		ptrRR, ok = rr.(*dns.PTR)
+		if ok {
+			break
+		}
+		log.Printf("[DEBUG] answer[%d] is not a PTR type: %T", i, rr)
+	}
+
+	if ptrRR != nil && ptrRR.Ptr == signalKeyRRName {
+		ks.QueuePTRExists = true
+	}
+
+	return &ks, nil
 }

@@ -138,16 +138,16 @@ async function listKeysWithStatus() {
 	if (div.children.length > 0) {
 		div.removeChild(div.children[0])
 	}
-
 	const ul = document.createElement("ul")
 
 	const list = window.goFuncs.listKeys
-        const stat = window.goFuncs.checkKeyStatus
+    const stat = window.goFuncs.checkKeyStatus
 	for (const k of list()) {
 		const li = document.createElement("li")
 		const s = await stat(k.Name, "zenr.io", "doh.zenr.io")
-		li.innerHTML = k.Name +" | Key Exists in DNS: " + s.KeyRRExists +" | Key Request Queued: " + s.QueuePTRExists
-
+		li.innerHTML = k.Name
+            +" | Key Exists in DNS: " + s.KeyRRExists
+            +" | Key Request Queued: " + s.QueuePTRExists
 		ul.appendChild(li)
 	}
 	div.appendChild(ul)
@@ -768,10 +768,10 @@ async function handleFileSelection(event) {
 
  const downloadKeys = () => {
     const zip = new JSZip();
-    
+
     Object.keys(localStorage).forEach(keyName => {
         const item = JSON.parse(localStorage.getItem(keyName));
-        
+
         if (item?.key && item?.private) {
             zip.file(`${keyName}.key`, item.key);
             zip.file(`${keyName}.private`, item.private);
