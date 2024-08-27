@@ -61,7 +61,7 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 		}
 
 		keyfiles = append(keyfiles, storedKeyData{
-			Name: name,
+			Name: keyName,
 			Key:  sig.Key.PublicKey,
 		})
 	}
@@ -90,9 +90,6 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 	if !ok {
 		return nil, fmt.Errorf("expected dns.KEY, instead: %T", rr)
 	}
-
-	hdr := rr.Header()
-	log.Println(keyfile+".key import:", hdr.Name, hdr.Ttl, hdr.Class, hdr.Rrtype, dnsKey.Flags, dnsKey.Protocol, dnsKey.Algorithm, dnsKey.PublicKey)
 
 	privfh, err := os.Open(secretKeyName)
 	if err != nil {

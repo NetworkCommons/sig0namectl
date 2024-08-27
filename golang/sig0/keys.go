@@ -114,9 +114,6 @@ func ParseKeyData(key, private string) (*Signer, error) {
 		return nil, fmt.Errorf("expected dns.KEY, instead: %T", rr)
 	}
 
-	hdr := rr.Header()
-	log.Println("key import:", hdr.Name, hdr.Ttl, hdr.Class, hdr.Rrtype, dnsKey.Flags, dnsKey.Protocol, dnsKey.Algorithm, dnsKey.PublicKey)
-
 	privkey, err := dnsKey.ReadPrivateKey(strings.NewReader(private), rr.Header().Name+":private")
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key material from private key data: %w", err)
