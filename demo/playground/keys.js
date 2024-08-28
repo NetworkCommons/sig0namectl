@@ -40,11 +40,8 @@ class Keys {
 
   /// update Keys
   async update_keys() {
-    const keys = await this.get_keys().catch(error => {
-      console.error(error)
-      return Promise.reject(error)
-    });
-
+    try {
+      const keys = await this.get_keys()
 
       let promises = [];
       for (const key of keys) {
@@ -66,6 +63,9 @@ class Keys {
           }
         }
       })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   /// Update a Single Key

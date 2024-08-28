@@ -6,12 +6,16 @@
 		<title>sig0namectl Domain Manager</title>
 		<link rel="stylesheet" href="sig0.css"  type="text/css">
 		<link rel="stylesheet" href="domain_manager.css"  type="text/css">
+		<link href="fontawesome/css/fontawesome.min.css" rel="stylesheet" />
+		<link href="fontawesome/css/solid.min.css" rel="stylesheet" />
+		<link href="fontawesome/css/regular.min.css" rel="stylesheet" />
 		<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
 		<script src="sig0_wasm.js"></script>
 		<script src="sig0.js"></script>
 		<script src="keys.js"></script>
 		<script src="dns.js"></script>
 		<script src="domains.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 		<script src="domain_manager.js"></script>
 		<script>
 			var keys = null
@@ -64,8 +68,35 @@
 						<option value="zenr.io" selected>.zenr.io</option>
 						<option value="beta.freifunk.net">.beta.freifunk.net</option>
 					</select>
-					<input type="submit" value="request" class="submit"/>
+					<input type="submit" value="Request" class="submit"/>
 				</form>
+			</div>
+			<div id="domain-advanced" class="hidden">
+				<script>
+					function advanced_toggle() {
+						const element = document.getElementById('domain-advanced')
+						element.classList.toggle('hidden')
+						return false;
+					}
+				</script>
+				<div id="domain-advanced-toggle"><a class="interactive" onclick="advanced_toggle()"><span class="fa-solid fa-chevron-down"></span> Advanced Options</a></div>
+				<div id="domain-advanced-container">
+					<div id="domain-advanced-import" class="import-export">
+						<p>
+							Import all sig0namectl keys of a folder into this manager.
+							Select the folder containing the keys on your device.
+							The keys will be stored in the local cache of this browser.
+						</p>
+						<input type="file" id="directoryPicker" webkitdirectory multiple onchange="domain_list_manager_ui.import_keys(event)">
+					</div>
+					<div id="domain-advanced-import" class="import-export">
+						<p> 
+							Export all your keys from this manager. 
+							You can use them on other devices or backup them.
+						</p>
+						<button onClick="domain_list_manager_ui.export_keys()">Export Your Keys</button>
+					</div>
+				</div>
 			</div>
 		</section>
 		<!-- Templates -->

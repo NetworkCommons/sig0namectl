@@ -108,4 +108,75 @@ class DomainListManagerUi {
     event.preventDefault();
     form.subdomain.value = null;
   }
+
+  /// Import Keys
+  ///
+  /// Import a sig0namctl key directory into this browser.
+  async import_keys(event) {
+    const files = Array.from(event.target.files);
+    const filePairs = {};
+
+    files.forEach(file => {
+      const fileName = file.name;
+      const fileExt = fileName.split('.').pop().toLowerCase();
+      const baseName = fileName.slice(0, fileName.lastIndexOf('.'));
+
+      if (fileExt === 'key' || fileExt === 'private') {
+        if (!filePairs[baseName]) {
+          filePairs[baseName] = {};
+        }
+        if (fileExt === 'key') {
+          filePairs[baseName].keyFile = file;
+        } else if (fileExt === 'private') {
+          filePairs[baseName].privateFile = file;
+        }
+      }
+    });
+
+    for (const [baseName, pair] of Object.entries(filePairs)) {
+      if (pair.keyFile && pair.privateFile) {
+        if (localStorage.getItem(baseName)) {
+        } else {
+          const keyContent = await pair.keyFile.text();
+          const privateContent = await pair.privateFile.text();
+          const jsonString =
+              JSON.stringify({key: keyContent, private: privateContent});
+
+          localStorage.setItem(baseName, jsonString);
+        }
+      }
+    }
+
+    document.getElementById('directoryPicker').value = ''
+
+    // update interface
+    keys.update_keys()
+
+    return false
+  }
+
+  /// Export Keys
+  ///
+  /// Export all keys in a zip folder
+  export_keys() {
+    const zip = new JSZip();
+
+    const object_keys = Object.keys(localStorage);
+
+    for (const keyName of object_keys) {
+      const item = JSON.parse(localStorage.getItem(keyName));
+
+      if (item?.key && item?.private) {
+        zip.file(`${keyName}.key`, item.key);
+        zip.file(`${keyName}.private`, item.private);
+      }
+    }
+
+    zip.generateAsync({type: 'blob'}).then(content => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'keys.zip';
+      a.click();
+    })
+  }
 }
