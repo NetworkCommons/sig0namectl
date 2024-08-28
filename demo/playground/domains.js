@@ -42,6 +42,7 @@ class Domains {
 
   /// listen for keys changes
   keys_updated(keys_array) {
+    console.log('keys_updated')
     // auto add keys
     if (this.options.key_auto_add) {
       for (const key of keys_array) {
