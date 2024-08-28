@@ -131,7 +131,7 @@ class UiEntry {
     } else {
       // add entries
       for (let i = 0; i < list.length; i++) {
-        referrer.append_entry(list[i], referrer);
+        referrer.append_entry(list[i].data, referrer);
       }
       // remove loader
       const spinner =
@@ -295,22 +295,24 @@ class UiServiceInstance extends UiEntry {
       for (let i = 0; i < list.length; i++) {
         if (i > 0) {
           // append hr
-          let hr = document.createElement('HR');
+          const hr = document.createElement('HR');
           content.appendChild(hr);
         }
 
-        let p = document.createElement('P');
-        let text = document.createTextNode(list[i]);
-        p.appendChild(text);
-        content.appendChild(p);
+        for (const entry of list[i].data) {
+          const p = document.createElement('P');
+          const text = document.createTextNode(entry);
+          p.appendChild(text);
+          content.appendChild(p);
+        }
       }
     }
 
     // loop through service list entries and update their link
     // if needed
     let entries = referrer.container.getElementsByClassName('srv-entry');
-    for (let i = 0; i < entries.length; i++) {
-      entries[i].create_service_link(list)
+    for (const entry of entries) {
+      entry.create_service_link(list)
     }
   }
 }

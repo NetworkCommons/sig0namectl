@@ -166,22 +166,32 @@ class Key {
     // check status of key
     console.log(
         'key.check_status ' + this.domain + ' ' + zone + ' ' + doh_domain)
-    let status =
-        await window.goFuncs.checkKeyStatus(this.filename, zone, doh_domain);
 
-    if (status.KeyRRExists === 'true') {
-      this.active = true;
-    } else {
-      this.active = false;
-    }
-    if (status.QueuePTRExists === 'true') {
-      this.waiting = true;
-    } else {
-      this.waiting = false;
-    }
+    try {
+      const status =
+          await window.goFuncs.checkKeyStatus(this.filename, zone, doh_domain)
 
-    console.log(
-        'status received: ' + this.domain + ' active: ' + this.active +
-        ' waiting: ' + this.waiting)
+      if (status.KeyRRExists === 'true') {
+        this.active = true;
+      }
+      else {
+        this.active = false;
+      }
+      if (status.QueuePTRExists === 'true') {
+        this.waiting = true;
+      } else {
+        this.waiting = false;
+      }
+
+      console.log(
+          'status received: ' + this.domain + ' active: ' + this.active +
+          ' waiting: ' + this.waiting)
+    } catch (error) {
+      console.log(
+          'key.check_status error ' + this.domain + ' ' + zone + ' ' +
+          doh_domain)
+      console.error(error);
+      return
+    }
   }
 }

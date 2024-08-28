@@ -3,8 +3,13 @@
 /// Manages dns queries
 class Dns {
   /// construct the DNS object with the domain to query
-  /// you can optionally provide a keys
+  /// you can optionally provide a key for the domain
   constructor(domain_name, key, on_initialized) {
+    // FIXME: there is an error to investigate within the dohjs library when
+    // resolving queries via 'https://doh.zembla.io/dns-query'.
+    // This problem needs further investigation. In the meantime, we resolve
+    // everything via 'https://1.1.1.1/dns-query'
+    this.doh_url_dohjs = 'https://1.1.1.1/dns-query';
     // domain name
     this.domain = domain_name;
     this.doh_domain = '1.1.1.1';
@@ -26,7 +31,7 @@ class Dns {
     this.initialized_callbacks = [];
 
     // create the resolver
-    this.resolver = new doh.DohResolver(this.doh_url);
+    this.resolver = new doh.DohResolver(this.doh_url_dohjs);
 
     // initialize longer tasks
     this.init_wasm(on_initialized);
@@ -54,7 +59,9 @@ class Dns {
   }
 
   /// read the record types from dns of a domain
-  /// and return an object
+  /// and returns an array of entries.
+  ///
+  /// this function never errors. If it fails, it returns an empty array
   async query(query_domain, record_type, callback, referrer) {
     const query = doh.makeQuery(query_domain, record_type);
     // we always want to query with DNSSEC enabled
@@ -70,25 +77,44 @@ class Dns {
       }]
     }
 
-    console.log('query: ' + query_domain + ' ' + record_type)
+    const log_message = 'query: ' + query_domain + ' ' + record_type + ' ' +
+        this.doh_url + ' ' + this.doh_method;
+    console.log(log_message);
     console.log(query)
-    let query_result =
-        await doh.sendDohMsg(query, this.doh_url, this.doh_method);
-    console.log(query_result)
-    let result = [];
+    try {
+      // FIXME: the `https://doh.zenr.io/dns_query` server throws an error in
+      // the dohjs library. Until this is fixed we use the default doh server.
+      //
+      // ```
+      // let query_result = await doh.sendDohMsg(query, this.doh_url,
+      // this.doh_method)
+      // ```
+      let query_result =
+          await doh.sendDohMsg(query, this.doh_url_dohjs, this.doh_method)
+      console.log(query_result)
+      let results = [];
 
-    query_result.answers.forEach(ans => {
-      if (ans.type == record_type) {
-        result.push(ans.data);
+      for (let answer of query_result.answers) {
+        if (answer.type == record_type) {
+          results.push(answer);
+        }
       }
-    });
 
-    // return object
-    if (typeof callback === Function) {
-      callback(result, referrer);
+      // return object
+      if (typeof callback == 'function') {
+        callback(results, referrer);
+      }
+
+      return results;
+    } catch (error) {
+      console.error(error)
+
+      if (typeof callback == 'function') {
+        callback([], referrer);
+      }
+
+      return [];
     }
-
-    return result;
   }
 
   /// read the query response & look for SOA record from:
@@ -96,24 +122,27 @@ class Dns {
   //    2. authorities section, which means zone cut is above query domain
   /// and return an object
   async get_zone(query_domain) {
-    const query_result = await this.resolver.query(query_domain, 'SOA');
+    const query_result = await this.resolver.query(query_domain, 'SOA').catch(error => {
+      console.error('get_zone query failed')
+      Promise.reject('query Zone for ' + query_domain + ' failed')
+    })
 
-    for (let i = 0; i < query_result.answers.length; i++) {
-      const ans = query_result.answers[i];
-      if (ans.type == 'SOA') {
-        console.log('SOA found in answers: ' + ans.name);
-        return ans.name;
+      for (let i = 0; i < query_result.answers.length; i++) {
+        const ans = query_result.answers[i];
+        if (ans.type == 'SOA') {
+          console.log('SOA found in answers: ' + ans.name);
+          return ans.name;
+        }
       }
-    }
 
-    for (const auth of query_result.authorities) {
-      if (auth.type == 'SOA') {
-        console.log('SOA found in authorities: ' + auth.name);
-        return auth.name;
+      for (const auth of query_result.authorities) {
+        if (auth.type == 'SOA') {
+          console.log('SOA found in authorities: ' + auth.name);
+          return auth.name;
+        }
       }
-    }
 
-    return Promise.reject('no Zone found for ' + query_domain);
+      return Promise.reject('no Zone found for ' + query_domain);
   }
 
   /// get DoH endpoint
@@ -125,10 +154,12 @@ class Dns {
     if (this.domain.endsWith('zenr.io')) {
       this.doh_domain = 'doh.zenr.io';
       this.doh_url = 'https://doh.zenr.io/dns_query';
+      return
     }
     if (this.domain.endsWith('beta.freifunk.net')) {
       this.doh_domain = 'doh.zenr.io';
       this.doh_url = 'https://doh.zenr.io/dns_query';
+      return
     }
 
     return;
@@ -156,15 +187,17 @@ class Dns {
 
   /// check if an RRSIG record is present for a specific domain
   async check_rrsig(query_domain) {
-    const query_result = await this.resolver.query(query_domain, 'RRSIG');
-
-    if (query_result.answers.length > 0) {
-      return true
-    } else {
+    const query_result = await this.resolver.query(query_domain, 'RRSIG').catch(error => {
+      console.error('check_rrsig query failed for ' +query_domain)
       return false
-    }
+    })
 
-    return Promise.reject('something went wrong');
+      if (query_result.answers.length > 0) {
+        return true
+      }
+      else {
+        return false
+      }
   }
 
   /// check key status
