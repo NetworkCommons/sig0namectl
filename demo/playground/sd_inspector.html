@@ -34,6 +34,8 @@
 
         // update domains on key change
         window.addEventListener('keys_ready', function(){
+            console.log('keys_ready')
+            update_ui_domains()
             domains.keys_updated(keys.keys)
             // set interval for key reload
             setInterval(update_keys, 5000)
@@ -44,12 +46,14 @@
 
         /// Add event listeners for domains object
         window.addEventListener('domains_ready', function(){
+            console.log('domains_ready')
             // create new domains for each domain
             for (let i=0; i<domains.domains.length; i++) {
                 add_new_domain(domains.domains[i].domain, domains.domains[i])
             }
         })
         window.addEventListener('domains_updated', function(){
+            console.log('domain_updated')
             // create inexistent domains
             update_ui_domains()
         })
