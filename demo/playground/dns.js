@@ -52,7 +52,7 @@ class Dns {
     }
 
     // find DoH server
-    await this.get_doh();
+    await this.find_doh();
 
     // check key status
     this.check_key_status()
@@ -145,44 +145,18 @@ class Dns {
       return Promise.reject('no Zone found for ' + query_domain);
   }
 
-  /// get DoH endpoint
-  ///
-  /// TODO: This is just a workaround, waiting for the blockers to be fixed.
-  /// FIXME: The WASM DoH function throws an error when querying for subdomains.
-  /// FIXME: The dohjs library returns an empty answer section for SVCB queries.
-  async get_doh() {
-    if (this.domain.endsWith('zenr.io')) {
-      this.doh_domain = 'doh.zenr.io';
-      this.doh_url = 'https://doh.zenr.io/dns_query';
-      return
-    }
-    if (this.domain.endsWith('beta.freifunk.net')) {
-      this.doh_domain = 'doh.zenr.io';
-      this.doh_url = 'https://doh.zenr.io/dns_query';
-      return
-    }
-
-    return;
-
-    // -----------------------------------------------------
-    // The following code needs fixing of the blockers first
-    let domain_parts = this.domain.split('.')
-    let doh = null
-    for (let i = 0; domain_parts.length - i >= 2; i++) {
-      // construct query domain
-      let query_domain = '_dns'
-      for (let j = i; j < domain_parts.length; j++) {
-        query_domain += '.'
-        query_domain += domain_parts[j]
+  /// find DoH endpoint for the zone of this domain
+  async find_doh() {
+    try {
+      let dohEndpoint = await window.goFuncs.findDOHEndpoint(this.zone);
+      this.doh_url = dohEndpoint
+      const doh_array = this.doh_url.split('/')
+      if (doh_array.length > 1) {
+        this.doh_domain = doh_array[2]
       }
-      // query SVCB record
-      const query_result = await this.query(query_domain, 'SVCB');
-
-      // check result
-      console.log(
-          'i: ' + i + ', domain_parts.length - i' + (domain_parts.length - i))
+    } catch (error) {
+      console.log('no DoH endpoint found for zone ' + this.zone)
     }
-    return doh
   }
 
   /// check if an RRSIG record is present for a specific domain
