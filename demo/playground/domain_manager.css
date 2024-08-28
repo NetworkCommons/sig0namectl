@@ -38,3 +38,29 @@ ul#domain-list {
     font-size: smaller;
     color: grey;
 }
+
+/* advanced options */
+#domain-advanced {
+    margin-top: 4rem;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+#domain-advanced #domain-advanced-toggle span.fa-solid {
+    transition: .5s ease-in-out;
+}
+
+#domain-advanced.hidden #domain-advanced-toggle span.fa-solid {
+    transform: rotate(-90deg);
+}
+
+#domain-advanced.hidden #domain-advanced-container {
+    display: none;
+}
+
+#domain-advanced .import-export {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}

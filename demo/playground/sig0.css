@@ -43,7 +43,9 @@ a {
 }
 
 /* form fields & buttons */
-button {
+button,
+input[type=file],
+input[type=submit] {
     border-radius: 0.9em;
     border: solid 0.1rem #000;
     background-color: inherit;
