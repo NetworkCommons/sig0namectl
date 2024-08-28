@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>sig0namectl Domain Manager</title>
+		<link rel="stylesheet" href="sig0.css"  type="text/css">
+		<link rel="stylesheet" href="domain_manager.css"  type="text/css">
+		<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+		<script src="sig0_wasm.js"></script>
+		<script src="sig0.js"></script>
+		<script src="keys.js"></script>
+		<script src="dns.js"></script>
+		<script src="domains.js"></script>
+		<script src="domain_manager.js"></script>
+		<script>
+			var keys = null
+			var domains = new Domains()
+
+			// start initialization when WASM is ready
+			window.addEventListener('wasm_ready', function(){
+				console.log('WASM is ready')
+
+				keys = new Keys()
+			});
+
+			// update domains on key change
+			window.addEventListener('keys_ready', function(){
+				domains.keys_updated(keys.keys)
+			})
+			window.addEventListener('keys_updated', function(){
+				domains.keys_updated(keys.keys)
+			})
+
+			var domain_list_manager_ui = new DomainListManagerUi()
+			var check_domain_status = function() {
+				if (domains.recheck_status === true) {
+					domains.recheck_status = false;
+					domain_list_manager_ui.update_domains()
+				}
+			}
+			setInterval(check_domain_status, 1000)
+		</script>
+	</head>
+	<body>
+		<section id="domain-list-section">
+			<div id="domain-list-container">
+				<h2>Your Domains</h2>
+				<ul id="domain-list"></ul>
+			</div>
+			<div id="domain-request">
+				<p>Request a new domain:</p>
+				<form onsubmit="domain_list_manager_ui.request_domain(event, this);">
+					<input type="text" 
+						class="key_subdomain"
+						placeholder="your-domain-name"
+						name="subdomain"
+						required
+						minlength="4"
+						maxlength="64"
+						pattern="[a-z0-9\._\-]{4,64}"
+						/>
+					<select name="domain" class="key_domain">
+						<option value="zenr.io" selected>.zenr.io</option>
+						<option value="beta.freifunk.net">.beta.freifunk.net</option>
+					</select>
+					<input type="submit" value="request" class="submit"/>
+				</form>
+			</div>
+		</section>
+		<!-- Templates -->
+		<section style="display:none;">
+			<ul id="domain-template">
+				<li class="entry">
+					<div class="domain"></div>
+					<div class="status"></div>
+				</li>
+			</ul>
+		</section>
+	</body>
+</html>

@@ -1,0 +1,40 @@
+/* sig0namectl Domain Manager UI CSS */
+
+h1 {
+    margin-left: 3rem
+}
+
+#domain-list-section {
+    max-width: 27rem;
+    margin: 0 auto;
+    padding: 3rem;
+}
+
+/* domain list */
+ul#domain-list {
+    list-style-type: none;
+    margin: 0;
+    margin-bottom: 2.5rem;
+    padding: 0;
+    width: 100%;
+
+}
+
+#domain-list li {
+    display: flex;
+    padding: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+#domain-list li div {
+    padding: 0.2rem;
+}
+
+#domain-list li .domain {
+    min-width: 15rem;
+}
+
+#domain-list li .status {
+    font-size: smaller;
+    color: grey;
+}
