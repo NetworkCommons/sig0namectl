@@ -31,7 +31,7 @@ The project consists of a number of different component types:
 
 sig0namectl web browser applications provide easy-to-use way to discover, browse and access local network services and resources. 
 
-Browser applications can also assist in claiming a new subdomain key which unlocks the ability to add and publish a set of new local resources and services to contribute to local communities.
+Browser applications can also assist in claiming a new domain key which unlocks the ability to add and publish a set of new local resources and services to contribute to local communities.
 
 Web browser applications offer the ability to:
 - browse & access up-to-date local community services and resources;
