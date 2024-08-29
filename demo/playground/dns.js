@@ -58,6 +58,29 @@ class Dns {
     this.check_key_status()
   }
 
+  /// Query via WASM
+  ///
+  /// This function returns a Javascript array of the answer section of the
+  /// query.
+  ///
+  /// It returns an empty array in case of failure.
+  async query_wasm(domain, record_type) {
+    let query_object = {
+      domain: domain,
+      type: record_type,
+      dohurl: this.doh_domain
+    }
+
+    try {
+      const result = await window.goFuncs.query(query_object)
+      return result.Answer
+    } catch (error) {
+      console.log('query_wasm ' + domain + ' ' + type + ' failed')
+      console.error(error)
+      return []
+    }
+  }
+
   /// read the record types from dns of a domain
   /// and returns an array of entries.
   ///
@@ -115,6 +138,106 @@ class Dns {
 
       return [];
     }
+  }
+
+
+  /// Add a HTTP Service
+  add_service_http(service_domain, port, path, link_name) {
+    let txt = '"txtvers=1" "path=' + path + '"';
+
+    let service_object = {
+      service: 'http',
+      service_prefix: '_http._tcp.',
+      service_domain: service_domain,
+      port: port,
+      link_name: link2dnsstring(link_name) + '.',
+      txt: txt,
+    };
+
+    const result = this.add_service(service_object);
+    if (result) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  /// Add a Service
+  ///
+  /// This function adds a service for this domain.
+  /// The function returns true on success and false on failure.
+  async add_service(service_object) {
+    const ttl = 60;
+    const key = this.get_active_key();
+    if (key === null) {
+      console.error('no key found for ' + this.domain)
+      return false
+    }
+
+    try {
+      // create updater
+      const updater = await window.goFuncs.newUpdater(
+          key.filename, this.zone, this.doh_domain);
+
+      // create browse domain entries
+      await updater.addRR(
+          'b._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          this.domain);
+      await updater.addRR(
+          'db._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          this.domain);
+      await updater.addRR(
+          'lb._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          this.domain);
+      await updater.addRR(
+          'r._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          this.domain);
+      await updater.addRR(
+          'dr._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          this.domain);
+
+      // add service structure
+      await updater.addRR(
+          '_services._dns-sd._udp.' + this.domain + ' ' + ttl + ' IN PTR ' +
+          service_object.service_prefix + this.domain);
+
+      // add service entries
+      await updater.addRR(
+          service_object.service_prefix + this.domain + ' ' + ttl + ' IN PTR ' +
+          service_object.link_name + service_object.service_prefix +
+          this.domain);
+      await updater.addRR(
+          service_object.link_name + service_object.service_prefix +
+          this.domain + ' ' + ttl + ' IN SRV 0 0 ' + service_object.port + ' ' +
+          service_object.service_domain);
+      await updater.addRR(
+          service_object.link_name + service_object.service_prefix +
+          this.domain + ' ' + ttl + ' IN TXT ' + service_object.txt);
+
+      // submit to request
+      await updater.signedUpdate();
+
+      return true
+    } catch (error) {
+      console.log('add_service failed')
+      console.log(service_object)
+      console.error(error)
+      return false
+    }
+  }
+
+  /// Get active Key
+  ///
+  /// Returns the first active key object for this domain.
+  /// The function returns `null` if there is no key.
+  get_active_key() {
+    for (const key of this.keys) {
+      if (key.active === true) {
+        return key
+      }
+    }
+
+    return null
   }
 
   /// read the query response & look for SOA record from:

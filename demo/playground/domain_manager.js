@@ -68,6 +68,10 @@ class DomainListManagerUi {
     element.getElementsByClassName('status')[0].appendChild(
         document.createTextNode(dns_item.status));
 
+    element_domain.onclick = function(event, item) {
+      manage_domain(dns_item)
+    };
+
     // add element to list
     domain_list.appendChild(element)
 
@@ -178,5 +182,81 @@ class DomainListManagerUi {
       a.download = 'keys.zip';
       a.click();
     })
+  }
+}
+
+/// sig0namectl Domain Overview UI
+class DomainOverviewUi {
+  constructor(domain_item) {
+    // set properties
+    this.domain_item = domain_item;
+    this.section = document.getElementById('domain-overview');
+
+    // prepare and show template
+    this.clean();
+    this.set_title();
+    this.show();
+  }
+
+  show() {
+    this.section.classList.remove('hidden')
+  }
+
+  clean() {
+    // clean title
+    const title = document.getElementById('domain-overview-title');
+    while (title.firstChild) {
+      title.removeChild(title.lastChild)
+    }
+    // clean input fields
+    document.getElementById('service_name').value = null;
+    document.getElementById('service_link').value = null;
+    // reset visibility of all elements
+    document.getElementById('service-entry-create').classList.remove('hidden');
+    document.getElementById('service-entry-success').classList.add('hidden');
+  }
+
+  set_title() {
+    const title = document.getElementById('domain-overview-title');
+    title.innerHtml = ''
+    title.appendChild(document.createTextNode(this.domain_item.domain))
+  }
+
+  publish_service(event, form) {
+    // stop form from page reload
+    event.preventDefault();
+
+    const name = form.name.value;
+    console.log('link name: ' + name)
+    const link = form.link.value;
+    console.log('link url: ' + link);
+
+    // split link into needed values
+    const url = new URL(link);
+
+    let port = 80;
+    if (url.port === '') {
+      if (url.protocol === 'https:') {
+        port = 443;
+      }
+    } else {
+      port = url.port;
+    }
+
+    // publish service
+    const result = this.domain_item.add_service_http(
+        url.hostname, port, url.pathname, name);
+    if (result == true) {
+      document.getElementById('service-entry-create').classList.add('hidden');
+      document.getElementById('service-entry-success')
+          .classList.remove('hidden');
+
+      // clean form
+      form.name.value = null;
+      form.link.value = null;
+    } else {
+      alert(
+          'Unfortunately this Link entry could not be published. Please try again.');
+    }
   }
 }

@@ -37,6 +37,7 @@
 			})
 
 			var domain_list_manager_ui = new DomainListManagerUi()
+			var domain_overview_ui = null
 			var check_domain_status = function() {
 				if (domains.recheck_status === true) {
 					domains.recheck_status = false;
@@ -44,6 +45,22 @@
 				}
 			}
 			setInterval(check_domain_status, 1000)
+		</script>
+		<script>
+			/// link_name to domain string
+			///
+			/// this function converts a link name to a string which is compatible with
+			/// DNS
+			function link2dnsstring(link_name) {
+				const dnsstring = link_name.replaceAll(' ', "\\032")
+				return dnsstring
+			}
+
+			/// manage a domain entry
+			function manage_domain(domain_item) {
+				domain_overview_ui = new DomainOverviewUi(domain_item)
+			}
+			
 		</script>
 	</head>
 	<body>
@@ -99,6 +116,61 @@
 				</div>
 			</div>
 		</section>
+		<section id="domain-overview" class="hidden">
+			<script>
+				function hide_domain_overview() {
+					document.getElementById('domain-overview').classList.add('hidden')
+					return false;
+				}
+			</script>
+			<button class="page" title="close this domain overview" onclick="hide_domain_overview()"><span class="fa-solid fa-xmark"></span></button>
+			<div id="domain-overview-container">
+				<h1 id="domain-overview-title">math.zenr.io</h1>
+				<div id="service-entry-create">
+					<h3>Create a 'http' Service Entry</h3>
+					<p>
+						Create a discoverable `http` DNS service.
+						This service is a link to a web page.
+					</p>
+					<script>
+						/// send form to publish services
+						var publish_service = function(event, form) {
+							event.preventDefault();
+							domain_overview_ui.publish_service(event, form);
+						}
+					</script>
+					<form onsubmit="publish_service(event, this)">
+						<label for="service_name">Your Service Name</label>
+						<input type="text"
+						id="service_name"
+						placeholder="My cool Link"
+						name="name"
+						required
+						minlength="4"
+						maxlength="64"
+						pattern=".{4,64}"
+						/><br>
+						<label for="service_link">Your Link</label>
+						<input type="url"
+						id="service_link"
+						placeholder="http://website.com/page.html"
+						name="link"
+						required
+						maxlength="2048"
+						/><br>
+						<input type="submit" value="Create" class="submit"/>
+					</form>	
+				</div>
+				<div id="service-entry-success" class="hidden">
+					<h3>Service Successfully Published</h3>
+					<p>
+						Congratulation! Your service has been successfully published.<br><br>
+						<a href="sd_inspector.html" target="_blank">Inspect your services with the Service Inspector</a>
+					</p>
+				</div>
+			</div>
+		</section>
+		
 		<!-- Templates -->
 		<section style="display:none;">
 			<ul id="domain-template">
