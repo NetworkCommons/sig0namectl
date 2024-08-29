@@ -286,7 +286,7 @@ class UiServiceInstance extends UiEntry {
     } else {
       if (list.length > 0) {
         let h2 = document.createElement('H2');
-        let text = document.createTextNode('TXT Entries');
+        let text = document.createTextNode('Service Parameters (TXT Entries)');
         h2.appendChild(text);
         content.appendChild(h2);
       }
