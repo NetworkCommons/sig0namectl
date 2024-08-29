@@ -64,3 +64,45 @@ ul#domain-list {
     margin-top: 2rem;
     margin-bottom: 1rem;
 }
+
+/* Domain Overview */
+#domain-overview {
+    z-index: 10;
+    margin: 1rem;
+    padding: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    width: calc(100% - 4rem);
+    min-height: calc(100vh - 4rem);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#domain-overview button.page {
+    font-size: x-large;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 0;
+    float: right;
+    border-width: 0;
+}
+
+#domain-overview-container {
+    margin: 0 auto;
+    max-width: 27rem;
+}
+
+#domain-overview label {
+    display: inline-block;
+    width: 10em;
+}
+
+#domain-overview input {
+    margin-bottom: 0.5rem;
+}
+
+div.hidden,
+section.hidden {
+    display: none;
+}
