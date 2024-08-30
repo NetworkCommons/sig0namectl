@@ -52,11 +52,11 @@ ul#domain-list {
     transition: .5s ease-in-out;
 }
 
-#domain-advanced.hidden #domain-advanced-toggle span.fa-solid {
+#domain-advanced.reduced #domain-advanced-toggle span.fa-solid {
     transform: rotate(-90deg);
 }
 
-#domain-advanced.hidden #domain-advanced-container {
+#domain-advanced.reduced #domain-advanced-container {
     display: none;
 }
 
