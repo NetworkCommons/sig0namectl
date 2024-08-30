@@ -35,6 +35,9 @@
 			/// sig0namectl Playground Domain Management UI
 			class PlaygroundDomainListManagementUi {
 				constructor() {
+					// indicate update request
+					this.update_scheduled = false;
+
 					// register listening on events
 					window.addEventListener('domains_ready', function(){
 						console.log('domains_ready')
@@ -48,17 +51,18 @@
 
 				/// update Domain Listing
 				update_domains() {
+					// get domain list
 					const domain_list = document.getElementById('domain-list')
 
 					// copy keys into our array
-					for (let i=0; i < domains.domains.length; i++) {
-						const domain_item = this.domain_exists(domains.domains[i].domain)
+					for (const domain of domains.domains) {
+						const domain_item = this.domain_exists(domain.domain)
 						if (domain_item) {
 							// update entry if it exists
-							this.update_domain_entry(domains.domains[i], domain_item)
+							this.update_domain_entry(domain, domain_item)
 						} else {
 							// create a new one if it does not exist
-							this.create_domain_entry(domains.domains[i])
+							this.create_domain_entry(domain)
 						}
 					}
 				}
@@ -85,7 +89,7 @@
 					// fill values
 					const element_domain = element.getElementsByClassName('domain')[0];
 					element_domain.appendChild(document.createTextNode(dns_item.domain));
-					element.getElementsByClassName('status')[0].appendChild(document.createTextNode('TODO: status'));
+					element.getElementsByClassName('status')[0].appendChild(document.createTextNode(dns_item.status));
 
 					element_domain.onclick = function(event, item) {
 						manage_domain(dns_item)
@@ -93,6 +97,14 @@
 
 					// add element to list
 					domain_list.appendChild(element)
+
+					// reschedule update
+					if (dns_item.status === 'undefined' || 
+						dns_item.status === 'inactive' ||
+						dns_item.status === 'registering') {
+						dns_item.check_key_status();
+						domains.recheck_status = true;
+					}
 				}
 
 				/// update entry
@@ -103,7 +115,15 @@
 
 					const element_status = domain_entry.getElementsByClassName('status')[0]
 					element_status.replaceChildren()
-					element_status.appendChild(document.createTextNode('TODO: status'));					
+					element_status.appendChild(document.createTextNode(dns_item.status));
+					
+					// reschedule update
+					if (dns_item.status === 'undefined' || 
+						dns_item.status === 'inactive' ||
+						dns_item.status === 'registering') {
+							dns_item.check_key_status();
+							domains.recheck_status = true;
+						}					
 				}
 
 				/// request a domain with a newly created key
@@ -193,19 +213,25 @@
 				// TODO
 			}
 
-			const domain_list_management_ui = new PlaygroundDomainListManagementUi()
+			var domain_list_management_ui = new PlaygroundDomainListManagementUi()
 			var domain_management_ui = null
+			var check_domain_status = function() {
+				if (domains.recheck_status === true) {
+					domains.recheck_status = false;
+					domain_list_management_ui.update_domains()
+				}
+			}
+			setInterval(check_domain_status, 1000)
 		</script>
 	</head>
 	<body>
-		<h1>Playground</h1>
 		<section id="domain-list-section">
 			<div id="domain-list-container">
-				<h2>Your Domain Spaces</h2>
+				<h2>Your Domains</h2>
 				<ul id="domain-list"></ul>
 			</div>
 			<div id="domain-request">
-				<p>Claim a new domain space:</p>
+				<p>Request a new domain:</p>
 				<form onsubmit="domain_list_management_ui.claim_domain(event, this);">
 					<input type="text" 
 						class="key_subdomain"
@@ -220,7 +246,7 @@
 						<option value="zenr.io" selected>.zenr.io</option>
 						<option value="beta.freifunk.net">.beta.freifunk.net</option>
 					</select>
-					<input type="submit" value="claim" class="submit"/>
+					<input type="submit" value="request" class="submit"/>
 				</form>
 			</div>
 		</section>

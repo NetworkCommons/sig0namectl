@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>sig0namectl Domain Manager</title>
+		<link rel="stylesheet" href="sig0.css"  type="text/css">
+		<link rel="stylesheet" href="domain_manager.css"  type="text/css">
+		<link href="fontawesome/css/fontawesome.min.css" rel="stylesheet" />
+		<link href="fontawesome/css/solid.min.css" rel="stylesheet" />
+		<link href="fontawesome/css/regular.min.css" rel="stylesheet" />
+		<script src="https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js"></script>
+		<script src="sig0_wasm.js"></script>
+		<script src="sig0.js"></script>
+		<script src="keys.js"></script>
+		<script src="dns.js"></script>
+		<script src="domains.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+		<script src="domain_manager.js"></script>
+		<script>
+			var keys = null
+			var domains = new Domains()
+
+			// start initialization when WASM is ready
+			window.addEventListener('wasm_ready', function(){
+				console.log('WASM is ready')
+
+				keys = new Keys()
+			});
+
+			// update domains on key change
+			window.addEventListener('keys_ready', function(){
+				domains.keys_updated(keys.keys)
+			})
+			window.addEventListener('keys_updated', function(){
+				domains.keys_updated(keys.keys)
+			})
+
+			var domain_list_manager_ui = new DomainListManagerUi()
+			var domain_overview_ui = null
+			var check_domain_status = function() {
+				if (domains.recheck_status === true) {
+					domains.recheck_status = false;
+					domain_list_manager_ui.update_domains()
+				}
+			}
+			setInterval(check_domain_status, 1000)
+		</script>
+		<script>
+			/// link_name to domain string
+			///
+			/// this function converts a link name to a string which is compatible with
+			/// DNS
+			function link2dnsstring(link_name) {
+				const dnsstring = link_name.replaceAll(' ', "\\032")
+				return dnsstring
+			}
+
+			/// manage a domain entry
+			function manage_domain(domain_item) {
+				domain_overview_ui = new DomainOverviewUi(domain_item)
+			}
+			
+		</script>
+	</head>
+	<body>
+		<section id="domain-list-section">
+			<div id="domain-list-container">
+				<h2>Your Domains</h2>
+				<ul id="domain-list"></ul>
+			</div>
+			<div id="domain-request">
+				<p>Request a new domain:</p>
+				<form onsubmit="domain_list_manager_ui.request_domain(event, this);">
+					<input type="text" 
+						class="key_subdomain"
+						placeholder="your-domain-name"
+						name="subdomain"
+						required
+						minlength="4"
+						maxlength="64"
+						pattern="[a-z0-9\._\-]{4,64}"
+						/>
+					<select name="domain" class="key_domain">
+						<option value="zenr.io" selected>.zenr.io</option>
+						<option value="beta.freifunk.net">.beta.freifunk.net</option>
+					</select>
+					<input type="submit" value="Request" class="submit"/>
+				</form>
+			</div>
+			<div id="domain-advanced" class="hidden">
+				<script>
+					function advanced_toggle() {
+						const element = document.getElementById('domain-advanced')
+						element.classList.toggle('hidden')
+						return false;
+					}
+				</script>
+				<div id="domain-advanced-toggle"><a class="interactive" onclick="advanced_toggle()"><span class="fa-solid fa-chevron-down"></span> Advanced Options</a></div>
+				<div id="domain-advanced-container">
+					<div id="domain-advanced-import" class="import-export">
+						<p>
+							Import all sig0namectl keys in a folder into this manager.
+							Select the folder containing the keys on your device.
+							The keys will be stored in the local cache of this browser.
+						</p>
+						<input type="file" id="directoryPicker" webkitdirectory multiple onchange="domain_list_manager_ui.import_keys(event)">
+					</div>
+					<div id="domain-advanced-import" class="import-export">
+						<p> 
+							Export all your keys from this manager.
+							This creates a ZIP file backup of all your keys. When unzipped, the keys can be imported for use in other browsers and devices.
+						</p>
+						<button onClick="domain_list_manager_ui.export_keys()">Export Your Keys</button>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section id="domain-overview" class="hidden">
+			<script>
+				function hide_domain_overview() {
+					document.getElementById('domain-overview').classList.add('hidden')
+					return false;
+				}
+			</script>
+			<button class="page" title="close this domain overview" onclick="hide_domain_overview()"><span class="fa-solid fa-xmark"></span></button>
+			<div id="domain-overview-container">
+				<h1 id="domain-overview-title">math.zenr.io</h1>
+				<div id="service-entry-create">
+					<h3>Create a 'http' Service Entry</h3>
+					<p>
+						Create a discoverable `http` DNS service.
+						This service is a link to a web page.
+					</p>
+					<script>
+						/// send form to publish services
+						var publish_service = function(event, form) {
+							event.preventDefault();
+							domain_overview_ui.publish_service(event, form);
+						}
+					</script>
+					<form onsubmit="publish_service(event, this)">
+						<label for="service_name">Your Service Name</label>
+						<input type="text"
+						id="service_name"
+						placeholder="My cool Link"
+						name="name"
+						required
+						minlength="4"
+						maxlength="64"
+						pattern=".{4,64}"
+						/><br>
+						<label for="service_link">Your Link</label>
+						<input type="url"
+						id="service_link"
+						placeholder="http://website.com/page.html"
+						name="link"
+						required
+						maxlength="2048"
+						/><br>
+						<input type="submit" value="Create" class="submit"/>
+					</form>	
+				</div>
+				<div id="service-entry-success" class="hidden">
+					<h3>Service Successfully Published</h3>
+					<p>
+						Congratulation! Your service has been successfully published.<br><br>
+						<a href="sd_inspector.html" target="_blank">Inspect your services with the Service Inspector</a>
+					</p>
+				</div>
+			</div>
+		</section>
+		
+		<!-- Templates -->
+		<section style="display:none;">
+			<ul id="domain-template">
+				<li class="entry">
+					<div class="domain"></div>
+					<div class="status"></div>
+				</li>
+			</ul>
+		</section>
+	</body>
+</html>

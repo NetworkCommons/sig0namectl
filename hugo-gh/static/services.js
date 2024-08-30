@@ -22,9 +22,21 @@ class SdServiceInfo {
       'txt': 'required',
       'icon': 'terminal'
     },
+    '_telnet': {
+      'url': 'telnet://',
+      'default_port': 23,
+      'txt': 'required',
+      'icon': 'terminal'
+    },
     '_sftp': {
       'url': 'sftp://',
       'default_port': 22,
+      'txt': 'required',
+      'icon': 'folder-tree'
+    },
+    '_ftp': {
+      'url': 'ftp://',
+      'default_port': 21,
       'txt': 'required',
       'icon': 'folder-tree'
     },
@@ -45,9 +57,13 @@ class SdServiceInfo {
     let link_path = '';
 
     // check if service is known
-    const service_object = this.service_list[service];
+    let service_object = this.service_list[service];
     if (service_object === undefined) {
       return null
+    } else if (service === '_http' && port === 443) {
+      // set specific https settings
+      service_object.default_port = 443;
+      service_object.url = 'https://'
     }
 
     // set port, if it is not at default port
@@ -80,9 +96,9 @@ class SdServiceInfo {
   txt_2_object(txt_array) {
     let txt_result = {};
     for (let i = 0; i < txt_array.length; i++) {
-      for (let j = 0; j < txt_array[i].length; j++) {
+      for (let j = 0; j < txt_array[i].data.length; j++) {
         // convert the binary array to string
-        let entry = String.fromCharCode.apply(String, txt_array[i][j])
+        let entry = String.fromCharCode.apply(String, txt_array[i].data[j])
 
         // split string
         const key_value = entry.split('=')
