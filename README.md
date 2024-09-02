@@ -59,14 +59,17 @@ cd golang
 make sig0namectl
 ```
 
-Each browser GUI application can be locally run by executing `make start` in their respective directories under the repo directory demo/
-Each browser GUI application can also be served by any web server simply by copying across the application directory files to the desired location served by the web server.
+To build the browser based GUIs, use `make` to build the target within each directory under /demo.
 
+Each browser GUI application can be locally run by executing `make start` in their respective directories under the repo directory demo/
 
 ## 💾 Install
 
-No system install yet. scripts use environment variables to define paths and essential defaults.
-Global defaults are set in file 'env' in current directory, tool specific defaults in env.<toolname>
+The Bash tools can be copied to a directory in your in your current `$PATH`. Environment variable `$NSUPDATE_SIG0_KEYPATH` defines location of the keystore directory.
+
+Once built, the golang command line tool `sig0namectl` can simply be copied to a directory in your current `$PATH`.
+
+Each browser GUI application can be installed by simply by copying across the application directory files to the desired location served by a web server.
 
 ## 🎮 Quick start
 
