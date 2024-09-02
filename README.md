@@ -26,7 +26,7 @@
 
 **Work in progress** 🚧: 
 
-sig0namectl is a proof of concept set of tools that enable a secure, direct & scalable standard SIG(0) key based authentication to allow users to manage & further delegate update rights to DNS resource records within compatibly configured DNSSEC enabled zones.
+sig0namectl is a set of tools that allow secure dynamic DNS updates, including further delegation of update rights to others using standards-based, secure SIG(0) key based authentication. 
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
