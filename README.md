@@ -24,9 +24,7 @@
 </h4>
 
 
-**Work in progress** 🚧: 
-
-sig0namectl is a set of tools that allow secure dynamic DNS updates, including further delegation of update rights to others using standards-based, secure SIG(0) key based authentication. 
+sig0namectl is a set of tools that allow secure dynamic DNS updates, allowing for further delegation of update rights to others using standards-based, secure SIG(0) key based DNS update authentication. 
 
 <details id="toc">
  <summary><strong>🚩 Table of Contents</strong> (click to expand)</summary>
