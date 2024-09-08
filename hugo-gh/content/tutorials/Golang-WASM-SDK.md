@@ -67,7 +67,7 @@ function listKeys() {
 //   (both key values are in nspdate / dnssec-keygen compatible format)
 
 // Example: getKeysForDomain()
-//      display a list key in the keystore
+//      display a list of key(s) in the keystore
 //      for which a given domain is equal to or is below the domain of the key's 
 //      DNS Resource Record.
 //
