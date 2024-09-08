@@ -205,7 +205,7 @@ async function findDOHEndpoint() {
 
 ```
 
-## Example: getDefaultDOHResolver(): submit DNS query
+## Example: getDefaultDOHResolver(): get default DNS over HTTPS resolver
 ```
 // getDefaultDOHResolver()
 // gets current default DOH resolver for WASM API
@@ -215,7 +215,7 @@ async function findDOHEndpoint() {
     console.log("Current default DOH resolver is: ", getDefaultDOHResolver())
 
 ```
-## Example: setDefaultDOHResolver(): submit DNS query
+## Example: setDefaultDOHResolver(): set default DNS over HTTPS resolver
 ```
 // setDefaultDOHResolver()
 // sets default DOH resolver for WASM API
