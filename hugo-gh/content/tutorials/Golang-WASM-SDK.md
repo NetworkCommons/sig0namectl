@@ -54,7 +54,7 @@ function listKeys() {
 }
 ```
 
-## listKeysFiltered(): list keys in keystore to update a given FQDN
+## listKeysFiltered(): list keys in keystore suitable to sign update request for a given FQDN
 ```
 // arguments: 1
 // 1 argument:
@@ -97,7 +97,7 @@ function getKeysForDomain() {
 
 ```
 
-## checkKeyStatus(): check DNS status of keypairs in keystore
+## checkKeyStatus(): check DNS status of keys in keystore
 
 ```
 async function listKeysWithStatus() {
@@ -139,7 +139,7 @@ q("zenr.io", {type: "AAAA", dohurl: "doh.zenr.io"})
 q({domain: "zenr.io", type: "AAAA", dohurl: "doh.zenr.io"})
 ```
 
-## newUpdater(): submit DNS update request
+## newUpdater(): submit signed DNS update request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newUpdater = goFuncs["newUpdater"]
@@ -205,7 +205,7 @@ async function findDOHEndpoint() {
 
 ```
 
-## getDefaultDOHResolver(): get default DNS over HTTPS resolver
+## getDefaultDOHResolver(): get default DOH (DNS over HTTPS) resolver
 ```
 // getDefaultDOHResolver()
 // gets current default DOH resolver for WASM API
@@ -215,7 +215,7 @@ async function findDOHEndpoint() {
     console.log("Current default DOH resolver is: ", getDefaultDOHResolver())
 
 ```
-## setDefaultDOHResolver(): set default DNS over HTTPS resolver
+## setDefaultDOHResolver(): set default DOH (DNS over HTTPS) resolver
 ```
 // setDefaultDOHResolver()
 // sets default DOH resolver for WASM API
