@@ -11,7 +11,7 @@ import (
 var printKeyCmd = &cli.Command{
 	Name:    "print-key",
 	Aliases: []string{"pk"},
-	Usage:   "add a task to the list",
+	Usage:   "print sig0 signing key",
 	Action:  printKeyAction,
 }
 
