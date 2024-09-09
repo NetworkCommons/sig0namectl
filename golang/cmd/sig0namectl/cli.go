@@ -10,7 +10,7 @@ import (
 func main() {
 	app := cli.App{
 		Name:  os.Args[0],
-		Usage: "make an explosive entrance",
+		Usage: "secure dynamic DNS tool",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "host", EnvVars: []string{"SIG0_HOST"}},
 			&cli.StringFlag{Name: "zone", Aliases: []string{"z"}, Usage: "the zone you want to update", EnvVars: []string{"SIG0_ZONE"}},
