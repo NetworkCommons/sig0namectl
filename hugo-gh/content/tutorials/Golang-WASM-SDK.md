@@ -1,12 +1,12 @@
 +++
-title = 'sig0namectl Javascript API Examples'
+title = 'sig0namectl API Javascript Examples'
 date = 2024-06-29T14:17:22+02:00
 draft = false
 +++
 
-This section documents the sig0namectl API functions exposed to Javascript via WebAssembly (WASM).
+This section documents usage of the sig0namectl API functions exposed to Javascript via WebAssembly (WASM). It is intended to assist further innovative development of browser-based sig0 dynamic update DNS applications.
 
-## Example: newKeyRequest(): new domain key request
+## newKeyRequest(): new domain key request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newKeyReq = goFuncs["newKeyRequest"]
@@ -21,7 +21,7 @@ newKeyReq(newName, "doh.zenr.io").then(() => {
 }).catch(err => alert(err.message))
 ```
 
-## Example: listKeys(): list all keypairs in keystore
+## listKeys(): list all keypairs in keystore
 ```
 // arguments: 0
 // returns an array of all current keystore keys as JSON objects
@@ -54,7 +54,7 @@ function listKeys() {
 }
 ```
 
-## Example: listKeysFiltered(): list keys in keystore to update a given FQDN
+## listKeysFiltered(): list keys in keystore to update a given FQDN
 ```
 // arguments: 1
 // 1 argument:
@@ -97,7 +97,7 @@ function getKeysForDomain() {
 
 ```
 
-## Example: checkKeyStatus(): check DNS status of keypairs in keystore
+## checkKeyStatus(): check DNS status of keypairs in keystore
 
 ```
 async function listKeysWithStatus() {
@@ -122,7 +122,7 @@ async function listKeysWithStatus() {
         return
 }
 ```
-## Example: query(): submit DNS query
+## query(): submit DNS query
 
 ```
 // arguments: 1 to 3 (2 optional)
@@ -139,7 +139,7 @@ q("zenr.io", {type: "AAAA", dohurl: "doh.zenr.io"})
 q({domain: "zenr.io", type: "AAAA", dohurl: "doh.zenr.io"})
 ```
 
-## Example: newUpdater(): submit DNS update request
+## newUpdater(): submit DNS update request
 ```
 // note: needed in browser console debugging eg. after page reload 
 const newUpdater = goFuncs["newUpdater"]
@@ -174,7 +174,7 @@ u.deleteRRset("update1.wasm-wrapped2.zenr.io 300 IN A")
 u.signedUpdate().then(ok => console.log(`okay! ${ok}`)).catch(err => alert(err.message))
 ```
 
-## Example: findDOHEndpoint(): find DOH URL for a given domain name
+## findDOHEndpoint(): find DOH URL for a given domain name
 ```
 // findDOHEndpoint()
 // for a given domain (usually a zone), find DOH Endpoint URL for update returned as string
@@ -205,7 +205,7 @@ async function findDOHEndpoint() {
 
 ```
 
-## Example: getDefaultDOHResolver(): get default DNS over HTTPS resolver
+## getDefaultDOHResolver(): get default DNS over HTTPS resolver
 ```
 // getDefaultDOHResolver()
 // gets current default DOH resolver for WASM API
@@ -215,7 +215,7 @@ async function findDOHEndpoint() {
     console.log("Current default DOH resolver is: ", getDefaultDOHResolver())
 
 ```
-## Example: setDefaultDOHResolver(): set default DNS over HTTPS resolver
+## setDefaultDOHResolver(): set default DNS over HTTPS resolver
 ```
 // setDefaultDOHResolver()
 // sets default DOH resolver for WASM API
