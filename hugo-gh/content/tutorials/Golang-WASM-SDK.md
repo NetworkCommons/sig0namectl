@@ -1,7 +1,8 @@
 +++
-title = 'sig0namectl API Javascript Examples'
-date = 2024-06-29T14:17:22+02:00
+title = 'sig0namectl API Javascript Usage'
+date = 2024-05-29T14:17:22+02:00
 draft = false
+summary = 'For sig0namectl web browser application development. All sig0namectl API functions area listed with example Javascript usage.'
 +++
 
 This section documents usage of the sig0namectl API functions exposed to Javascript via WebAssembly (WASM). It is intended to assist further innovative development of browser-based sig0 dynamic update DNS applications.
