@@ -1,6 +1,6 @@
 +++
 title = 'sig0namectl Command Line Usage'
-date = 2024-06-29T14:17:22+02:00
+date = 2024-05-29T14:17:22+02:00
 draft = false
 summary = 'Usage examples of the sig0namectl tool to query and update DNS resource records.'
 +++
