@@ -12,7 +12,6 @@ func main() {
 		Name:  os.Args[0],
 		Usage: "secure dynamic DNS tool",
 		Flags: []cli.Flag{
-			&cli.StringFlag{Name: "host", EnvVars: []string{"SIG0_HOST"}},
 			&cli.StringFlag{Name: "keystore", Aliases: []string{"ks"}, Value: "keystore", Usage: "path to keystore", EnvVars: []string{"SIG0_KEYSTORE"}},
 		},
 		Commands: []*cli.Command{

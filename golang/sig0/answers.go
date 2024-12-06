@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/miekg/dns"
 )
 
@@ -52,5 +53,6 @@ func AnySOA(answer *dns.Msg) (*dns.SOA, error) {
 	if soa, err := ExpectAdditonalSOA(answer); err == nil {
 		return soa, nil
 	}
+	spew.Dump(answer)
 	return nil, errors.New("no SOA in either answer or additional")
 }
