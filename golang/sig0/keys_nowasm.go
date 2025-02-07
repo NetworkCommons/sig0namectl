@@ -5,8 +5,8 @@ package sig0
 
 import (
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -35,7 +35,7 @@ func GenerateKeyAndSave(zone string) (*Signer, error) {
 	return signer, nil
 }
 
-func ListKeys(dir string) ([]storedKeyData, error) {
+func ListKeys(dir string) ([]StoredKeyData, error) {
 	fh, err := os.Open(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %q: %w", dir, err)
@@ -47,22 +47,19 @@ func ListKeys(dir string) ([]storedKeyData, error) {
 		return nil, fmt.Errorf("failed to read directory %q: %w", dir, err)
 	}
 
-	var keyfiles []storedKeyData
+	var keyfiles []StoredKeyData
 	for _, name := range names {
 		if !(strings.HasPrefix(name, "K") && strings.HasSuffix(name, ".key")) {
 			continue
 		}
-		keyName := strings.TrimSuffix(name, ".key")
 
-		sig, err := LoadKeyFile(keyName)
+		keyData, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
-			log.Printf("DEBUG: trying %s failed: %v", keyName, err)
-			continue
+			return nil, fmt.Errorf("failed to read %q: %w", name, err)
 		}
-
-		keyfiles = append(keyfiles, storedKeyData{
+		keyfiles = append(keyfiles, StoredKeyData{
 			Name: name,
-			Key:  sig.Key.PublicKey,
+			Key:  string(keyData),
 		})
 	}
 
@@ -90,9 +87,6 @@ func LoadKeyFile(keyfile string) (*Signer, error) {
 	if !ok {
 		return nil, fmt.Errorf("expected dns.KEY, instead: %T", rr)
 	}
-
-	hdr := rr.Header()
-	log.Println(keyfile+".key import:", hdr.Name, hdr.Ttl, hdr.Class, hdr.Rrtype, dnsKey.Flags, dnsKey.Protocol, dnsKey.Algorithm, dnsKey.PublicKey)
 
 	privfh, err := os.Open(secretKeyName)
 	if err != nil {

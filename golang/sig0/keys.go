@@ -11,13 +11,13 @@ import (
 
 var DefaultKeyTTL uint32 = 60
 
-type storedKeyData struct {
+type StoredKeyData struct {
 	Name    string
 	Key     string
 	Private string
 }
 
-func (data storedKeyData) ParseKey() (*dns.KEY, error) {
+func (data StoredKeyData) ParseKey() (*dns.KEY, error) {
 	rr, err := dns.NewRR(data.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read RR from key data: %w", err)
@@ -31,7 +31,7 @@ func (data storedKeyData) ParseKey() (*dns.KEY, error) {
 }
 
 // wasm<>js bridge helper
-func (data storedKeyData) AsMap() map[string]any {
+func (data StoredKeyData) AsMap() map[string]any {
 	return map[string]any{
 		"Key":  data.Key,
 		"Name": data.Name,
@@ -123,4 +123,29 @@ func ParseKeyData(key, private string) (*Signer, error) {
 	}
 
 	return &Signer{Key: dnsKey, private: privkey}, nil
+}
+
+// Lists keys as JSON
+// Returns a filtered array of Keystore public keys and names as array of JSON objects
+// Keys returned possess a public key DNS RR name where searchDomain is contained.
+// where
+//
+//	Name: <filename prefix compatible with nsupdate>
+//	Key:  <public key in DNS RR format compatible with nsupdate>
+func ListKeysFiltered(dir, searchDomain string) ([]StoredKeyData, error) {
+	allKeys, err := ListKeys(dir)
+	if err != nil {
+		return nil, err
+	}
+	var keys []StoredKeyData
+	for _, k := range allKeys {
+		parsed, err := k.ParseKey()
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse Key: %s: %w", k.Name, err)
+		}
+		if strings.HasSuffix(searchDomain, parsed.Hdr.Name) {
+			keys = append(keys, k)
+		}
+	}
+	return keys, nil
 }
