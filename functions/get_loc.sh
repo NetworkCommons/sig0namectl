@@ -15,8 +15,8 @@ function get_loc {
 
 	case "${LOC_PROVIDER}" in
 		"termux")
-      LOC_JSON_PROVIDER=${LOC_JSON_PROVIDER:-"termux-location -p gps"}
-      LOC_JSON=$(LOC_JSON_PROVIDER)
+			LOC_JSON_PROVIDER=${LOC_JSON_PROVIDER:-"termux-location -p gps"}
+			LOC_JSON=$($LOC_JSON_PROVIDER)
 			#
 			LAT=`echo $LOC_JSON | jq -r '.latitude'`
 			LON=`echo $LOC_JSON | jq -r '.longitude'`
