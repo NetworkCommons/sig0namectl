@@ -3,10 +3,10 @@ function get_loc {
 	HOST_OS="`uname -o`"
 	case "${HOST_OS}" in
 		"Android")
-			LOC_PROVIDER="termux"
+			LOC_PROVIDER=${LOC_PROVIDER:-"termux"}
 			;;
 		"GNU/Linux")
-			LOC_PROVIDER="gpsd"
+			LOC_PROVIDER=${LOC_PROVIDER:-"gpsd"}
 			;;
 		*)
 			LOC_PROVIDER="none"
