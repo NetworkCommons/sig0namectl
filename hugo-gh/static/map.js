@@ -131,7 +131,7 @@ class LocRecords {
         this.query_LOC();
 
         // set timer to re-query LOC records
-        setInterval(function() { this.query_LOC() }.bind(this), 10000);
+        setInterval(function() { this.query_LOC() }.bind(this), 1000);
     }
 
     /// construct a timeable function
@@ -191,6 +191,9 @@ class LocRecords {
         // set explanatory pop-up
         let popup_text = this.create_popup_text(latitude, longitude);
         marker.bindPopup(popup_text);
+
+        // set tooltip
+        marker.bindTooltip(this.domain).openTooltip();
 
         // add to entries
         this.entries.push(marker);
