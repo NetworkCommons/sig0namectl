@@ -193,7 +193,9 @@ class LocRecords {
         marker.bindPopup(popup_text);
 
         // set tooltip
-        marker.bindTooltip(this.domain).openTooltip();
+        marker.bindTooltip(this.domain, {
+             permanent: true
+        }).addTo(map);
 
         // add to entries
         this.entries.push(marker);
