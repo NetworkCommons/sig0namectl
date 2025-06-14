@@ -26,6 +26,15 @@ ENVIRONMENT VARIABLES:
    NSUPDATE_SIG0_KEYPATH         specifies the full directory path of the keystore to read and write SIG(0) keys
    NEW_FQDN                      specifies the fully qualified domain name to update
    ZONE                          the DNS zone of the fully qualified domain name (default is autodetect zone)
+
+EXAMPLE USE:
+
+$ request_key xetrov.beta.berlin.freifunk.net
+Generating key pair.
+Kxetrov.beta.berlin.freifunk.net.+015+00672
+New SIG0 keypair for xetrov.beta.berlin.freifunk.net generated in /home/vortex/src/sig0namectl/keystore
+KEY request 'xetrov._signal.beta.berlin.freifunk.net  IN KEY 512 3 15 cVUh+K/kOMf1whPuTM9p3NHkiTKPSLxv1LHY/rNxuUg=' added
+
 ```
 
 ```
