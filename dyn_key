@@ -55,15 +55,26 @@ fi
 # loop over command line parameter (post getops()) for IPv[4,6] assignments
 
 NSUPDATE_ITEM_RR=""
-for keyname in ${CMDLINE_EXTRA_PARAMS}; do
-        if validateKEY "${keyname}";then
-		NSUPDATE_RRTYPE="KEY"
-		[[ -n ${DEBUG} ]] && echo "KEY '${keyname}' resolves, marked to ${NSUPDATE_ACTION}"
-		NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} $(dig +short ${keyname} ${NSUPDATE_RRTYPE})\n"
-	else
-                echo "Warning: Skipping no KEY resolved with FQDN '${keyname}'"
-        fi
-done
+# if CMDLINE_EXTRA_PARAMS looks like an explicit single ED25519 KEY RR record, then process, simply ie:
+# if [[ $TEST == "512 3 15 "* ]] ; then echo "yes"; fi
+# else CMDLINE_EXTRA_PARAMS is assumed to be one or more FQDN names of existing KEY RRs to look up
+
+if [[ "${CMDLINE_EXTRA_PARAMS}" == "512 3 15 "* ]] ; then 
+	NSUPDATE_RRTYPE="KEY"
+	NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} ${CMDLINE_EXTRA_PARAMS}\n"
+	echo "Processing Explicit ED25519 KEY record"; 
+else
+	for keyname in ${CMDLINE_EXTRA_PARAMS}; do
+	        if validateKEY "${keyname}";then
+			NSUPDATE_RRTYPE="KEY"
+			[[ -n ${DEBUG} ]] && echo "KEY '${keyname}' resolves, marked to ${NSUPDATE_ACTION}"
+			NSUPDATE_ITEM_RR="${NSUPDATE_ITEM_RR}update ${NSUPDATE_ACTION} ${NEW_FQDN} ${NSUPDATE_TTL} ${NSUPDATE_RRTYPE} $(dig +short ${keyname} ${NSUPDATE_RRTYPE})\n"
+		else
+	                echo "Warning: Skipping no KEY resolved with FQDN '${keyname}'"
+	        fi
+	done
+fi
+
 
 if [[ -n ${DEBUG} ]]; then
 	echo "---"
