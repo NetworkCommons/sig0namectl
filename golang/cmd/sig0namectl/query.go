@@ -24,6 +24,13 @@ var queryCmd = &cli.Command{
 			Value: &dnsRRTypeFlag{},
 		},
 
+		&cli.StringFlag{
+			Name:    "server",
+			Aliases: []string{"srv"},
+			Usage:   "DoH server to query, e.g. doh.zenr.io",
+			EnvVars: []string{"SIG0_DOH_SERVER"},
+		},
+
 		&cli.BoolFlag{
 			Name:  "json",
 			Usage: "output JSON",
