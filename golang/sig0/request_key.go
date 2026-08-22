@@ -15,7 +15,7 @@ var (
 	//DefaultDOHResolver  = "8.8.8.8"
 	// DefaultDOHResolver  = "1.1.1.1"
 	// DefaultDOHResolver  = "quad9.zenr.io"
-	DefaultDOHResolver  = "google.zenr.io"
+	DefaultDOHResolver  = "google.zenr.io"  // overridable: --resolver / SIG0_DOH_RESOLVER
 	// DefaultDOHResolver  = "doh.zenr.io"
 )
 
