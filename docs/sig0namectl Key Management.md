@@ -39,7 +39,7 @@ Kvortex.zenr.io.+015+56161.key  Kvortex.zenr.io.+015+56161.private
 
 Zones that are under dynamic control via nsupdate or a DHCP server should not be edited by hand. Manual edits could conflict with dynamic updates and cause data to be lost.
 
-The  resource  records  that  are  dynamically  added  or removed with nsupdate must be in the same zone. Requests are sent to the zone's primary server, which is identified by the MNAME field of the zone's SOA record.
+The  resource  records  that  are  dynamically  added  or removed with nsupdate must be in the same zone. Requests are sent to the zone's primary update server, which is identified by the MNAME field of the zone's SOA record.
 
 Transaction signatures can be used to authenticate the Dynamic DNS updates. These use the TSIG resource record type described in  RFC  2845,  the SIG(0) record described in RFC 2535 and RFC 2931, or GSS-TSIG as described in RFC 3645.
 
